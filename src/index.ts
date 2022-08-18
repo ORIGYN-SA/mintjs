@@ -1,1 +1,2 @@
-export const Mint = () => `Minted`;
+export * from './methods/balance';
+export * from './methods/nft';

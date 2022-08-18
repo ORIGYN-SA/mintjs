@@ -10,15 +10,27 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "jest --config jestconfig.json",
-    "build": "tsc",
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./dist && rm -rf tsconfig.tsbuildinfo",
+    "compile": "tsc -b tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "prepublishOnly": "npm test && npm run lint",
+    "postversion": "git push && git push --tags",
     "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
-    "version": "npm run format && git add -A src",
-    "postversion": "git push && git push --tags"
+    "test": "jest --config jestconfig.json",
+    "version": "npm run format && git add -A src"
+  },
+  "dependencies": {
+    "@dfinity/agent": "^0.13.1",
+    "@dfinity/candid": "^0.13.1",
+    "@dfinity/identity": "^0.13.1",
+    "@dfinity/principal": "^0.13.1",
+    "buffer-crc32": "^0.2.13",
+    "cross-fetch": "^3.1.5",
+    "crypto-js": "^4.1.1",
+    "ts-results": "^3.3.0"
   },
   "devDependencies": {
     "@types/jest": "^28.1.6",
