@@ -1,4 +1,4 @@
-import { Actor, HttpAgent, Identity } from '@dfinity/agent';
+import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
 import origynIdl from './idls/origyn_nft_reference';
 import { IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
 import fetch from 'cross-fetch';
@@ -8,6 +8,7 @@ export const DEFAULT_AGENT = new HttpAgent({ fetch, host: IC_HOST });
 export class OrigynClient {
   private static _instance: OrigynClient;
   private _actor: any;
+  private _canisterId: string = '';
 
   private constructor() {}
 
@@ -27,27 +28,43 @@ export class OrigynClient {
     return this._actor;
   }
 
-  public init = (auth?: Actor | HttpAgent | Identity): void => {
-    let agent = DEFAULT_AGENT;
-    if (auth) {
-      if ('getPrincipal' in auth) {
-        agent =
-          'call' in auth
-            ? auth
-            : new HttpAgent({
-                // @ts-ignore
-                auth,
-                host: 'https://boundary.ic0.app/',
-                fetch,
-              });
-      } else {
-        this._actor = auth;
-        return;
-      }
+  public get canisterId() {
+    return this._canisterId;
+  }
+
+  public init = (canisterId?: string, auth?: AuthType): void => {
+    let agent = auth?.agent ?? DEFAULT_AGENT;
+    if (canisterId) this._canisterId = canisterId;
+
+    if (auth?.actor) {
+      this._actor = auth.actor;
+      return;
     }
+
+    if (auth?.identity) {
+      agent = new HttpAgent({
+        identity: auth.identity,
+        host: 'https://boundary.ic0.app/',
+        fetch,
+      });
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      agent.fetchRootKey().catch((err) => {
+        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+        console.error(err);
+      });
+    }
+
     this._actor = Actor.createActor(origynIdl, {
-      canisterId: ORIGYN_CANISTER_ID,
+      canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
       agent: agent,
     });
   };
 }
+
+type AuthType = {
+  actor?: ActorSubclass<any>;
+  identity?: Identity;
+  agent?: HttpAgent;
+};
