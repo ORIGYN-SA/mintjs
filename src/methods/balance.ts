@@ -1,7 +1,7 @@
-import { createActor, createAgent } from '../identity/actor';
+import { OrigynClient } from '../origynClient';
 
 export const getNftBalance = () => {
-  const actor = createActor(createAgent());
+  const actor = OrigynClient.getInstance().actor;
   // @ts-ignore
   console.log(actor.balance);
 };
