@@ -1,3 +1,4 @@
+import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
 import origynIdl from './idls/origyn_nft_reference';
 import { IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
@@ -8,6 +9,7 @@ export const DEFAULT_AGENT = new HttpAgent({ fetch, host: IC_HOST });
 export class OrigynClient {
   private static _instance: OrigynClient;
   private _actor: any;
+  private _principal: Principal | undefined;
   private _canisterId: string = '';
 
   private constructor() {}
@@ -26,6 +28,10 @@ export class OrigynClient {
       this.init();
     }
     return this._actor;
+  }
+
+  public get principal() {
+    return this._principal;
   }
 
   public get canisterId() {
@@ -61,6 +67,14 @@ export class OrigynClient {
       agent: agent,
     });
   };
+
+  public set principal(principal: Principal | string | undefined) {
+    if (typeof principal === 'string') {
+      this._principal = Principal.fromText(principal);
+    } else {
+      this._principal = principal;
+    }
+  }
 }
 
 type AuthType = {
