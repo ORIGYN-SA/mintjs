@@ -18,3 +18,14 @@ test('expect getNftBalance to return nfts for test principal (as arg)', async ()
   const response = await getNftBalance(principal);
   expect(response).toHaveProperty('ok.nfts');
 });
+
+test('expect getNftBalance to return error code when no principal', async () => {
+  const EXPECTED_RESPONSE = {
+    err: {
+      error_code: 2,
+    },
+  };
+  OrigynClient.getInstance().principal = undefined;
+  const response = await getNftBalance();
+  expect(response).toStrictEqual(EXPECTED_RESPONSE);
+});

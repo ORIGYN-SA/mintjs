@@ -1,4 +1,4 @@
-import { OrigynResponse } from '../types/origynTypes';
+import { OrigynResponse, TransactionType } from '../types/origynTypes';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
 
@@ -46,6 +46,29 @@ export const mintNft = async (token_id: string, principal: Principal): Promise<O
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
   } catch (e) {
+    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export const getNftHistory = async (
+  token_id: string,
+  start?: BigInt,
+  end?: BigInt,
+): Promise<OrigynResponse<TransactionType, GetNftErrors>> => {
+  try {
+    const actor = OrigynClient.getInstance().actor;
+    const args = {
+      start: start ? [start] : [],
+      end: end ? [end] : [],
+    };
+    const response = await actor.history_nft_origyn(token_id, args.start, args.end);
+    if (response.ok || response.error) {
+      return response;
+    } else {
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    console.log(e);
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
   }
 };
