@@ -31,9 +31,9 @@ export type TokenType = {
     canister: Principal;
     standard: {
       ICRC?: null;
-      EXTFungible: null;
-      DIP20: null;
-      Ledger: null;
+      EXTFungible?: null;
+      DIP20?: null;
+      Ledger?: null;
     };
     symbol: string;
   };
@@ -179,4 +179,17 @@ export type AuctionConfigType = {
     };
     date?: number;
   };
+};
+
+export type IcTokenType = {
+  canister: Principal;
+  decimals: BigInt;
+  fee: BigInt;
+  standard: {
+    DIP20?: null;
+    EXTFungible?: null;
+    ICRC1?: null;
+    Ledger?: null;
+  };
+  symbol: string;
 };
