@@ -117,6 +117,16 @@ export type TransactionType = {
       sale?: { token: TokenType; amount: BigInt };
       extensible: any;
     };
+    royalty_paid?: {
+      tag: string;
+      token: TokenType;
+      reciever: AccountType;
+      seller: AccountType;
+      extensible: any;
+      buyer: AccountType;
+      amount: BigInt;
+      sale_id?: string;
+    };
     extensible: any;
     owner_transfer?: {
       to: AccountType;

@@ -66,14 +66,14 @@ export default ({ IDL }) => {
         frozen: IDL.Vec(CandyValue),
       }),
       Class: IDL.Vec(Property),
-    })
+    }),
   );
-  const Account = IDL.Variant({
+  const Account__1 = IDL.Variant({
     account_id: IDL.Text,
     principal: IDL.Principal,
     extensible: CandyValue,
     account: IDL.Record({
-      of: IDL.Principal,
+      owner: IDL.Principal,
       sub_account: IDL.Opt(IDL.Vec(IDL.Nat8)),
     }),
   });
@@ -93,6 +93,15 @@ export default ({ IDL }) => {
     ic: ICTokenSpec,
     extensible: CandyValue,
   });
+  const Account = IDL.Variant({
+    account_id: IDL.Text,
+    principal: IDL.Principal,
+    extensible: CandyValue,
+    account: IDL.Record({
+      owner: IDL.Principal,
+      sub_account: IDL.Opt(IDL.Vec(IDL.Nat8)),
+    }),
+  });
   const EscrowRecord = IDL.Record({
     token: TokenSpec,
     token_id: IDL.Text,
@@ -102,10 +111,9 @@ export default ({ IDL }) => {
     amount: IDL.Nat,
     sale_id: IDL.Opt(IDL.Text),
     account_hash: IDL.Opt(IDL.Vec(IDL.Nat8)),
-    balances: IDL.Opt(IDL.Vec(IDL.Tuple(Account, IDL.Nat))),
   });
   const StakeRecord = IDL.Record({
-    staker: Account,
+    staker: Account__1,
     token_id: IDL.Text,
     amount: IDL.Nat,
   });
@@ -169,147 +177,15 @@ export default ({ IDL }) => {
     number: IDL.Nat32,
     flag_point: IDL.Text,
   });
-  const Result_21 = IDL.Variant({
+  const Result_17 = IDL.Variant({
     ok: BalanceResponse,
     err: OrigynError,
   });
-  const Result_20 = IDL.Variant({
+  const Result_16 = IDL.Variant({
     ok: AccountIdentifier,
     err: CommonError,
   });
-  const Result_19 = IDL.Variant({ ok: Account, err: OrigynError });
-  const EscrowReceipt = IDL.Record({
-    token: TokenSpec,
-    token_id: IDL.Text,
-    seller: Account,
-    buyer: Account,
-    amount: IDL.Nat,
-  });
-  const BidRequest = IDL.Record({
-    broker_id: IDL.Opt(IDL.Principal),
-    escrow_receipt: EscrowReceipt,
-    sale_id: IDL.Text,
-  });
-  const TransactionID = IDL.Variant({
-    nat: IDL.Nat,
-    text: IDL.Text,
-    extensible: CandyValue,
-  });
-  const AuctionConfig = IDL.Record({
-    start_price: IDL.Nat,
-    token: TokenSpec,
-    reserve: IDL.Opt(IDL.Nat),
-    start_date: IDL.Int,
-    min_increase: IDL.Variant({
-      amount: IDL.Nat,
-      percentage: IDL.Float64,
-    }),
-    allow_list: IDL.Opt(IDL.Vec(IDL.Principal)),
-    buy_now: IDL.Opt(IDL.Nat),
-    ending: IDL.Variant({
-      waitForQuiet: IDL.Record({
-        max: IDL.Nat,
-        date: IDL.Int,
-        fade: IDL.Float64,
-        extention: IDL.Nat64,
-      }),
-      date: IDL.Int,
-    }),
-  });
-  const PricingConfig = IDL.Variant({
-    flat: IDL.Record({ token: TokenSpec, amount: IDL.Nat }),
-    extensible: IDL.Variant({ candyClass: IDL.Null }),
-    instant: IDL.Null,
-    auction: AuctionConfig,
-    dutch: IDL.Record({
-      start_price: IDL.Nat,
-      reserve: IDL.Opt(IDL.Nat),
-      decay_per_hour: IDL.Float64,
-    }),
-  });
-  const BidResponse = IDL.Record({
-    token_id: IDL.Text,
-    txn_type: IDL.Variant({
-      escrow_deposit: IDL.Record({
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-      canister_network_updated: IDL.Record({
-        network: IDL.Principal,
-        extensible: CandyValue,
-      }),
-      escrow_withdraw: IDL.Record({
-        fee: IDL.Nat,
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-      canister_managers_updated: IDL.Record({
-        managers: IDL.Vec(IDL.Principal),
-        extensible: CandyValue,
-      }),
-      auction_bid: IDL.Record({
-        token: TokenSpec,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-        sale_id: IDL.Text,
-      }),
-      burn: IDL.Null,
-      data: IDL.Null,
-      sale_ended: IDL.Record({
-        token: TokenSpec,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-        sale_id: IDL.Opt(IDL.Text),
-      }),
-      mint: IDL.Record({
-        to: Account,
-        from: Account,
-        sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
-        extensible: CandyValue,
-      }),
-      extensible: CandyValue,
-      owner_transfer: IDL.Record({
-        to: Account,
-        from: Account,
-        extensible: CandyValue,
-      }),
-      sale_opened: IDL.Record({
-        pricing: PricingConfig,
-        extensible: CandyValue,
-        sale_id: IDL.Text,
-      }),
-      canister_owner_updated: IDL.Record({
-        owner: IDL.Principal,
-        extensible: CandyValue,
-      }),
-      sale_withdraw: IDL.Record({
-        fee: IDL.Nat,
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-    }),
-    timestamp: IDL.Int,
-    index: IDL.Nat,
-  });
-  const Result_18 = IDL.Variant({ ok: BidResponse, err: OrigynError });
+  const Result_15 = IDL.Variant({ ok: Account__1, err: OrigynError });
   const canister_id = IDL.Principal;
   const definite_canister_settings = IDL.Record({
     freezing_threshold: IDL.Nat,
@@ -353,7 +229,7 @@ export default ({ IDL }) => {
       current_chunk: IDL.Opt(IDL.Nat),
     }),
   });
-  const Result_17 = IDL.Variant({ ok: ChunkContent, err: OrigynError });
+  const Result_14 = IDL.Variant({ ok: ChunkContent, err: OrigynError });
   const CollectionInfo = IDL.Record({
     multi_canister_count: IDL.Opt(IDL.Nat),
     managers: IDL.Opt(IDL.Vec(IDL.Principal)),
@@ -362,9 +238,7 @@ export default ({ IDL }) => {
     logo: IDL.Opt(IDL.Text),
     name: IDL.Opt(IDL.Text),
     network: IDL.Opt(IDL.Principal),
-    fields: IDL.Opt(
-      IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))
-    ),
+    fields: IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))),
     token_ids_count: IDL.Opt(IDL.Nat),
     available_space: IDL.Opt(IDL.Nat),
     multi_canister: IDL.Opt(IDL.Vec(IDL.Principal)),
@@ -373,7 +247,7 @@ export default ({ IDL }) => {
     symbol: IDL.Opt(IDL.Text),
     allocated_storage: IDL.Opt(IDL.Nat),
   });
-  const Result_16 = IDL.Variant({ ok: CollectionInfo, err: OrigynError });
+  const Result_13 = IDL.Variant({ ok: CollectionInfo, err: OrigynError });
   const ManageCollectionCommand = IDL.Variant({
     UpdateOwner: IDL.Principal,
     UpdateManagers: IDL.Vec(IDL.Principal),
@@ -383,111 +257,50 @@ export default ({ IDL }) => {
     UpdateLogo: IDL.Opt(IDL.Text),
     UpdateName: IDL.Opt(IDL.Text),
   });
-  const Result_15 = IDL.Variant({ ok: IDL.Bool, err: OrigynError });
+  const Result_12 = IDL.Variant({ ok: IDL.Bool, err: OrigynError });
   const LogEntry = IDL.Record({
     data: CandyValue,
     event: IDL.Text,
     timestamp: IDL.Int,
     caller: IDL.Opt(IDL.Principal),
   });
-  const EndSaleResponse = IDL.Record({
-    token_id: IDL.Text,
-    txn_type: IDL.Variant({
-      escrow_deposit: IDL.Record({
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-      canister_network_updated: IDL.Record({
-        network: IDL.Principal,
-        extensible: CandyValue,
-      }),
-      escrow_withdraw: IDL.Record({
-        fee: IDL.Nat,
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-      canister_managers_updated: IDL.Record({
-        managers: IDL.Vec(IDL.Principal),
-        extensible: CandyValue,
-      }),
-      auction_bid: IDL.Record({
-        token: TokenSpec,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-        sale_id: IDL.Text,
-      }),
-      burn: IDL.Null,
-      data: IDL.Null,
-      sale_ended: IDL.Record({
-        token: TokenSpec,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-        sale_id: IDL.Opt(IDL.Text),
-      }),
-      mint: IDL.Record({
-        to: Account,
-        from: Account,
-        sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
-        extensible: CandyValue,
-      }),
-      extensible: CandyValue,
-      owner_transfer: IDL.Record({
-        to: Account,
-        from: Account,
-        extensible: CandyValue,
-      }),
-      sale_opened: IDL.Record({
-        pricing: PricingConfig,
-        extensible: CandyValue,
-        sale_id: IDL.Text,
-      }),
-      canister_owner_updated: IDL.Record({
-        owner: IDL.Principal,
-        extensible: CandyValue,
-      }),
-      sale_withdraw: IDL.Record({
-        fee: IDL.Nat,
-        token: TokenSpec,
-        token_id: IDL.Text,
-        trx_id: TransactionID,
-        seller: Account,
-        extensible: CandyValue,
-        buyer: Account,
-        amount: IDL.Nat,
-      }),
-    }),
-    timestamp: IDL.Int,
-    index: IDL.Nat,
+  const Result_2 = IDL.Variant({ ok: IDL.Text, err: OrigynError });
+  const TransactionID__1 = IDL.Variant({
+    nat: IDL.Nat,
+    text: IDL.Text,
+    extensible: CandyValue,
   });
-  const Result_14 = IDL.Variant({
-    ok: EndSaleResponse,
-    err: OrigynError,
-  });
-  const DepositDetail = IDL.Record({
+  const AuctionConfig = IDL.Record({
+    start_price: IDL.Nat,
     token: TokenSpec,
-    trx_id: IDL.Opt(TransactionID),
-    seller: Account,
-    buyer: Account,
-    amount: IDL.Nat,
-    sale_id: IDL.Opt(IDL.Text),
+    reserve: IDL.Opt(IDL.Nat),
+    start_date: IDL.Int,
+    min_increase: IDL.Variant({
+      amount: IDL.Nat,
+      percentage: IDL.Float64,
+    }),
+    allow_list: IDL.Opt(IDL.Vec(IDL.Principal)),
+    buy_now: IDL.Opt(IDL.Nat),
+    ending: IDL.Variant({
+      waitForQuiet: IDL.Record({
+        max: IDL.Nat,
+        date: IDL.Int,
+        fade: IDL.Float64,
+        extention: IDL.Nat64,
+      }),
+      date: IDL.Int,
+    }),
   });
-  const EscrowRequest = IDL.Record({
-    token_id: IDL.Text,
-    deposit: DepositDetail,
-    lock_to_date: IDL.Opt(IDL.Int),
+  const PricingConfig = IDL.Variant({
+    flat: IDL.Record({ token: TokenSpec, amount: IDL.Nat }),
+    extensible: IDL.Variant({ candyClass: IDL.Null }),
+    instant: IDL.Null,
+    auction: AuctionConfig,
+    dutch: IDL.Record({
+      start_price: IDL.Nat,
+      reserve: IDL.Opt(IDL.Nat),
+      decay_per_hour: IDL.Float64,
+    }),
   });
   const TransactionRecord = IDL.Record({
     token_id: IDL.Text,
@@ -495,7 +308,7 @@ export default ({ IDL }) => {
       escrow_deposit: IDL.Record({
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -509,7 +322,7 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -542,6 +355,16 @@ export default ({ IDL }) => {
         sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
         extensible: CandyValue,
       }),
+      royalty_paid: IDL.Record({
+        tag: IDL.Text,
+        token: TokenSpec,
+        reciever: Account,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
       extensible: CandyValue,
       owner_transfer: IDL.Record({
         to: Account,
@@ -561,7 +384,7 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -571,19 +394,6 @@ export default ({ IDL }) => {
     timestamp: IDL.Int,
     index: IDL.Nat,
   });
-  const EscrowResponse = IDL.Record({
-    balance: IDL.Nat,
-    receipt: EscrowReceipt,
-    transaction: TransactionRecord,
-  });
-  const Result_13 = IDL.Variant({ ok: EscrowResponse, err: OrigynError });
-  const Result_2 = IDL.Variant({ ok: IDL.Text, err: OrigynError });
-  const StorageMetrics = IDL.Record({
-    available_space: IDL.Nat,
-    allocations: IDL.Vec(AllocationRecordStable),
-    allocated_storage: IDL.Nat,
-  });
-  const Result_12 = IDL.Variant({ ok: StorageMetrics, err: OrigynError });
   const Result_11 = IDL.Variant({
     ok: IDL.Vec(TransactionRecord),
     err: OrigynError,
@@ -618,9 +428,7 @@ export default ({ IDL }) => {
     body: IDL.Vec(IDL.Nat8),
   });
   const ManageStorageRequest = IDL.Variant({
-    add_storage_canisters: IDL.Vec(
-      IDL.Tuple(IDL.Principal, IDL.Nat, IDL.Tuple(IDL.Nat, IDL.Nat, IDL.Nat))
-    ),
+    add_storage_canisters: IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat, IDL.Tuple(IDL.Nat, IDL.Nat, IDL.Nat))),
   });
   const ManageStorageResponse = IDL.Variant({
     add_storage_canisters: IDL.Tuple(IDL.Nat, IDL.Nat),
@@ -629,8 +437,27 @@ export default ({ IDL }) => {
     ok: ManageStorageResponse,
     err: OrigynError,
   });
+  const PricingConfig__1 = IDL.Variant({
+    flat: IDL.Record({ token: TokenSpec, amount: IDL.Nat }),
+    extensible: IDL.Variant({ candyClass: IDL.Null }),
+    instant: IDL.Null,
+    auction: AuctionConfig,
+    dutch: IDL.Record({
+      start_price: IDL.Nat,
+      reserve: IDL.Opt(IDL.Nat),
+      decay_per_hour: IDL.Float64,
+    }),
+  });
+  const EscrowReceipt = IDL.Record({
+    token: TokenSpec,
+    token_id: IDL.Text,
+    seller: Account,
+    buyer: Account,
+    amount: IDL.Nat,
+  });
   const SalesConfig = IDL.Record({
-    pricing: PricingConfig,
+    broker_id: IDL.Opt(IDL.Principal),
+    pricing: PricingConfig__1,
     escrow_receipt: IDL.Opt(EscrowReceipt),
   });
   const MarketTransferRequest = IDL.Record({
@@ -643,7 +470,7 @@ export default ({ IDL }) => {
       escrow_deposit: IDL.Record({
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -657,7 +484,7 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -690,6 +517,16 @@ export default ({ IDL }) => {
         sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
         extensible: CandyValue,
       }),
+      royalty_paid: IDL.Record({
+        tag: IDL.Text,
+        token: TokenSpec,
+        reciever: Account,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
       extensible: CandyValue,
       owner_transfer: IDL.Record({
         to: Account,
@@ -709,7 +546,7 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -741,17 +578,20 @@ export default ({ IDL }) => {
     }),
     participants: IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Int)),
     current_bid_amount: IDL.Nat,
-    winner: IDL.Opt(Account),
+    winner: IDL.Opt(Account__1),
     end_date: IDL.Int,
     wait_for_quiet_count: IDL.Opt(IDL.Nat),
     current_escrow: IDL.Opt(EscrowReceipt),
     allow_list: IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Bool))),
+    current_broker_id: IDL.Opt(IDL.Principal),
     min_next_bid: IDL.Nat,
-    config: PricingConfig,
+    config: PricingConfig__1,
   });
   const SaleStatusStable = IDL.Record({
     token_id: IDL.Text,
     sale_type: IDL.Variant({ auction: AuctionStateStable }),
+    broker_id: IDL.Opt(IDL.Principal),
+    original_broker_id: IDL.Opt(IDL.Principal),
     sale_id: IDL.Text,
   });
   const NFTInfoStable = IDL.Record({
@@ -776,9 +616,9 @@ export default ({ IDL }) => {
     Err: NftError,
   });
   const OwnerTransferRequest = IDL.Record({
-    to: Account,
+    to: Account__1,
     token_id: IDL.Text,
-    from: Account,
+    from: Account__1,
   });
   const OwnerTransferResponse = IDL.Record({
     transaction: TransactionRecord,
@@ -788,18 +628,45 @@ export default ({ IDL }) => {
     ok: OwnerTransferResponse,
     err: OrigynError,
   });
-  const RejectDescription = IDL.Record({
-    token: TokenSpec,
+  const BidRequest = IDL.Record({
+    broker_id: IDL.Opt(IDL.Principal),
+    escrow_receipt: EscrowReceipt,
+    sale_id: IDL.Text,
+  });
+  const TokenSpec__1 = IDL.Variant({
+    ic: ICTokenSpec,
+    extensible: CandyValue,
+  });
+  const TransactionID = IDL.Variant({
+    nat: IDL.Nat,
+    text: IDL.Text,
+    extensible: CandyValue,
+  });
+  const DepositDetail = IDL.Record({
+    token: TokenSpec__1,
+    trx_id: IDL.Opt(TransactionID),
+    seller: Account__1,
+    buyer: Account__1,
+    amount: IDL.Nat,
+    sale_id: IDL.Opt(IDL.Text),
+  });
+  const EscrowRequest = IDL.Record({
     token_id: IDL.Text,
-    seller: Account,
-    buyer: Account,
+    deposit: DepositDetail,
+    lock_to_date: IDL.Opt(IDL.Int),
+  });
+  const RejectDescription = IDL.Record({
+    token: TokenSpec__1,
+    token_id: IDL.Text,
+    seller: Account__1,
+    buyer: Account__1,
   });
   const WithdrawDescription = IDL.Record({
-    token: TokenSpec,
+    token: TokenSpec__1,
     token_id: IDL.Text,
-    seller: Account,
-    withdraw_to: Account,
-    buyer: Account,
+    seller: Account__1,
+    withdraw_to: Account__1,
+    buyer: Account__1,
     amount: IDL.Nat,
   });
   const WithdrawRequest = IDL.Variant({
@@ -812,16 +679,16 @@ export default ({ IDL }) => {
     escrow_deposit: EscrowRequest,
     withdraw: WithdrawRequest,
     end_sale: IDL.Text,
-    refresh_offers: IDL.Opt(Account),
+    refresh_offers: IDL.Opt(Account__1),
     open_sale: IDL.Text,
   });
-  const WithdrawResponse = IDL.Record({
+  const BidResponse = IDL.Record({
     token_id: IDL.Text,
     txn_type: IDL.Variant({
       escrow_deposit: IDL.Record({
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -835,7 +702,7 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -868,6 +735,16 @@ export default ({ IDL }) => {
         sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
         extensible: CandyValue,
       }),
+      royalty_paid: IDL.Record({
+        tag: IDL.Text,
+        token: TokenSpec,
+        reciever: Account,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
       extensible: CandyValue,
       owner_transfer: IDL.Record({
         to: Account,
@@ -887,7 +764,196 @@ export default ({ IDL }) => {
         fee: IDL.Nat,
         token: TokenSpec,
         token_id: IDL.Text,
-        trx_id: TransactionID,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+    }),
+    timestamp: IDL.Int,
+    index: IDL.Nat,
+  });
+  const EscrowResponse = IDL.Record({
+    balance: IDL.Nat,
+    receipt: EscrowReceipt,
+    transaction: TransactionRecord,
+  });
+  const WithdrawResponse = IDL.Record({
+    token_id: IDL.Text,
+    txn_type: IDL.Variant({
+      escrow_deposit: IDL.Record({
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+      canister_network_updated: IDL.Record({
+        network: IDL.Principal,
+        extensible: CandyValue,
+      }),
+      escrow_withdraw: IDL.Record({
+        fee: IDL.Nat,
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+      canister_managers_updated: IDL.Record({
+        managers: IDL.Vec(IDL.Principal),
+        extensible: CandyValue,
+      }),
+      auction_bid: IDL.Record({
+        token: TokenSpec,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Text,
+      }),
+      burn: IDL.Null,
+      data: IDL.Null,
+      sale_ended: IDL.Record({
+        token: TokenSpec,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
+      mint: IDL.Record({
+        to: Account,
+        from: Account,
+        sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
+        extensible: CandyValue,
+      }),
+      royalty_paid: IDL.Record({
+        tag: IDL.Text,
+        token: TokenSpec,
+        reciever: Account,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
+      extensible: CandyValue,
+      owner_transfer: IDL.Record({
+        to: Account,
+        from: Account,
+        extensible: CandyValue,
+      }),
+      sale_opened: IDL.Record({
+        pricing: PricingConfig,
+        extensible: CandyValue,
+        sale_id: IDL.Text,
+      }),
+      canister_owner_updated: IDL.Record({
+        owner: IDL.Principal,
+        extensible: CandyValue,
+      }),
+      sale_withdraw: IDL.Record({
+        fee: IDL.Nat,
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+    }),
+    timestamp: IDL.Int,
+    index: IDL.Nat,
+  });
+  const EndSaleResponse = IDL.Record({
+    token_id: IDL.Text,
+    txn_type: IDL.Variant({
+      escrow_deposit: IDL.Record({
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+      canister_network_updated: IDL.Record({
+        network: IDL.Principal,
+        extensible: CandyValue,
+      }),
+      escrow_withdraw: IDL.Record({
+        fee: IDL.Nat,
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+      }),
+      canister_managers_updated: IDL.Record({
+        managers: IDL.Vec(IDL.Principal),
+        extensible: CandyValue,
+      }),
+      auction_bid: IDL.Record({
+        token: TokenSpec,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Text,
+      }),
+      burn: IDL.Null,
+      data: IDL.Null,
+      sale_ended: IDL.Record({
+        token: TokenSpec,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
+      mint: IDL.Record({
+        to: Account,
+        from: Account,
+        sale: IDL.Opt(IDL.Record({ token: TokenSpec, amount: IDL.Nat })),
+        extensible: CandyValue,
+      }),
+      royalty_paid: IDL.Record({
+        tag: IDL.Text,
+        token: TokenSpec,
+        reciever: Account,
+        seller: Account,
+        extensible: CandyValue,
+        buyer: Account,
+        amount: IDL.Nat,
+        sale_id: IDL.Opt(IDL.Text),
+      }),
+      extensible: CandyValue,
+      owner_transfer: IDL.Record({
+        to: Account,
+        from: Account,
+        extensible: CandyValue,
+      }),
+      sale_opened: IDL.Record({
+        pricing: PricingConfig,
+        extensible: CandyValue,
+        sale_id: IDL.Text,
+      }),
+      canister_owner_updated: IDL.Record({
+        owner: IDL.Principal,
+        extensible: CandyValue,
+      }),
+      sale_withdraw: IDL.Record({
+        fee: IDL.Nat,
+        token: TokenSpec,
+        token_id: IDL.Text,
+        trx_id: TransactionID__1,
         seller: Account,
         extensible: CandyValue,
         buyer: Account,
@@ -912,7 +978,7 @@ export default ({ IDL }) => {
   const SaleInfoRequest = IDL.Variant({
     status: IDL.Text,
     active: IDL.Opt(IDL.Tuple(IDL.Nat, IDL.Nat)),
-    deposit_info: IDL.Opt(Account),
+    deposit_info: IDL.Opt(Account__1),
     history: IDL.Opt(IDL.Tuple(IDL.Nat, IDL.Nat)),
   });
   const SubAccountInfo = IDL.Record({
@@ -954,6 +1020,12 @@ export default ({ IDL }) => {
     ok: StageLibraryResponse,
     err: OrigynError,
   });
+  const StorageMetrics = IDL.Record({
+    available_space: IDL.Nat,
+    allocations: IDL.Vec(AllocationRecordStable),
+    allocated_storage: IDL.Nat,
+  });
+  const Result_1 = IDL.Variant({ ok: StorageMetrics, err: OrigynError });
   const Memo = IDL.Vec(IDL.Nat8);
   const SubAccount = IDL.Vec(IDL.Nat8);
   const TransferRequest = IDL.Record({
@@ -996,188 +1068,88 @@ export default ({ IDL }) => {
     replace: IDL.Record({ token_id: IDL.Text, data: CandyValue }),
   });
   const NFTUpdateResponse = IDL.Bool;
-  const Result_1 = IDL.Variant({
-    ok: NFTUpdateResponse,
-    err: OrigynError,
-  });
-  const Result = IDL.Variant({ ok: WithdrawResponse, err: OrigynError });
+  const Result = IDL.Variant({ ok: NFTUpdateResponse, err: OrigynError });
   const Nft_Canister = IDL.Service({
     __advance_time: IDL.Func([IDL.Int], [IDL.Int], []),
-    __set_time_mode: IDL.Func(
-      [IDL.Variant({ test: IDL.Null, standard: IDL.Null })],
-      [IDL.Bool],
-      []
-    ),
-    __supports: IDL.Func(
-      [],
-      [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))],
-      ['query']
-    ),
+    __set_time_mode: IDL.Func([IDL.Variant({ test: IDL.Null, standard: IDL.Null })], [IDL.Bool], []),
+    __supports: IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))], ['query']),
     balance: IDL.Func([BalanceRequest], [BalanceResponse__1], ['query']),
     balanceEXT: IDL.Func([BalanceRequest], [BalanceResponse__1], ['query']),
     balanceOfDip721: IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
-    balance_of_nft_origyn: IDL.Func([Account], [Result_21], ['query']),
-    bearer: IDL.Func([TokenIdentifier], [Result_20], ['query']),
-    bearerEXT: IDL.Func([TokenIdentifier], [Result_20], ['query']),
-    bearer_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(IDL.Text)],
-      [IDL.Vec(Result_19)],
-      ['query']
-    ),
-    bearer_nft_origyn: IDL.Func([IDL.Text], [Result_19], ['query']),
-    bid_nft_origyn: IDL.Func([BidRequest], [Result_18], []),
-    canister_status: IDL.Func(
-      [IDL.Record({ canister_id: canister_id })],
-      [canister_status],
-      []
-    ),
-    chunk_nft_origyn: IDL.Func([ChunkRequest], [Result_17], ['query']),
+    balance_of_nft_origyn: IDL.Func([Account__1], [Result_17], ['query']),
+    balance_of_secure_nft_origyn: IDL.Func([Account__1], [Result_17], []),
+    bearer: IDL.Func([TokenIdentifier], [Result_16], ['query']),
+    bearerEXT: IDL.Func([TokenIdentifier], [Result_16], ['query']),
+    bearer_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_15)], ['query']),
+    bearer_batch_secure_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_15)], []),
+    bearer_nft_origyn: IDL.Func([IDL.Text], [Result_15], ['query']),
+    bearer_secure_nft_origyn: IDL.Func([IDL.Text], [Result_15], []),
+    canister_status: IDL.Func([IDL.Record({ canister_id: canister_id })], [canister_status], []),
+    chunk_nft_origyn: IDL.Func([ChunkRequest], [Result_14], ['query']),
+    chunk_secure_nft_origyn: IDL.Func([ChunkRequest], [Result_14], []),
     collection_nft_origyn: IDL.Func(
-      [
-        IDL.Opt(
-          IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))
-        ),
-      ],
-      [Result_16],
-      ['query']
+      [IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat))))],
+      [Result_13],
+      ['query'],
     ),
-    collection_update_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(ManageCollectionCommand)],
-      [IDL.Vec(Result_15)],
-      []
+    collection_secure_nft_origyn: IDL.Func(
+      [IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat))))],
+      [Result_13],
+      [],
     ),
-    collection_update_nft_origyn: IDL.Func(
-      [ManageCollectionCommand],
-      [Result_15],
-      []
-    ),
+    collection_update_batch_nft_origyn: IDL.Func([IDL.Vec(ManageCollectionCommand)], [IDL.Vec(Result_12)], []),
+    collection_update_nft_origyn: IDL.Func([ManageCollectionCommand], [Result_12], []),
     current_log: IDL.Func([], [IDL.Vec(LogEntry)], ['query']),
     cycles: IDL.Func([], [IDL.Nat], ['query']),
-    end_sale_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(IDL.Text)],
-      [IDL.Vec(Result_14)],
-      []
-    ),
-    end_sale_nft_origyn: IDL.Func([IDL.Text], [Result_14], []),
-    escrow_nft_origyn: IDL.Func([EscrowRequest], [Result_13], []),
     getEXTTokenIdentifier: IDL.Func([IDL.Text], [IDL.Text], ['query']),
     get_access_key: IDL.Func([], [Result_2], ['query']),
-    get_collection_managers_nft_origyn: IDL.Func(
-      [],
-      [IDL.Vec(Principal)],
-      ['query']
-    ),
-    get_collection_network_nft_origyn: IDL.Func(
-      [],
-      [IDL.Opt(Principal)],
-      ['query']
-    ),
-    get_collection_owner_nft_origyn: IDL.Func([], [Principal], ['query']),
     get_nat_as_token_id_origyn: IDL.Func([IDL.Nat], [IDL.Text], ['query']),
-    get_owner_soulbound: IDL.Func([CandyValue], [IDL.Bool], []),
-    get_storage_metrics: IDL.Func([], [Result_12], ['query']),
     get_token_id_as_nat_origyn: IDL.Func([IDL.Text], [IDL.Nat], ['query']),
     harvest_log: IDL.Func([IDL.Nat], [IDL.Vec(IDL.Vec(LogEntry))], []),
-    history_nft_origyn: IDL.Func(
-      [IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
-      [Result_11],
-      ['query']
-    ),
+    history_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [Result_11], ['query']),
+    history_secure_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [Result_11], []),
     http_access_key: IDL.Func([], [Result_2], []),
     http_request: IDL.Func([HttpRequest], [HTTPResponse], ['query']),
-    http_request_streaming_callback: IDL.Func(
-      [StreamingCallbackToken],
-      [StreamingCallbackResponse],
-      ['query']
-    ),
+    http_request_streaming_callback: IDL.Func([StreamingCallbackToken], [StreamingCallbackResponse], ['query']),
     log_history_page: IDL.Func([IDL.Nat], [IDL.Vec(LogEntry)], ['query']),
-    log_history_page_chunk: IDL.Func(
-      [IDL.Nat, IDL.Nat, IDL.Nat],
-      [IDL.Vec(LogEntry)],
-      ['query']
-    ),
+    log_history_page_chunk: IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat], [IDL.Vec(LogEntry)], ['query']),
     log_history_size: IDL.Func([], [IDL.Nat], ['query']),
-    manage_storage_nft_origyn: IDL.Func(
-      [ManageStorageRequest],
-      [Result_10],
-      []
-    ),
-    market_transfer_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(MarketTransferRequest)],
-      [IDL.Vec(Result_9)],
-      []
-    ),
-    market_transfer_nft_origyn: IDL.Func(
-      [MarketTransferRequest],
-      [Result_9],
-      []
-    ),
+    manage_storage_nft_origyn: IDL.Func([ManageStorageRequest], [Result_10], []),
+    market_transfer_batch_nft_origyn: IDL.Func([IDL.Vec(MarketTransferRequest)], [IDL.Vec(Result_9)], []),
+    market_transfer_nft_origyn: IDL.Func([MarketTransferRequest], [Result_9], []),
     metadata: IDL.Func([TokenIdentifier], [Result_8], ['query']),
-    mint_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(IDL.Tuple(IDL.Text, Account))],
-      [IDL.Vec(Result_2)],
-      []
-    ),
-    mint_nft_origyn: IDL.Func([IDL.Text, Account], [Result_2], []),
-    nftStreamingCallback: IDL.Func(
-      [StreamingCallbackToken],
-      [StreamingCallbackResponse],
-      ['query']
-    ),
-    nft_batch_origyn: IDL.Func(
-      [IDL.Vec(IDL.Text)],
-      [IDL.Vec(Result_7)],
-      ['query']
-    ),
+    mint_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Tuple(IDL.Text, Account__1))], [IDL.Vec(Result_2)], []),
+    mint_nft_origyn: IDL.Func([IDL.Text, Account__1], [Result_2], []),
+    nftStreamingCallback: IDL.Func([StreamingCallbackToken], [StreamingCallbackResponse], ['query']),
+    nft_batch_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_7)], ['query']),
+    nft_batch_secure_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_7)], []),
     nft_origyn: IDL.Func([IDL.Text], [Result_7], ['query']),
+    nft_secure_origyn: IDL.Func([IDL.Text], [Result_7], []),
     nuke_log: IDL.Func([], [], []),
     ownerOf: IDL.Func([IDL.Nat], [OwnerOfResponse], ['query']),
     ownerOfDIP721: IDL.Func([IDL.Nat], [OwnerOfResponse], ['query']),
     owner_transfer_nft_origyn: IDL.Func([OwnerTransferRequest], [Result_6], []),
-    sale_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(ManageSaleRequest)],
-      [IDL.Vec(Result_4)],
-      []
-    ),
-    sale_info_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(SaleInfoRequest)],
-      [IDL.Vec(Result_5)],
-      ['query']
-    ),
+    sale_batch_nft_origyn: IDL.Func([IDL.Vec(ManageSaleRequest)], [IDL.Vec(Result_4)], []),
+    sale_info_batch_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(Result_5)], ['query']),
+    sale_info_batch_secure_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(Result_5)], []),
     sale_info_nft_origyn: IDL.Func([SaleInfoRequest], [Result_5], ['query']),
+    sale_info_secure_nft_origyn: IDL.Func([SaleInfoRequest], [Result_5], []),
     sale_nft_origyn: IDL.Func([ManageSaleRequest], [Result_4], []),
     set_log_harvester_id: IDL.Func([IDL.Principal], [], []),
-    stage_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(IDL.Record({ metadata: CandyValue }))],
-      [IDL.Vec(Result_2)],
-      []
-    ),
-    stage_library_batch_nft_origyn: IDL.Func(
-      [IDL.Vec(StageChunkArg)],
-      [IDL.Vec(Result_3)],
-      []
-    ),
+    stage_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Record({ metadata: CandyValue }))], [IDL.Vec(Result_2)], []),
+    stage_library_batch_nft_origyn: IDL.Func([IDL.Vec(StageChunkArg)], [IDL.Vec(Result_3)], []),
     stage_library_nft_origyn: IDL.Func([StageChunkArg], [Result_3], []),
-    stage_nft_origyn: IDL.Func(
-      [IDL.Record({ metadata: CandyValue })],
-      [Result_2],
-      []
-    ),
+    stage_nft_origyn: IDL.Func([IDL.Record({ metadata: CandyValue })], [Result_2], []),
+    storage_info_nft_origyn: IDL.Func([], [Result_1], ['query']),
+    storage_info_secure_nft_origyn: IDL.Func([], [Result_1], []),
     transfer: IDL.Func([TransferRequest], [TransferResponse], []),
+    transferDip721: IDL.Func([IDL.Principal, IDL.Nat], [Result__1], []),
     transferEXT: IDL.Func([TransferRequest], [TransferResponse], []),
-    transferFrom: IDL.Func(
-      [IDL.Principal, IDL.Principal, IDL.Nat],
-      [Result__1],
-      []
-    ),
-    transferFromDip721: IDL.Func(
-      [IDL.Principal, IDL.Principal, IDL.Nat],
-      [Result__1],
-      []
-    ),
-    update_app_nft_origyn: IDL.Func([NFTUpdateRequest], [Result_1], []),
+    transferFrom: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [Result__1], []),
+    transferFromDip721: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [Result__1], []),
+    update_app_nft_origyn: IDL.Func([NFTUpdateRequest], [Result], []),
+    wallet_receive: IDL.Func([], [IDL.Nat], []),
     whoami: IDL.Func([], [IDL.Principal], ['query']),
-    withdraw_nft_origyn: IDL.Func([WithdrawRequest], [Result], []),
   });
   return Nft_Canister;
 };

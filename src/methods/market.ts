@@ -1,11 +1,10 @@
+import { AccountType } from './../types/origynTypes';
 import { OrigynResponse, IcTokenType, TransactionType } from '../types/origynTypes';
 import { OrigynClient } from '../origynClient';
 import { OGY_TOKEN } from '../utils/constants';
 import { Principal } from '@dfinity/principal';
 
-export const startAuction = async (
-  args: StartAuctionArgs,
-): Promise<OrigynResponse<TransactionType, StartAuctionErrors>> => {
+export const startAuction = async (args: StartAuctionArgs): Promise<OrigynResponse<TransactionType, BaseErrors>> => {
   const { token_id, startPrice, priceStep, buyNowPrice, endDate, ic_token } = args;
 
   try {
@@ -38,10 +37,10 @@ export const startAuction = async (
     if (response.ok || response.error) {
       return response;
     } else {
-      return { err: { error_code: StartAuctionErrors.UNKNOWN_ERROR } };
+      return { err: { error_code: BaseErrors.UNKNOWN_ERROR } };
     }
   } catch (e) {
-    return { err: { error_code: StartAuctionErrors.CANT_REACH_CANISTER } };
+    return { err: { error_code: BaseErrors.CANT_REACH_CANISTER } };
   }
 };
 
@@ -91,9 +90,72 @@ export const sendEscrow = async (args: SendEscrowArgs): Promise<OrigynResponse<T
   }
 };
 
-export enum StartAuctionErrors {
+export const endSale = async (token_id: string): Promise<OrigynResponse<any, BaseErrors>> => {
+  try {
+    const actor = OrigynClient.getInstance().actor;
+    const response = await actor.end_sale_nft_origyn(token_id);
+    if (response.ok || response.error) {
+      return response;
+    } else {
+      return { err: { error_code: BaseErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    return { err: { error_code: BaseErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export const withdrawEscrow = async (escrow: EscrowActionArgs): Promise<OrigynResponse<any, BaseErrors>> => {
+  try {
+    const { actor, principal } = OrigynClient.getInstance();
+    if (!principal) {
+      return { err: { error_code: BaseErrors.NO_PRINCIPAL } };
+    }
+    const response = await actor?.sale_nft_origyn({
+      withdraw: {
+        escrow: {
+          ...escrow,
+          withdraw_to: { principal },
+        },
+      },
+    });
+    if (response.ok || response.error) {
+      return response;
+    } else {
+      return { err: { error_code: BaseErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    return { err: { error_code: BaseErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export const rejectEscrow = async (escrow: EscrowActionArgs): Promise<OrigynResponse<any, BaseErrors>> => {
+  try {
+    const { actor, principal } = OrigynClient.getInstance();
+    if (!principal) {
+      return { err: { error_code: BaseErrors.NO_PRINCIPAL } };
+    }
+    const response = await actor?.sale_nft_origyn({
+      reject: {
+        escrow: {
+          ...escrow,
+          withdraw_to: { principal },
+        },
+      },
+    });
+    if (response.ok || response.error) {
+      return response;
+    } else {
+      return { err: { error_code: BaseErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    return { err: { error_code: BaseErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export enum BaseErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
+  NO_PRINCIPAL,
 }
 
 export enum SendEscrowErrors {
@@ -103,6 +165,13 @@ export enum SendEscrowErrors {
   NO_PRINCIPAL,
 }
 
+type EscrowActionArgs = {
+  amount: BigInt;
+  buyer: AccountType;
+  ic_token?: IcTokenType;
+  seller: AccountType;
+  token_id: string;
+};
 type StartAuctionArgs = {
   buyNowPrice?: number;
   endDate: number;
