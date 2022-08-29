@@ -59,7 +59,7 @@ We can dynamically change the principal which calls the methods within OrigynCli
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | principal | <code>string</code> or <code>Principal</code>  | | The id of the principal or the object (as `Principal`). |
-|
+
 
 <a name="OrigynClient+getPrincipal"></a>
 ### <code> get</code> OrigynClient.getInstance().principal⇒ <code>Principal</code>
@@ -77,7 +77,7 @@ Returns the NFTs balance of the provided `principal`. If no `principal` is provi
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | principal | <code>string</code> or <code>Principal</code | [<code>OrigynClient.getInstance().principal</code>](#OrigynClient+getPrincipal)   | Principal to request the balance for. |
-|
+
 
 
 #### `BalanceOfNftOrigyn` Type
@@ -89,7 +89,7 @@ Returns the NFTs balance of the provided `principal`. If no `principal` is provi
 | stake | <code>StakeRecord[]</code> | Array with current stakes.
 | multi_canister | <code>Principal[]</code> |
 | escrows | <code>EscrowRecord[]</code> | Sent escrows by that principal.
-|
+
 #### `GetBalanceErrors` Enum
 | Name | Description |
 | --- | --- |
@@ -128,7 +128,7 @@ Returns all data for a nft, which is provided using the `token_id` parameter.
 | --- | --- | --- |
 | metadata | <code>Metadata</code> | Metadata object, contains information about the NFT. |
 | current_sale | <code>Auction[]</code> | Contains a list with received escrows.
-|
+
 `GetNftErrors` Enumeration is the same as [<code>GetBalanceErrors</code>](#OrigynClient+getPrincipal) .
 
 #### Usage example:
