@@ -1,5 +1,4 @@
-/* eslint-disable no-prototype-builtins */
-/* eslint-disable no-bitwise */
+/* eslint-disable no-prototype-builtins no-bitwise */
 import crc32 from 'buffer-crc32';
 import CryptoJS from 'crypto-js';
 import { Buffer } from 'buffer';
@@ -27,15 +26,12 @@ export const wordToByteArray = (word, length): number[] => {
 };
 
 export const wordArrayToByteArray = (wordArray, length) => {
-  if (
-    wordArray.hasOwnProperty('sigBytes') &&
-    wordArray.hasOwnProperty('words')
-  ) {
+  if (wordArray.hasOwnProperty('sigBytes') && wordArray.hasOwnProperty('words')) {
     length = wordArray.sigBytes;
     wordArray = wordArray.words;
   }
 
-  let result: Array<any> = [];
+  let result: any[] = [];
   let bytes;
   let i = 0;
   while (length > 0) {
@@ -47,8 +43,7 @@ export const wordArrayToByteArray = (wordArray, length) => {
   return [].concat.apply([], result);
 };
 
-export const intToHex = (val: number) =>
-  val < 0 ? (Number(val) >>> 0).toString(16) : Number(val).toString(16);
+export const intToHex = (val: number) => (val < 0 ? (Number(val) >>> 0).toString(16) : Number(val).toString(16));
 
 // We generate a CRC32 checksum, and trnasform it into a hexString
 export const generateChecksum = (hash: Uint8Array) => {

@@ -57,14 +57,16 @@ export class OrigynClient {
 
     if (process.env.NODE_ENV !== 'production') {
       agent.fetchRootKey().catch((err) => {
+        /* tslint:disable-next-line */
         console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+        /* tslint:disable-next-line */
         console.error(err);
       });
     }
 
     this._actor = Actor.createActor(origynIdl, {
       canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
-      agent: agent,
+      agent,
     });
   };
 

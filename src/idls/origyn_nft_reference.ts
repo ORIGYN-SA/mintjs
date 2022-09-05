@@ -1,3 +1,4 @@
+/* tslint-disable variable-name */
 export default ({ IDL }) => {
   const CandyValue = IDL.Rec();
   const Update = IDL.Rec();

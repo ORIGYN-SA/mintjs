@@ -38,7 +38,7 @@ export const mintNft = async (token_id: string, principal: Principal): Promise<O
   try {
     const actor = OrigynClient.getInstance().actor;
     const response = await actor.mint_nft_origyn(token_id, {
-      principal: principal,
+      principal,
     });
     if (response.ok || response.error) {
       return response;
@@ -68,7 +68,6 @@ export const getNftHistory = async (
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
   } catch (e) {
-    console.log(e);
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
   }
 };
