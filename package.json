@@ -53,7 +53,7 @@
     "url": "https://github.com/ORIGYN-SA/mintjs/issues"
   },
   "publishConfig": {
-    "@ORIGYN-SA:registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "homepage": "https://github.com/ORIGYN-SA/mintjs#readme"
 }
