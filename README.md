@@ -2,9 +2,15 @@
 
 
 ## ORIGYN Mint.js
+### Getting Started
+In order to have a complete installation of the required packages, you will need to setup a [personal access token](https://github.com/settings/tokens) with `repo` and `read:packages` access. You will need this access token in order to use it as a password when running:
+
+```
+npm login --registry=https://npm.pkg.github.com --scope=@origyn-sa
+```
 ### Installation
 ```
-npm i mintjs
+npm i @origyn-sa/mintjs
 ```
 ###  Local testing of unpublished mint.js
 If you have a local repository of the mint.js code, you can make npm point to its build using:
@@ -90,13 +96,15 @@ Returns the NFTs balance of the provided `principal`. If no `principal` is provi
 | multi_canister | <code>Principal[]</code> |
 | escrows | <code>EscrowRecord[]</code> | Sent escrows by that principal.
 
+<a name="enum+balance+no-principal"></a>
+
 #### `GetBalanceErrors` Enum
 | Name | Description |
 | --- | --- |
-| `UNKNOWN_ERROR` | The canister returned an error, or there was an error while connecting. |
+| `UNKNOWN_ERROR` | The canister returned an error, or there was an error while connecting. 
 | `CANT_REACH_CANISTER` | The canister is unavailable. It might happen when there is a `503` error.
 | `NO_PRINCIPAL_PROVIDED` | There was not principal provided.
-<a name="enum+balance+no-principal"></a>
+
 
 #### Usage example
 
