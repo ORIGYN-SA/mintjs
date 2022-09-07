@@ -1,6 +1,6 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
-import origynIdl from './idls/origyn_nft_reference';
+import origynIdl from './idls/origyn_nft_reference.did';
 import { IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
 import fetch from 'cross-fetch';
 
