@@ -79,13 +79,13 @@ export const getMetadata = async (canisterId: string, standard: IdlStandard) => 
     symbol: '',
   };
   switch (standard) {
-    case IdlStandard.DIP20:
-      return dip20Method(token);
     case IdlStandard.EXT:
       return extMethod(token);
     case IdlStandard.WICP:
       return wicpMethod(token);
     case IdlStandard.XTC:
       return xtcMethod(token);
+    default:
+      return dip20Method(token);
   }
 };
