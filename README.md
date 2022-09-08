@@ -41,7 +41,8 @@ else
 		- [<code> set</code> OrigynClient.getInstance().principal(principal) ⇒ <code>void</code>](#OrigynClient+setPrincipal)
 		- [<code> get</code> OrigynClient.getInstance().principal⇒ <code>Principal</code>](#OrigynClient+getPrincipal)
 		-  [getNftBalance(principal)](#getNftBalance)
-		-  [getNft(token) ](#getNft)
+		-  [getNft(token)](#getNft)
+		-  [getNftHistory(token_id, start, end)](#getNftHistory)
 
 
 <a name="OrigynClient"></a>
@@ -153,3 +154,49 @@ else if (response.err)
 	// something wrong happend
 ```
 
+<a name="getNftHistory"></a>
+### getNftHistory(token_id, start, end) ⇒ <code>Promise<OrigynResponse<TransactionType, GetNftErrors>></code>
+
+Get transaction hitsory of an NFT between the `start` and the `end` date if provided.
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| token_id | <code>string</code> | | The token id of the NFT. |
+| start | <code>BigInt</code> | `[]` | Bottom date of the transaction search. |
+| end | <code>BigInt</code> |`[]` | Upper date of the transaction search. |
+
+
+`GetNftErrors` Enumeration is the same as [<code>GetBalanceErrors</code>](#OrigynClient+getPrincipal) .
+
+#### Usage example:
+
+```js
+const start = 1662638707000000000n; // Thursday, September 8, 2022 
+const end = 1662638707000000000n; // Friday, September 2, 2022
+const response = await getNftHistory('nft-id', start, end);
+
+if (response.ok)
+	const histoy: TransactionType[] = response.ok;
+	for(const transaction in history) {
+		const { token_id, txn_type, timestamp, index } = transaction;
+		console.log(`Token ${token_id} had a transaction (#${index}) on ${timestamp}: ${txn_type}`);
+	}
+else if (response.err)
+	// something wrong happend
+```
+
+When the request is successful, an array of `TransactionType` will be returned. Each transaction will be represented within the object of `txn_type`, being one of the following:
+- `auction_bid`
+- `burn`
+- `canister_managers_updated`
+- `canister_network_updated`
+- `canister_owner_updated`
+- `data`
+- `escrow_deposit`
+- `escrow_withdraw`
+- `mint`
+- `owner_transfer`
+- `royalty_paid`
+- `sale_ended`
+- `sale_opened`
+- `sale_withdraw`
