@@ -20,7 +20,7 @@ npm i <path-to-mint-js>
 ### Usage
 Start by importing the `mintjs` in your code.
 ```js
-import { getNftBalance } from 'mintjs';
+import { getNftBalance } from '@origyn-sa/mintjs';
 ```
 Now, we can call the `getNftBalance` method anywhere in the code.
 
@@ -83,7 +83,7 @@ Returns the NFTs balance of the provided `principal`. If no `principal` is provi
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| principal | <code>string</code> or <code>Principal</code | [<code>OrigynClient.getInstance().principal</code>](#OrigynClient+getPrincipal)   | Principal to request the balance for. |
+| principal | <code>string</code> or <code>Principal</code> | [<code>OrigynClient.getInstance().principal</code>](#OrigynClient+getPrincipal)   | Principal to request the balance for. |
 
 
 
