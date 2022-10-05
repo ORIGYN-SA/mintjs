@@ -1,3 +1,7 @@
+<<<<<<< Updated upstream
+=======
+import { ActorMethod, ActorSubclass } from '@dfinity/agent';
+>>>>>>> Stashed changes
 import { Principal } from '@dfinity/principal';
 export type KnownError<T> = {
   error_code: T;
@@ -203,3 +207,7 @@ export type IcTokenType = {
   };
   symbol: string;
 };
+<<<<<<< Updated upstream
+=======
+export type AnyActor = ActorSubclass<Record<string, ActorMethod<unknown[], unknown>>>;
+>>>>>>> Stashed changes
