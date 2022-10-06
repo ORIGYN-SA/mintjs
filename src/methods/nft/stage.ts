@@ -1,13 +1,54 @@
-import path from 'path';
+import { Principal } from '@dfinity/principal';
+import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
-import { FileInfoMap, LibraryFile, Metrics, StageConfigArgs, StageConfigSettings } from './types';
+import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
+import {
+  FileInfoMap,
+  LibraryFile,
+  Meta,
+  Metrics,
+  StageConfigArgs,
+  StageConfigData,
+  StageConfigFile,
+  StageConfigSettings,
+  StageConfigSummary,
+  StageFile,
+  TextValue,
+} from './types';
+export const stage = async (config: StageConfigData) => {
+  const isProd = (config.settings.args.environment?.[0] || '').toLowerCase() !== 'l';
+  const { actor, principal: _principal } = OrigynClient.getInstance();
+  // *** Stage NFTs and Library Assets
+  // nfts and collections have the same metadata structure
+  // the difference is that collections have an empty string for the id
+  // so the library assets/files can be shared by multiple NFTs
+  const metrics: Metrics = { totalFileSize: 0 };
+  const items = [config.collection, ...config.nfts];
+  for (const item of items) {
+    var tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
+
+    // Stage NFT
+    const metadataToStage = deserializeConfig(item.meta);
+    const stageResult = await actor.stage_nft_origyn(metadataToStage);
+    console.log(JSON.stringify(stageResult));
+
+    // *** Stage Library Assets (as chunks)
+    for (const asset of item.library) {
+      await stageLibraryAsset(actor, asset, tokenId, metrics);
+    }
+  }
+
+  console.log(`\nTotal Staged File Size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})\n`);
+
+  console.log('\nFinished (stage subcommand)\n');
+  console.log(`------------------\n`);
+};
 
 export const stageLibraryAsset = async (
   actor: AnyActor,
-  stageFolder: string,
   libraryAsset: LibraryFile,
   tokenId: string,
   metrics: Metrics,
@@ -15,10 +56,8 @@ export const stageLibraryAsset = async (
   console.log(`\nStaging asset: ${libraryAsset.library_id}`);
   console.log(`\nFile path: ${libraryAsset.library_file}`);
 
-  // const fileData = fs.readFileSync(path.join(stageFolder, libraryAsset.library_file));
-
   // slice file buffer into chunks of bytes that fit into the chunk size
-  const fileSize = fileData.length;
+  const fileSize = libraryAsset.library_file.size;
   const chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
   console.log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
   console.log(`file size ${fileSize}`);
@@ -31,7 +70,8 @@ export const stageLibraryAsset = async (
       await wait(3000);
     }
 
-    await uploadChunk(actor, libraryAsset.library_id, tokenId, fileData, i, metrics);
+    const fileAsBuffer = await getFileArrayBuffer(libraryAsset.library_file);
+    await uploadChunk(actor, libraryAsset.library_id, tokenId, fileAsBuffer, i, metrics);
   }
 };
 
@@ -77,15 +117,63 @@ export const uploadChunk = async (
   }
 };
 
-export const buildStageConfig = () => {};
+export const buildStageConfig = (args: StageConfigArgs): StageConfigData => {
+  let settings = initConfigSettings(args) as any;
+  const collectionMetadata = configureCollectionMetadata(settings);
 
-export const initConfigSettings = (args: StageConfigArgs): StageConfigSettings => {};
+  const nftsMetadata = configureNftsMetadata(settings);
+
+  let totalNftCount = 0;
+
+  for (const nft of args.nfts) {
+    totalNftCount += nft?.quantity ?? 1;
+  }
+
+  const summary: StageConfigSummary = {
+    totalFiles: Object.keys(settings.fileMap).length,
+    totalFileSize: `${settings.totalFileSize} (${formatBytes(settings.totalFileSize)})`,
+    totalNftDefinitionCount: settings.nftDefinitionCount,
+    totalNftCount,
+  };
+
+  const configFileData = buildConfigFileData(settings, summary, collectionMetadata, nftsMetadata);
+
+  return configFileData;
+};
+
+export const buildConfigFileData = (
+  settings: StageConfigSettings,
+  summary: StageConfigSummary,
+  collection: Meta,
+  nfts: Meta[],
+): StageConfigData => {
+  return {
+    settings,
+    summary,
+    collection,
+    nfts: [
+      // Metadata for defining each NFT definition (may be minted multiple times)
+      ...nfts,
+    ],
+  };
+};
+
+export const initConfigSettings = (args: StageConfigArgs): StageConfigSettings => {
+  const settings: StageConfigSettings = {
+    args,
+    fileMap: {},
+    collectionLibraries: [],
+    totalFileSize: 0,
+  };
+  settings.fileMap = buildFileMap(settings);
+  return settings;
+};
 
 export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
   for (const file of settings.args.files) {
-    let title = file.path.split('/').pop() ?? 'UNTITLED_FILE';
+    let title = file.fileObj.path.split('/').pop() ?? 'UNTITLED_FILE';
     let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
     if (file.type === 'dapp') {
@@ -98,23 +186,20 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
 
     const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
 
-    fileInfoMap[file.path] = {
+    fileInfoMap[file.fileObj.path] = {
       title,
       libraryId,
       resourceUrl,
-      filePath: file.path,
+      filePath: file.fileObj.path,
     };
   }
 
   let nftIndex = 0;
-  for (let i = 0; i < settings.nftDefinitionCount; i++) {
-    // defaults to 1 NFT per NFT definition
-    const nftQuantity = settings.nftQuantities?.[i] || 1;
-
-    for (let j = 0; j < nftQuantity; j++) {
+  for (const nft of settings.args.nfts) {
+    for (let j = 0; j < (nft?.quantity ?? 1); j++) {
       const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
 
-      for (const file of settings.args.files) {
+      for (const file of nft.files) {
         const fileName = file.path.split('/').pop() ?? 'UNTITLED_FILE';
 
         const libraryId = `${settings.args.namespace}.${fileName}`.toLowerCase();
@@ -179,4 +264,43 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
     // https://frfol-iqaaa-aaaaj-acogq-cai.raw.ic0.app/collection/-/ledger
     return `${rootUrl}/collection/-/${resourceName}`.toLowerCase();
   }
+};
+
+export const getFileArrayBuffer = (file: StageFile): Promise<Buffer> => {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', file.path, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function (e) {
+      if (this.status == 200) {
+        resolve(this.response);
+      }
+    };
+    xhr.send();
+  });
+};
+export const deserializeConfig = (config) => {
+  // Iterates config object tree and converts all
+  // string values representing a Principal or Nat
+  // to a Principal object or BigInt respectively.
+
+  if (typeof config !== 'object') {
+    return config;
+  }
+  for (var p in config) {
+    switch (typeof config[p]) {
+      case 'object':
+        // recurse objects
+        config[p] = deserializeConfig(config[p]);
+        break;
+      case 'string':
+        if (p === 'Principal') {
+          config[p] = Principal.fromText(config[p]);
+        } else if (p === 'Nat') {
+          config[p] = BigInt(config[p]);
+        }
+        break;
+    }
+  }
+  return config;
 };
