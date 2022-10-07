@@ -22,11 +22,13 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
 
   // Iterate all html and css files and replace local paths with NFT URLs
   const webFiles: StageConfigFile[] = files.filter((f) =>
-    ['.html', '.htm', '.css'].includes(f.fileObj.filename.split('.').pop() ?? ''),
+    ['html', 'htm', 'css'].includes(f.fileObj.filename.split('.').pop() ?? ''),
   );
 
+  // TODO: We need to do that replace relative URLs in web files
+
   let sort = 1;
-  for (const file of webFiles) {
+  for (const file of files) {
     settings.totalFileSize += file.fileObj.size;
 
     resources.push(createClassForResource(settings, file.fileObj, sort));
@@ -108,7 +110,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const files = settings.args.nfts?.[nftIndex].files;
 
   // Iterate all html and css files and replace local paths with NFT URLs
-  const filesWithUrls = files.filter((f) => ['.html', '.htm', '.css'].includes(f.filename.split('.').pop() ?? ''));
+  const filesWithUrls = files.filter((f) => ['html', 'htm', 'css'].includes(f.filename.split('.').pop() ?? ''));
 
   let sort = 1;
   for (const file of filesWithUrls) {
@@ -140,14 +142,16 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   properties.push(createTextAttrib('id', tokenId, immutable));
 
   // assetType = 'primary_asset', 'preview_asset', 'experience_asset' or 'hidden_asset'
-  for (let assetType in Object.keys(settings.args.assets)) {
-    properties.push(
-      createTextAttrib(
-        `${assetType}_asset`,
-        `${settings.args.namespace}.${settings.args.assets[assetType]}`,
-        immutable,
-      ),
-    );
+  console.log(
+    '🚀 ~ file: metadata.ts ~ line 146 ~ configureNftMetadata ~ Object.keys(settings.args.assets)',
+    Object.keys(settings.args.assets),
+  );
+  for (const asset of settings.args.assets) {
+    for (const assetType of Object.keys(asset)) {
+      properties.push(
+        createTextAttrib(`${assetType}_asset`, `${settings.args.namespace}.${asset[assetType]}`, immutable),
+      );
+    }
   }
 
   properties.push(createTextAttrib('owner', settings.args.nftOwnerId || settings.args.nftCanisterId, !immutable));
@@ -355,6 +359,7 @@ function createClassesForResourceReferences(
   const resourceReferences: MetadataClass[] = [];
 
   for (let cls of resourceClasses) {
+    console.log('🚀 ~ file: metadata.ts ~ line 361 ~ cls', cls);
     const libraryIdProperty = cls.Class.find((a) => a.name === 'library_id');
     if (!libraryIdProperty) {
       continue;
@@ -365,6 +370,7 @@ function createClassesForResourceReferences(
     let locationType = 'canister';
     let library = libraries.find((l) => l.library_id === libraryId);
     if (!library) {
+      //const collectionFiles = settings.args.files.filter((file) => file.type === 'collection');
       library = settings.collectionLibraries.find((l) => l.library_id === libraryId);
 
       if (library) {

@@ -6,7 +6,7 @@ export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoSt
   try {
     const actor = OrigynClient.getInstance().actor;
     const response: any = await actor.nft_origyn(token_id);
-    if (response.ok || response.error) {
+    if (response.ok || response.err) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
@@ -24,10 +24,10 @@ export const stageNft = async (token_id: string): Promise<OrigynResponse<any, Ge
         Class: [{ name: 'id', value: { Text: token_id }, immutable: true }],
       },
     });
-    if (response.ok || response.error) {
+    if (response.ok || response.err) {
       return response;
     } else {
-      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR, text: response.err } };
     }
   } catch (e) {
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
@@ -40,7 +40,7 @@ export const mintNft = async (token_id: string, principal: Principal): Promise<O
     const response = await actor.mint_nft_origyn(token_id, {
       principal,
     });
-    if (response.ok || response.error) {
+    if (response.ok || response.err) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };

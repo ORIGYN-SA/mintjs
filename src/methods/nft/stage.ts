@@ -1,9 +1,11 @@
+import fs from 'fs';
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
+import { getActor } from '../wallet/actor';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
   FileInfoMap,
@@ -18,9 +20,14 @@ import {
   StageFile,
   TextValue,
 } from './types';
+const WALLET_SEED = '';
+
 export const stage = async (config: StageConfigData) => {
   const isProd = (config.settings.args.environment?.[0] || '').toLowerCase() !== 'l';
+  const _actor = await getActor(isProd, { seed: WALLET_SEED }, config.settings.args.nftCanisterId);
+  OrigynClient.getInstance().init('rrkah-fqaaa-aaaaa-aaaaq-cai', { actor: _actor });
   const { actor, principal: _principal } = OrigynClient.getInstance();
+
   // *** Stage NFTs and Library Assets
   // nfts and collections have the same metadata structure
   // the difference is that collections have an empty string for the id
@@ -97,7 +104,7 @@ export const uploadChunk = async (
       chunk: chunkNumber,
       content: Array.from(chunk),
     });
-    console.log(`Result of stage_library_nft_origyn: ${result}`);
+    console.log(`Result of stage_library_nft_origyn: ${JSON.stringify(result)}`);
     metrics.totalFileSize += chunk.length;
     console.log(`Cumulative staged file size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})`);
   } catch (ex) {
@@ -166,6 +173,7 @@ export const initConfigSettings = (args: StageConfigArgs): StageConfigSettings =
     totalFileSize: 0,
   };
   settings.fileMap = buildFileMap(settings);
+  console.log('🚀 ~ file: stage.ts ~ line 175 ~ initConfigSettings ~ settings.fileMap', settings.fileMap);
   return settings;
 };
 
@@ -185,6 +193,7 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
     }
 
     const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
+    console.log('🚀 ~ file: stage.ts ~ line 197 ~ buildFileMap ~ resourceUrl', resourceUrl);
 
     fileInfoMap[file.fileObj.path] = {
       title,
@@ -266,18 +275,8 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
   }
 };
 
-export const getFileArrayBuffer = (file: StageFile): Promise<Buffer> => {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', file.path, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = function (e) {
-      if (this.status == 200) {
-        resolve(this.response);
-      }
-    };
-    xhr.send();
-  });
+export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
+  return fs.readFileSync(file.path);
 };
 export const deserializeConfig = (config) => {
   // Iterates config object tree and converts all

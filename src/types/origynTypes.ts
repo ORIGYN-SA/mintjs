@@ -205,3 +205,9 @@ export type IcTokenType = {
   symbol: string;
 };
 export type AnyActor = ActorSubclass<Record<string, ActorMethod<unknown[], unknown>>>;
+
+export type PrivateIdentityKey = {
+  ecPrivateKey?: string;
+  privateKey?: string;
+  seed?: string;
+};

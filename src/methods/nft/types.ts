@@ -11,17 +11,16 @@ export type StageConfigFile = {
   fileObj: StageFile;
 };
 export type StageNft = {
-  path: string;
   quantity?: number;
   files: StageFile[];
   collectionFiles?: StageFile[];
 };
 export type StageFile = {
   filename: string;
-  index: number;
+  index?: number;
   path: string;
   size: number;
-  type: string;
+  type?: string;
 };
 export type StageConfigArgs = {
   environment?: string;
@@ -82,18 +81,6 @@ export type Asset = {
   preview?: string;
   experience?: string;
   hidden?: string;
-};
-export const ExampleStageConfig: StageConfigArgs = {
-  environment: 'local',
-  collectionId: 'bm',
-  collectionDisplayName: 'Brain Matters',
-  tokenPrefix: 'bm-',
-  creatorPrincipal: 'jvdm5-xkwgc-4t2x7-ojmjd-ail2p-6agif-7m6a6-z6eok-oxueq-inzfb-zae',
-  namespace: 'brain.matters',
-  assets: [{ primary: 'nft*.png' }, { hidden: 'mystery-bm.gif' }],
-  soulbound: false,
-  nftOwnerId: 'jvdm5-xkwgc-4t2x7-ojmjd-ail2p-6agif-7m6a6-z6eok-oxueq-inzfb-zae',
-  filesPath: ['/home/projects/1.jpg', '/home/projects/2.jpg'],
 };
 
 export type TextValue = {
