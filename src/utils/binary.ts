@@ -3,6 +3,14 @@ import crc32 from 'buffer-crc32';
 import CryptoJS from 'crypto-js';
 import { Buffer } from 'buffer';
 
+export const arrayToBuffer = (arrayBuffer) => {
+  const buffer = Buffer.alloc(arrayBuffer.byteLength);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < buffer.length; ++i) {
+    buffer[i] = view[i];
+  }
+  return buffer;
+};
 export const byteArrayToWordArray = (byteArray: Uint8Array) => {
   const wordArray = [] as any;
   let i;

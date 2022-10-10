@@ -2,9 +2,9 @@ import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
+import { arrayToBuffer } from '../../utils/binary';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
-import { getActor } from '../wallet/actor';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
   FileInfoMap,
@@ -61,7 +61,7 @@ export const stage = async (config: StageConfigData) => {
 
 export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: string, metrics: Metrics) => {
   console.log(`\nStaging asset: ${libraryAsset.library_id}`);
-  console.log(`\nFile path: ${libraryAsset.library_file}`);
+  console.log(`\nFile path: ${libraryAsset.library_file.path}`);
 
   // slice file buffer into chunks of bytes that fit into the chunk size
   const fileSize = libraryAsset.library_file.size;
@@ -79,16 +79,7 @@ export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: stri
       await wait(3000);
     }
 
-    let fileAsBuffer: Buffer = Buffer.from('');
-    if (IS_NODE_CONTEXT) {
-      fileAsBuffer = await getFileArrayBuffer(libraryAsset.library_file);
-    } else {
-      if (libraryAsset.library_file.webFile) {
-        fileAsBuffer = await readFileAsync(libraryAsset.library_file.webFile);
-      } else {
-        throw 'A webFile is required for each file when staging from a web context';
-      }
-    }
+    let fileAsBuffer: Buffer = await getFileArrayBuffer(libraryAsset.library_file);
     await uploadChunk(actor, libraryAsset.library_id, tokenId, fileAsBuffer, i, metrics);
   }
 };
@@ -289,20 +280,20 @@ export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
     const fs = require('fs');
     return fs.readFileSync(file.path);
   } else {
-    return readFileAsync(file.webFile!);
+    if (!file.webFile) {
+      throw 'A webFile is required for each file when staging from a web context';
+    }
+    return readFileAsync(file.webFile);
   }
 };
 
 export const readFileAsync = (file: File): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     let reader = new FileReader();
-
     reader.onload = () => {
-      resolve(reader.result as Buffer);
+      resolve(arrayToBuffer(reader.result));
     };
-
     reader.onerror = reject;
-
     reader.readAsArrayBuffer(file);
   });
 };
