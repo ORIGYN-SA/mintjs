@@ -18,7 +18,6 @@ import {
   StageFile,
   TextValue,
 } from './types';
-const WALLET_SEED = '';
 
 export const stage = async (config: StageConfigData) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
@@ -192,7 +191,7 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
   for (const file of settings.args.files) {
-    let title = file.fileObj.path.split('/').pop() ?? 'UNTITLED_FILE';
+    let title = file.fileObj.filename ?? 'UNTITLED_FILE';
     let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
     if (file.type === 'dapp') {

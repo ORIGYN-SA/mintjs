@@ -1,6 +1,5 @@
 import { OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
-import { Principal } from '@dfinity/principal';
 import { buildStageConfig, stage } from './stage';
 import { StageConfigArgs } from './types';
 
@@ -27,24 +26,25 @@ export const stageNft = async (args: StageConfigArgs): Promise<OrigynResponse<an
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR, text: response.err } };
     }
-  } catch (e) {
-    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
+  } catch (e: any) {
+    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
 
-export const mintNft = async (token_id: string, principal: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
+export const mintNft = async (token_id: string): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
-    const actor = OrigynClient.getInstance().actor;
+    const { actor, principal: _principal } = OrigynClient.getInstance();
     const response = await actor.mint_nft_origyn(token_id, {
-      principal,
+      principal: _principal,
     });
     if (response.ok || response.err) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
-  } catch (e) {
-    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
+  } catch (e: any) {
+    console.log(e);
+    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
 

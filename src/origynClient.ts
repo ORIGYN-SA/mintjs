@@ -1,11 +1,14 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
 import origynIdl from './idls/origyn_nft_reference.did';
-import { IC_HOST, IS_NODE_CONTEXT, ORIGYN_CANISTER_ID } from './utils/constants';
+import { FETCH, IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
 import { PrivateIdentityKey } from './types/origynTypes';
-import { getActor } from './methods/wallet/actor';
+import { getActor, getIdentity } from './methods/wallet/actor';
 
-export const DEFAULT_AGENT = new HttpAgent({ fetch, host: IC_HOST });
+export const DEFAULT_AGENT = new HttpAgent({
+  fetch: FETCH,
+  host: IC_HOST,
+});
 
 export class OrigynClient {
   private static _instance: OrigynClient;
@@ -26,7 +29,10 @@ export class OrigynClient {
 
   public get actor() {
     if (!this._actor) {
-      this.init();
+      this._actor = Actor.createActor(origynIdl, {
+        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        agent: DEFAULT_AGENT,
+      });
     }
     return this._actor;
   }
@@ -45,35 +51,31 @@ export class OrigynClient {
 
     if (auth?.actor) {
       this._actor = auth.actor;
-      return;
-    }
-
-    if (auth?.identity) {
+    } else if (auth?.key) {
+      // TODO: Replace isProd here with arg
+      [this._actor, agent] = await getActor(false, auth.key, this._canisterId);
+      this._principal = (await getIdentity(auth.key)).getPrincipal();
+    } else if (auth?.identity) {
       agent = new HttpAgent({
         identity: auth.identity,
         host: 'https://boundary.ic0.app/',
-        fetch: IS_NODE_CONTEXT ? require('node-fetch') : fetch,
+        fetch: FETCH,
+      });
+      this._actor = Actor.createActor(origynIdl, {
+        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        agent,
       });
     }
 
-    if (auth?.key) {
-      this._actor = await getActor(false, auth.key, this._canisterId);
-    }
-
     // TODO: add this back
-    // if (process.env.NODE_ENV !== 'production') {
-    //   agent.fetchRootKey().catch((err) => {
-    //     /* tslint:disable-next-line */
-    //     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-    //     /* tslint:disable-next-line */
-    //     console.error(err);
-    //   });
-    // }
-
-    this._actor = Actor.createActor(origynIdl, {
-      canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
-      agent,
-    });
+    if (process?.env?.NODE_ENV !== 'production') {
+      agent.fetchRootKey().catch((err) => {
+        /* tslint:disable-next-line */
+        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+        /* tslint:disable-next-line */
+        console.error(err);
+      });
+    }
   };
 
   public set principal(principal: Principal | string | undefined) {

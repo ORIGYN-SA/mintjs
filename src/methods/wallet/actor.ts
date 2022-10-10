@@ -9,7 +9,7 @@ import { Principal } from '@dfinity/principal';
 import { IdlStandard, getIdl } from '../../idls';
 import { AnyActor, PrivateIdentityKey } from '../../types/origynTypes';
 import origynNftIdl from '../../idls/origyn_nft_reference.did';
-import { IS_NODE_CONTEXT } from '../../utils/constants';
+import { FETCH } from '../../utils/constants';
 
 const plugActor = async (canisterId: string, standard: IdlStandard) => {
   if (!(await window.ic.plug.isConnected())) {
@@ -61,26 +61,26 @@ export const getActor = async (
   isProd: boolean,
   privateIdentityKey: PrivateIdentityKey,
   canisterId: string,
-): Promise<AnyActor> => {
+): Promise<[AnyActor, HttpAgent]> => {
   const identity = await getIdentity(privateIdentityKey);
 
   const agent = getAgent(isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000', identity);
   // TODO: add this bac
-  // if (!isProd) {
-  //   agent.fetchRootKey();
-  // }
+  if (!isProd) {
+    agent.fetchRootKey();
+  }
 
   const actor: AnyActor = Actor.createActor(origynNftIdl, {
     agent: agent,
     canisterId: Principal.fromText(canisterId),
   });
 
-  return actor;
+  return [actor, agent];
 };
 
 function getAgent(host: string, identity: Identity | Promise<Identity>) {
   return new HttpAgent({
-    fetch: IS_NODE_CONTEXT ? require('node-fetch') : fetch,
+    fetch: FETCH,
     host: host,
     identity: identity,
   });

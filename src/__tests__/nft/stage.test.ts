@@ -1,6 +1,7 @@
 import { Principal } from '@dfinity/principal';
 import { stage, buildStageConfig } from '../../methods/nft/stage';
 import { StageConfigArgs } from '../../methods/nft/types';
+import { OrigynClient } from '../../origynClient';
 
 test('expect stage to work', async () => {
   const ExampleStageConfig: StageConfigArgs = {
@@ -64,6 +65,10 @@ test('expect stage to work', async () => {
       },
     ],
   };
+  const WALLET_SEED = 'inherit disease hill can squirrel zone science dentist sadness exist wear aim';
+
+  await OrigynClient.getInstance().init('rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
   const config = buildStageConfig(ExampleStageConfig);
   const stage_r = await stage(config);
+  console.log('🚀 ~ file: stage.test.ts ~ line 69 ~ test ~ stage_r', stage_r);
 });

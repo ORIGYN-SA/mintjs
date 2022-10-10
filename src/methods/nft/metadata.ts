@@ -128,9 +128,10 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   // handle shared collection level resource references
   // these are not added to the NFT metadata's library
   // so they are only staged/uploaded once to the collection
-  for (const collectionFile of settings.args.nfts?.[nftIndex].collectionFiles ?? []) {
+  for (const collectionFileReference of settings.args.nfts?.[nftIndex].collectionFiles ?? []) {
+    const collectionFile = settings.args.files.find((f) => f.fileObj.filename === collectionFileReference.filename);
     // note: do not add collection resources to totalFileSize
-    resources.push(createClassForResource(settings, collectionFile, sort));
+    if (collectionFile) resources.push(createClassForResource(settings, collectionFile.fileObj, sort));
     // note: do not add collection resources to NFT library
     sort++;
   }
@@ -188,7 +189,9 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
 
   // ensure the file has a valid mime type
   let mimeType = file.webFile?.type;
+  console.log('🚀 ~ file: metadata.ts ~ line 191 ~ createClassForResource ~ mimeType', mimeType);
   if (IS_NODE_CONTEXT) {
+    console.log('🚀 ~ file: metadata.ts ~ line 193 ~ createClassForResource ~ IS_NODE_CONTEXT', IS_NODE_CONTEXT);
     const mime = require('mime-types');
     mimeType = mime.lookup(fileNameLower);
   }
