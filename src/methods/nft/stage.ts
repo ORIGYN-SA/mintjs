@@ -1,9 +1,8 @@
-import fs from 'fs';
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
-import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES } from '../../utils/constants';
+import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
 import { getActor } from '../wallet/actor';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
@@ -14,7 +13,6 @@ import {
   Metrics,
   StageConfigArgs,
   StageConfigData,
-  StageConfigFile,
   StageConfigSettings,
   StageConfigSummary,
   StageFile,
@@ -23,9 +21,6 @@ import {
 const WALLET_SEED = '';
 
 export const stage = async (config: StageConfigData) => {
-  const isProd = (config.settings.args.environment?.[0] || '').toLowerCase() !== 'l';
-  const _actor = await getActor(isProd, { seed: WALLET_SEED }, config.settings.args.nftCanisterId);
-  OrigynClient.getInstance().init('rrkah-fqaaa-aaaaa-aaaaq-cai', { actor: _actor });
   const { actor, principal: _principal } = OrigynClient.getInstance();
 
   // *** Stage NFTs and Library Assets
@@ -34,32 +29,38 @@ export const stage = async (config: StageConfigData) => {
   // so the library assets/files can be shared by multiple NFTs
   const metrics: Metrics = { totalFileSize: 0 };
   const items = [config.collection, ...config.nfts];
+  const response = [];
   for (const item of items) {
     var tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
 
     // Stage NFT
     const metadataToStage = deserializeConfig(item.meta);
     const stageResult = await actor.stage_nft_origyn(metadataToStage);
-    console.log(JSON.stringify(stageResult));
+    if (stageResult.err) {
+      return { err: stageResult.err };
+    }
+    const itemResponse = {
+      nftStage: stageResult,
+      libraryStage: [],
+    };
 
     // *** Stage Library Assets (as chunks)
     for (const asset of item.library) {
-      await stageLibraryAsset(actor, asset, tokenId, metrics);
+      await stageLibraryAsset(asset, tokenId, metrics);
+      // TODO: Add library staging response
+      // itemResponse.libraryStage.push(res);
     }
+    response[tokenId] = itemResponse;
   }
 
   console.log(`\nTotal Staged File Size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})\n`);
 
   console.log('\nFinished (stage subcommand)\n');
   console.log(`------------------\n`);
+  return { ok: response };
 };
 
-export const stageLibraryAsset = async (
-  actor: AnyActor,
-  libraryAsset: LibraryFile,
-  tokenId: string,
-  metrics: Metrics,
-) => {
+export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: string, metrics: Metrics) => {
   console.log(`\nStaging asset: ${libraryAsset.library_id}`);
   console.log(`\nFile path: ${libraryAsset.library_file}`);
 
@@ -70,6 +71,8 @@ export const stageLibraryAsset = async (
   console.log(`file size ${fileSize}`);
   console.log(`chunk count ${chunkCount}`);
 
+  const { actor } = OrigynClient.getInstance();
+
   for (let i = 0; i < chunkCount; i++) {
     // give the canister a 3 second break after every 10 chunks
     // attempt to prevent error: IC0515: Certified state is not available yet. Please try again…
@@ -77,7 +80,16 @@ export const stageLibraryAsset = async (
       await wait(3000);
     }
 
-    const fileAsBuffer = await getFileArrayBuffer(libraryAsset.library_file);
+    let fileAsBuffer: Buffer = Buffer.from('');
+    if (IS_NODE_CONTEXT) {
+      fileAsBuffer = await getFileArrayBuffer(libraryAsset.library_file);
+    } else {
+      if (libraryAsset.library_file.webFile) {
+        fileAsBuffer = await readFileAsync(libraryAsset.library_file.webFile);
+      } else {
+        throw 'A webFile is required for each file when staging from a web context';
+      }
+    }
     await uploadChunk(actor, libraryAsset.library_id, tokenId, fileAsBuffer, i, metrics);
   }
 };
@@ -173,7 +185,6 @@ export const initConfigSettings = (args: StageConfigArgs): StageConfigSettings =
     totalFileSize: 0,
   };
   settings.fileMap = buildFileMap(settings);
-  console.log('🚀 ~ file: stage.ts ~ line 175 ~ initConfigSettings ~ settings.fileMap', settings.fileMap);
   return settings;
 };
 
@@ -193,7 +204,6 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
     }
 
     const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
-    console.log('🚀 ~ file: stage.ts ~ line 197 ~ buildFileMap ~ resourceUrl', resourceUrl);
 
     fileInfoMap[file.fileObj.path] = {
       title,
@@ -276,8 +286,28 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
 };
 
 export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
-  return fs.readFileSync(file.path);
+  if (IS_NODE_CONTEXT) {
+    const fs = require('fs');
+    return fs.readFileSync(file.path);
+  } else {
+    return readFileAsync(file.webFile!);
+  }
 };
+
+export const readFileAsync = (file: File): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(reader.result as Buffer);
+    };
+
+    reader.onerror = reject;
+
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 export const deserializeConfig = (config) => {
   // Iterates config object tree and converts all
   // string values representing a Principal or Nat

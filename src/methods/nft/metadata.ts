@@ -1,3 +1,4 @@
+import { IS_NODE_CONTEXT } from './../../utils/constants';
 import mime from 'mime-types';
 import { getFileHash } from '../../utils';
 import { IMMUTABLE } from '../../utils/constants';
@@ -186,7 +187,11 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
   const fileNameLower = file.filename.toLowerCase();
 
   // ensure the file has a valid mime type
-  const mimeType = mime.lookup(fileNameLower);
+  let mimeType = file.webFile?.type;
+  if (IS_NODE_CONTEXT) {
+    const mime = require('mime-types');
+    mimeType = mime.lookup(fileNameLower);
+  }
   if (!mimeType) {
     const err = `Could not find mime type for file: ${file.filename}`;
     throw err;

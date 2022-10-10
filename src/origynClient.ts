@@ -1,8 +1,9 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
 import origynIdl from './idls/origyn_nft_reference.did';
-import { IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
-import fetch from 'cross-fetch';
+import { IC_HOST, IS_NODE_CONTEXT, ORIGYN_CANISTER_ID } from './utils/constants';
+import { PrivateIdentityKey } from './types/origynTypes';
+import { getActor } from './methods/wallet/actor';
 
 export const DEFAULT_AGENT = new HttpAgent({ fetch, host: IC_HOST });
 
@@ -38,7 +39,7 @@ export class OrigynClient {
     return this._canisterId;
   }
 
-  public init = (canisterId?: string, auth?: AuthType): void => {
+  public init = async (canisterId?: string, auth?: AuthType): Promise<void> => {
     let agent = auth?.agent ?? DEFAULT_AGENT;
     if (canisterId) this._canisterId = canisterId;
 
@@ -51,18 +52,23 @@ export class OrigynClient {
       agent = new HttpAgent({
         identity: auth.identity,
         host: 'https://boundary.ic0.app/',
-        fetch,
+        fetch: IS_NODE_CONTEXT ? require('node-fetch') : fetch,
       });
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      agent.fetchRootKey().catch((err) => {
-        /* tslint:disable-next-line */
-        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        /* tslint:disable-next-line */
-        console.error(err);
-      });
+    if (auth?.key) {
+      this._actor = await getActor(false, auth.key, this._canisterId);
     }
+
+    // TODO: add this back
+    // if (process.env.NODE_ENV !== 'production') {
+    //   agent.fetchRootKey().catch((err) => {
+    //     /* tslint:disable-next-line */
+    //     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    //     /* tslint:disable-next-line */
+    //     console.error(err);
+    //   });
+    // }
 
     this._actor = Actor.createActor(origynIdl, {
       canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
@@ -83,4 +89,5 @@ type AuthType = {
   actor?: ActorSubclass<any>;
   identity?: Identity;
   agent?: HttpAgent;
+  key?: PrivateIdentityKey;
 };

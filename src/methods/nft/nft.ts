@@ -1,6 +1,8 @@
 import { OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
 import { Principal } from '@dfinity/principal';
+import { buildStageConfig, stage } from './stage';
+import { StageConfigArgs } from './types';
 
 export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
   try {
@@ -16,14 +18,10 @@ export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoSt
   }
 };
 
-export const stageNft = async (token_id: string): Promise<OrigynResponse<any, GetNftErrors>> => {
+export const stageNft = async (args: StageConfigArgs): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
-    const actor = OrigynClient.getInstance().actor;
-    const response = await actor?.stage_nft_origyn({
-      metadata: {
-        Class: [{ name: 'id', value: { Text: token_id }, immutable: true }],
-      },
-    });
+    const stageConfig = buildStageConfig(args);
+    const response = await stage(stageConfig);
     if (response.ok || response.err) {
       return response;
     } else {

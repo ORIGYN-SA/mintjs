@@ -21,7 +21,9 @@ export type StageFile = {
   path: string;
   size: number;
   type?: string;
+  webFile?: File;
 };
+
 export type StageConfigArgs = {
   environment?: string;
   collectionId: string;
