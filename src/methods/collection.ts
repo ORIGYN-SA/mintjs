@@ -13,8 +13,8 @@ export const getNftCollection = async (
     } else {
       return { err: { error_code: GetCollectionErrors.UNKNOWN_ERROR } };
     }
-  } catch (e) {
-    return { err: { error_code: GetCollectionErrors.CANT_REACH_CANISTER } };
+  } catch (e: any) {
+    return { err: { error_code: GetCollectionErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
 

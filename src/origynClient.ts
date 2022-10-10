@@ -45,20 +45,19 @@ export class OrigynClient {
     return this._canisterId;
   }
 
-  public init = async (canisterId?: string, auth?: AuthType): Promise<void> => {
+  public init = async (isProd: boolean = true, canisterId?: string, auth?: AuthType): Promise<void> => {
     let agent = auth?.agent ?? DEFAULT_AGENT;
     if (canisterId) this._canisterId = canisterId;
 
     if (auth?.actor) {
       this._actor = auth.actor;
     } else if (auth?.key) {
-      // TODO: Replace isProd here with arg
-      [this._actor, agent] = await getActor(false, auth.key, this._canisterId);
+      [this._actor, agent] = await getActor(isProd, auth.key, this._canisterId);
       this._principal = (await getIdentity(auth.key)).getPrincipal();
     } else if (auth?.identity) {
       agent = new HttpAgent({
         identity: auth.identity,
-        host: 'https://boundary.ic0.app/',
+        host: isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000',
         fetch: FETCH,
       });
       this._actor = Actor.createActor(origynIdl, {
@@ -67,12 +66,9 @@ export class OrigynClient {
       });
     }
 
-    // TODO: add this back
-    if (process?.env?.NODE_ENV !== 'production') {
+    if (!isProd) {
       agent.fetchRootKey().catch((err) => {
-        /* tslint:disable-next-line */
         console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        /* tslint:disable-next-line */
         console.error(err);
       });
     }
