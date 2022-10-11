@@ -188,10 +188,8 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
   const fileNameLower = file.filename.toLowerCase();
 
   // ensure the file has a valid mime type
-  let mimeType = file.webFile?.type;
-  console.log('🚀 ~ file: metadata.ts ~ line 191 ~ createClassForResource ~ mimeType', mimeType);
+  let mimeType = file.type;
   if (IS_NODE_CONTEXT) {
-    console.log('🚀 ~ file: metadata.ts ~ line 193 ~ createClassForResource ~ IS_NODE_CONTEXT', IS_NODE_CONTEXT);
     const mime = require('mime-types');
     mimeType = mime.lookup(fileNameLower);
   }

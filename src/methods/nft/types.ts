@@ -9,11 +9,14 @@ export type Metrics = {
 export type StageConfigFile = {
   type: 'collection' | 'stage' | 'dapp';
   fileObj: StageFile;
+  // Dapps will not have assetType
+  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
 };
 export type StageNft = {
   quantity?: number;
   files: StageFile[];
   collectionFiles?: StageFile[];
+  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
 };
 export type StageFile = {
   filename: string;
@@ -21,7 +24,7 @@ export type StageFile = {
   path: string;
   size: number;
   type?: string;
-  webFile?: File;
+  rawFile: Buffer;
 };
 
 export type StageConfigArgs = {

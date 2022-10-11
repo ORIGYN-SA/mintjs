@@ -78,9 +78,7 @@ export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: stri
     if (i > 0 && i % 10 === 0) {
       await wait(3000);
     }
-
-    let fileAsBuffer: Buffer = await getFileArrayBuffer(libraryAsset.library_file);
-    await uploadChunk(actor, libraryAsset.library_id, tokenId, fileAsBuffer, i, metrics);
+    await uploadChunk(actor, libraryAsset.library_id, tokenId, libraryAsset.library_file.rawFile, i, metrics);
   }
 };
 
@@ -126,8 +124,24 @@ export const uploadChunk = async (
   }
 };
 
-export const buildStageConfig = (args: StageConfigArgs): StageConfigData => {
+export const buildStageConfig = async (args: StageConfigArgs): Promise<StageConfigData> => {
   let settings = initConfigSettings(args) as any;
+
+  // Get the Raw file if called from a node context (csm.js)
+  for (let i = 0; i < args.files.length; i++) {
+    if (!args.files[i].fileObj.rawFile) {
+      args.files[i].fileObj.rawFile = await getFileArrayBuffer(args.files[i].fileObj);
+    }
+  }
+
+  for (let i = 0; i < args.nfts.length; i++) {
+    for (let j = 0; j < args.nfts[i].files.length; j++) {
+      if (!args.nfts[i].files[j].rawFile) {
+        args.nfts[i].files[j].rawFile = await getFileArrayBuffer(args.nfts[i].files[j]);
+      }
+    }
+  }
+
   const collectionMetadata = configureCollectionMetadata(settings);
 
   const nftsMetadata = configureNftsMetadata(settings);
@@ -276,15 +290,11 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
 };
 
 export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
-  if (IS_NODE_CONTEXT) {
-    const fs = require('fs');
-    return fs.readFileSync(file.path);
-  } else {
-    if (!file.webFile) {
-      throw 'A webFile is required for each file when staging from a web context';
-    }
-    return readFileAsync(file.webFile);
+  if (!IS_NODE_CONTEXT) {
+    throw 'getFileArrayBuffer() cannot be used in a node context';
   }
+  const fs = require('fs');
+  return fs.readFileSync(file.path);
 };
 
 export const readFileAsync = (file: File): Promise<Buffer> => {

@@ -19,7 +19,7 @@ export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoSt
 
 export const stageNft = async (args: StageConfigArgs): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
-    const stageConfig = buildStageConfig(args);
+    const stageConfig = await buildStageConfig(args);
     const response = await stage(stageConfig);
     if (response.ok || response.err) {
       return response;
