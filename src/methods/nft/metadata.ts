@@ -1,5 +1,4 @@
 import { IS_NODE_CONTEXT } from './../../utils/constants';
-import mime from 'mime-types';
 import { getFileHash } from '../../utils';
 import { IMMUTABLE } from '../../utils/constants';
 import {

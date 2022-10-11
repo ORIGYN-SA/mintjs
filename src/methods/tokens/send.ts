@@ -1,10 +1,10 @@
 import { Principal } from '@dfinity/principal';
-import { toHex } from '@dfinity/agent/lib/esm/utils/buffer';
 import { getIdl, IdlStandard } from '../../idls';
 import { createWalletActor } from '.././wallet/actor';
 import { Token } from './types';
 import { getAccountId } from '../../utils/principalToAccountId';
 import { Actor, HttpAgent } from '@dfinity/agent';
+import { bufferToHex } from '../../utils/binary';
 
 const sendICP = async (actor: any, token: Token, to: any, amount: number) => {
   const defaultArgs = {
@@ -15,7 +15,7 @@ const sendICP = async (actor: any, token: Token, to: any, amount: number) => {
   const response = await actor.send_dfx({
     to:
       // @ts-ignore
-      typeof to === 'string' ? getAccountId(Principal.fromText(to)) : toHex(to),
+      typeof to === 'string' ? getAccountId(Principal.fromText(to)) : bufferToHex(to),
     fee: { e8s: token?.fee || defaultArgs.fee },
     amount: { e8s: BigInt(amount) },
     memo: defaultArgs.memo,

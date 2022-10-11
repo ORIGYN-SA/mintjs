@@ -53,6 +53,10 @@ export const wordArrayToByteArray = (wordArray, length) => {
 
 export const intToHex = (val: number) => (val < 0 ? (Number(val) >>> 0).toString(16) : Number(val).toString(16));
 
+export const bufferToHex = (buffer) => {
+  return [...new Uint8Array(buffer)].map((x) => x.toString(16).padStart(2, '0')).join('');
+};
+
 // We generate a CRC32 checksum, and trnasform it into a hexString
 export const generateChecksum = (hash: Uint8Array) => {
   const crc = crc32.unsigned(Buffer.from(hash));
