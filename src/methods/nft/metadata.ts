@@ -2,38 +2,37 @@ import { IS_NODE_CONTEXT } from './../../utils/constants';
 import { getFileHash } from '../../utils';
 import { IMMUTABLE } from '../../utils/constants';
 import {
-  StageConfigSettings,
-  StageConfigFile,
+  CollectionLevelFile,
+  LibraryFile,
   Meta,
   MetadataClass,
-  LibraryFile,
   MetadataProperty,
-  TextValue,
   NatValue,
+  StageConfigSettings,
   StageFile,
+  TextValue,
 } from './types';
 
 export const configureCollectionMetadata = (settings: StageConfigSettings): Meta => {
   const resources: MetadataClass[] = [];
-  const files = settings.args.files.filter((file) => file.type === 'collection' || file.type === 'dapp');
-
-  // map asset types to files that match the corresponding pattern
-  const mappings = settings.args.assets;
+  const files = settings.args.collectionFiles.filter(
+    (file) => file.category === 'collection' || file.category === 'dapp',
+  );
 
   // Iterate all html and css files and replace local paths with NFT URLs
-  const webFiles: StageConfigFile[] = files.filter((f) =>
-    ['html', 'htm', 'css'].includes(f.fileObj.filename.split('.').pop() ?? ''),
+  const webFiles: CollectionLevelFile[] = files.filter((f) =>
+    ['html', 'htm', 'css'].includes(f.filename.split('.').pop() ?? ''),
   );
 
   // TODO: We need to do that replace relative URLs in web files
 
   let sort = 1;
   for (const file of files) {
-    settings.totalFileSize += file.fileObj.size;
+    settings.totalFileSize += file.size ?? 0;
 
-    resources.push(createClassForResource(settings, file.fileObj, sort));
+    resources.push(createClassForResource(settings, file, sort));
 
-    const library = createLibrary(settings, file.fileObj);
+    const library = createLibrary(settings, file);
     settings.collectionLibraries.push(library);
     sort++;
   }
@@ -46,15 +45,16 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
   // The id for a collection is an empty string
   properties.push(createTextAttrib('id', '', immutable));
 
-  // assetType = 'primary_asset', 'preview_asset', 'experience_asset' or 'hidden_asset'
-  for (let assetType in mappings) {
-    properties.push(
-      createTextAttrib(
-        `${settings.args.namespace}.${assetType}`,
-        `${settings.args.namespace}.${mappings[assetType]}`,
-        immutable,
-      ),
-    );
+  const filesWithAssetType = files.filter((f) => f.assetType);
+
+  const alreadyPushedAssetTypes: string[] = [];
+  for (const file of filesWithAssetType) {
+    if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
+      properties.push(
+        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
+      );
+      alreadyPushedAssetTypes.push(file.assetType!);
+    }
   }
 
   properties.push(createTextAttrib('owner', settings.args.nftOwnerId || settings.args.nftCanisterId, !immutable));
@@ -109,12 +109,12 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const tokenId = `${settings.args.tokenPrefix}${nftIndex}`;
   const files = settings.args.nfts?.[nftIndex].files;
 
-  // Iterate all html and css files and replace local paths with NFT URLs
+  // TODO: Iterate all html and css files and replace local paths with NFT URLs
   const filesWithUrls = files.filter((f) => ['html', 'htm', 'css'].includes(f.filename.split('.').pop() ?? ''));
 
   let sort = 1;
-  for (const file of filesWithUrls) {
-    settings.totalFileSize += file.size;
+  for (const file of files) {
+    settings.totalFileSize += file.size ?? 0;
 
     resources.push(createClassForResource(settings, file, sort));
 
@@ -127,10 +127,10 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   // handle shared collection level resource references
   // these are not added to the NFT metadata's library
   // so they are only staged/uploaded once to the collection
-  for (const collectionFileReference of settings.args.nfts?.[nftIndex].collectionFiles ?? []) {
-    const collectionFile = settings.args.files.find((f) => f.fileObj.filename === collectionFileReference.filename);
+  for (const collectionFileReference of settings.args.nfts?.[nftIndex].collectionFileReferences ?? []) {
+    const collectionFile = settings.args.collectionFiles.find((f) => f.filename === collectionFileReference);
     // note: do not add collection resources to totalFileSize
-    if (collectionFile) resources.push(createClassForResource(settings, collectionFile.fileObj, sort));
+    if (collectionFile) resources.push(createClassForResource(settings, collectionFile, sort));
     // note: do not add collection resources to NFT library
     sort++;
   }
@@ -142,16 +142,14 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
 
   properties.push(createTextAttrib('id', tokenId, immutable));
 
-  // assetType = 'primary_asset', 'preview_asset', 'experience_asset' or 'hidden_asset'
-  console.log(
-    '🚀 ~ file: metadata.ts ~ line 146 ~ configureNftMetadata ~ Object.keys(settings.args.assets)',
-    Object.keys(settings.args.assets),
-  );
-  for (const asset of settings.args.assets) {
-    for (const assetType of Object.keys(asset)) {
+  const filesWithAssetType = files.filter((f) => f.assetType);
+  const alreadyPushedAssetTypes: string[] = [];
+  for (const file of filesWithAssetType) {
+    if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
       properties.push(
-        createTextAttrib(`${assetType}_asset`, `${settings.args.namespace}.${asset[assetType]}`, immutable),
+        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
       );
+      alreadyPushedAssetTypes.push(file.assetType!);
     }
   }
 
@@ -204,8 +202,8 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
       createTextAttrib('location_type', 'canister', IMMUTABLE),
       createTextAttrib('location', settings.fileMap[file.path].resourceUrl, IMMUTABLE),
       createTextAttrib('content_type', mimeType, IMMUTABLE),
-      createTextAttrib('content_hash', getFileHash(file.path), IMMUTABLE),
-      createNatAttrib('size', file.size, IMMUTABLE),
+      createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
+      createNatAttrib('size', file.size ?? 0, IMMUTABLE),
       createNatAttrib('sort', sort, IMMUTABLE),
       createTextAttrib('read', 'public', !IMMUTABLE),
     ],
@@ -326,7 +324,11 @@ function createAppsAttribute(settings: StageConfigSettings): MetadataProperty {
                     },
                     {
                       name: `${settings.args.namespace}.total_in_collection`,
-                      value: { Nat: settings.args.nfts.length },
+                      value: {
+                        Nat: settings.args.nfts.reduce((acumulator, nft) => {
+                          return acumulator + (nft?.quantity ?? 1);
+                        }, 0),
+                      },
                       immutable: false,
                     },
                     {
@@ -364,7 +366,6 @@ function createClassesForResourceReferences(
   const resourceReferences: MetadataClass[] = [];
 
   for (let cls of resourceClasses) {
-    console.log('🚀 ~ file: metadata.ts ~ line 361 ~ cls', cls);
     const libraryIdProperty = cls.Class.find((a) => a.name === 'library_id');
     if (!libraryIdProperty) {
       continue;
@@ -413,14 +414,4 @@ function createClassesForResourceReferences(
   }
 
   return resourceReferences;
-}
-function getCollectionReferences(file: StageFile): string[] {
-  const refs = JSON.parse(file.path);
-
-  if (!Array.isArray(refs) || refs.length === 0) {
-    const err = `Expected "${file.filename}" to contain a JSON array of file paths starting at the root of the "collection" folder.`;
-    throw err;
-  }
-
-  return refs;
 }

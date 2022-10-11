@@ -6,27 +6,23 @@ export type LibraryFile = {
 export type Metrics = {
   totalFileSize: number;
 };
-export type StageConfigFile = {
-  type: 'collection' | 'stage' | 'dapp';
-  fileObj: StageFile;
-  // Dapps will not have assetType
-  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
+export type CollectionLevelFile = StageFile & {
+  category: 'collection' | 'stage' | 'dapp';
 };
 export type StageNft = {
-  quantity?: number;
+  collectionFileReferences?: string[];
   files: StageFile[];
-  collectionFiles?: StageFile[];
-  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
+  quantity?: number;
 };
 export type StageFile = {
+  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
   filename: string;
   index?: number;
   path: string;
-  size: number;
+  rawFile?: Buffer;
+  size?: number;
   type?: string;
-  rawFile: Buffer;
 };
-
 export type StageConfigArgs = {
   environment?: string;
   collectionId: string;
@@ -35,12 +31,11 @@ export type StageConfigArgs = {
   creatorPrincipal: string;
   namespace: string;
   nftCanisterId: string;
-  files: StageConfigFile[];
+  collectionFiles: CollectionLevelFile[];
   nfts: StageNft[];
   // string with comma delimited list of 'asset_type:file_name, ...'
   // supports the * wildcard character
   // example:  primary: 'index#.html', experience: 'index#.html', preview: 'preview#.png'
-  assets: Asset[];
 
   //optional args, but will map to empty strings
 
@@ -80,12 +75,6 @@ export type FileInfo = {
 
 export type FileInfoMap = {
   [filePath: string]: FileInfo;
-};
-export type Asset = {
-  primary?: string;
-  preview?: string;
-  experience?: string;
-  hidden?: string;
 };
 
 export type TextValue = {

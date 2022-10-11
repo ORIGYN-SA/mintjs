@@ -65,6 +65,8 @@ export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: stri
 
   // slice file buffer into chunks of bytes that fit into the chunk size
   const fileSize = libraryAsset.library_file.size;
+  if (!fileSize) throw `There is no 'size' for library file '${libraryAsset.library_file.filename}'`;
+
   const chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
   console.log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
   console.log(`file size ${fileSize}`);
@@ -78,7 +80,7 @@ export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: stri
     if (i > 0 && i % 10 === 0) {
       await wait(3000);
     }
-    await uploadChunk(actor, libraryAsset.library_id, tokenId, libraryAsset.library_file.rawFile, i, metrics);
+    await uploadChunk(actor, libraryAsset.library_id, tokenId, libraryAsset.library_file.rawFile!, i, metrics);
   }
 };
 
@@ -128,9 +130,10 @@ export const buildStageConfig = async (args: StageConfigArgs): Promise<StageConf
   let settings = initConfigSettings(args) as any;
 
   // Get the Raw file if called from a node context (csm.js)
-  for (let i = 0; i < args.files.length; i++) {
-    if (!args.files[i].fileObj.rawFile) {
-      args.files[i].fileObj.rawFile = await getFileArrayBuffer(args.files[i].fileObj);
+  for (let i = 0; i < args.collectionFiles.length; i++) {
+    if (!args.collectionFiles[i].rawFile) {
+      args.collectionFiles[i].rawFile = await getFileArrayBuffer(args.collectionFiles[i]);
+      args.collectionFiles[i].size = await getFileSize(args.collectionFiles[i]);
     }
   }
 
@@ -138,6 +141,7 @@ export const buildStageConfig = async (args: StageConfigArgs): Promise<StageConf
     for (let j = 0; j < args.nfts[i].files.length; j++) {
       if (!args.nfts[i].files[j].rawFile) {
         args.nfts[i].files[j].rawFile = await getFileArrayBuffer(args.nfts[i].files[j]);
+        args.nfts[i].files[j].size = await getFileSize(args.nfts[i].files[j]);
       }
     }
   }
@@ -195,8 +199,8 @@ export const initConfigSettings = (args: StageConfigArgs): StageConfigSettings =
 export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
-  for (const file of settings.args.files) {
-    let title = file.fileObj.filename ?? 'UNTITLED_FILE';
+  for (const file of settings.args.collectionFiles) {
+    let title = file.filename ?? 'UNTITLED_FILE';
     let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
     if (file.type === 'dapp') {
@@ -209,11 +213,11 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
 
     const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
 
-    fileInfoMap[file.fileObj.path] = {
+    fileInfoMap[file.path] = {
       title,
       libraryId,
       resourceUrl,
-      filePath: file.fileObj.path,
+      filePath: file.path,
     };
   }
 
@@ -223,23 +227,12 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
       const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
 
       for (const file of nft.files) {
-        const fileName = file.path.split('/').pop() ?? 'UNTITLED_FILE';
-
-        const libraryId = `${settings.args.namespace}.${fileName}`.toLowerCase();
+        console.log(`staging nft file ${file.filename}`);
+        const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
 
         const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
 
-        // find the asset type of this file (primary, preview, experience, hidden)
-        let nftAssetType = '';
-        for (const asset of settings.args.assets) {
-          for (const assetKey of Object.keys(asset)) {
-            if (asset[assetKey].toLowerCase() === fileName.toLowerCase()) {
-              nftAssetType = assetKey === 'primary' ? '' : ` ${assetKey}`;
-            }
-          }
-        }
-
-        const title = `${settings.args.collectionDisplayName} - ${nftIndex}${nftAssetType}`;
+        const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
 
         fileInfoMap[file.path] = {
           title,
@@ -297,15 +290,13 @@ export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
   return fs.readFileSync(file.path);
 };
 
-export const readFileAsync = (file: File): Promise<Buffer> => {
-  return new Promise((resolve, reject) => {
-    let reader = new FileReader();
-    reader.onload = () => {
-      resolve(arrayToBuffer(reader.result));
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
+export const getFileSize = async (file: StageFile): Promise<number> => {
+  if (!IS_NODE_CONTEXT) {
+    throw 'getFileArrayBuffer() cannot be used in a node context';
+  }
+  const fs = require('fs');
+  const { size } = fs.statSync(file.path);
+  return size;
 };
 
 export const deserializeConfig = (config) => {

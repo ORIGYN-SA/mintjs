@@ -12,36 +12,27 @@ test('expect stage to work', async () => {
   //   tokenPrefix: 'la-',
   //   creatorPrincipal: '6i6da-t3dfv-vteyg-v5agl-tpgrm-63p4y-t5nmm-gi7nl-o72zu-jd3sc-7qe',
   //   namespace: 'louie.anderson',
-  //   assets: [{ primary: 'nft*.png' }, { hidden: 'louie_anderson.jpg' }],
   //   soulbound: false,
   //   nftOwnerId: '6i6da-t3dfv-vteyg-v5agl-tpgrm-63p4y-t5nmm-gi7nl-o72zu-jd3sc-7qe',
-  //   files: [
+  //   collectionFiles: [
   //     {
-  //       type: 'collection',
-  //       fileObj: {
-  //         filename: 'louie_anderson.jpg',
-  //         index: 0,
-  //         path: '/home/sebastian/Documents/GitHub/mintjs/louie/louie_anderson.jpg',
-  //         size: 26016,
-  //       },
+  //       category: 'collection',
+  //       filename: 'nyan-cat.gif',
+  //       index: 0,
+  //       path: '/home/sebastian/Desktop/nft/nyan-cat.gif',
+  //       assetType: 'primary',
   //     },
   //     {
-  //       type: 'dapp',
-  //       fileObj: {
-  //         filename: 'wallet.html',
-  //         index: 1,
-  //         path: '/home/sebastian/Documents/GitHub/mintjs/brain-matters/assets/collection/dapps/wallet.html',
-  //         size: 1545120,
-  //       },
+  //       category: 'dapp',
+  //       filename: 'wallet.html',
+  //       index: 1,
+  //       path: '/home/sebastian/Desktop/nft/dapps/wallet.html',
   //     },
   //     {
-  //       type: 'dapp',
-  //       fileObj: {
-  //         filename: 'ledger.html',
-  //         index: 2,
-  //         path: '/home/sebastian/Documents/GitHub/mintjs/brain-matters/assets/collection/dapps/ledger.html',
-  //         size: 1122558,
-  //       },
+  //       category: 'dapp',
+  //       filename: 'ledger.html',
+  //       index: 2,
+  //       path: '/home/sebastian/Desktop/nft/dapps/ledger.html',
   //     },
   //   ],
   //   nfts: [
@@ -49,23 +40,16 @@ test('expect stage to work', async () => {
   //       quantity: 1,
   //       files: [
   //         {
-  //           filename: 'louie.png',
-  //           index: 0,
-  //           path: '/home/sebastian/Documents/GitHub/mintjs/louie/louie.png',
-  //           size: 371706,
+  //           filename: 'nyan.gif',
+  //           path: '/home/sebastian/Desktop/nft/nyan.gif',
+  //           assetType: 'preview',
   //         },
   //       ],
-  //       collectionFiles: [
-  //         {
-  //           filename: 'louie_anderson.jpg',
-  //           path: '/home/sebastian/Documents/GitHub/mintjs/louie/louie_anderson.jpg',
-  //           size: 26016,
-  //         },
-  //       ],
+  //       collectionFileReferences: ['nyan-cat.gif', 'wallet.html', 'ledger.html'],
   //     },
   //   ],
   // };
-  // const WALLET_SEED = 'inherit disease hill can squirrel zone science dentist sadness exist wear aim';
+  // const WALLET_SEED = '';
   // await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
   // const config = await buildStageConfig(ExampleStageConfig);
   // const stage_r = await stage(config);

@@ -1,7 +1,9 @@
 import { getNft, getNftHistory } from '../index';
+import JSONbig from 'json-bigint';
 
 test('expect getNft to return valid response for bm-1', async () => {
   const response = await getNft('bm-1');
+  console.log('🚀 ~ file: nft.test.ts ~ line 5 ~ test ~ response', JSONbig.stringify(response));
   expect(response).toHaveProperty('ok');
 });
 

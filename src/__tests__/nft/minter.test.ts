@@ -4,7 +4,7 @@ import { getActor } from '../../methods/wallet/actor';
 import { OrigynClient } from '../../origynClient';
 import JSONbig from 'json-bigint';
 
-const WALLET_SEED = 'inherit disease hill can squirrel zone science dentist sadness exist wear aim';
+const WALLET_SEED = '';
 
 const isProd = false;
 
