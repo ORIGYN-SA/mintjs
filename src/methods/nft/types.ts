@@ -33,18 +33,8 @@ export type StageConfigArgs = {
   nftCanisterId: string;
   collectionFiles: CollectionLevelFile[];
   nfts: StageNft[];
-  // string with comma delimited list of 'asset_type:file_name, ...'
-  // supports the * wildcard character
-  // example:  primary: 'index#.html', experience: 'index#.html', preview: 'preview#.png'
-
-  //optional args, but will map to empty strings
-
-  // if empty, defaults to NFT canister id
   nftOwnerId: string;
-  // indicates if the resource urls should point at the local icx-proxy (port 3000)
-  // if empty, defaults to 'false'
   useProxy?: boolean;
-  // if empty, defaults to 'false'
   soulbound?: boolean;
 };
 export type StageConfigData = {

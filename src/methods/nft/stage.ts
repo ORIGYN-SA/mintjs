@@ -200,13 +200,13 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
   for (const file of settings.args.collectionFiles) {
-    let title = file.filename ?? 'UNTITLED_FILE';
+    let title = file.filename;
     let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
-    if (file.type === 'dapp') {
-      const extPos = libraryId.lastIndexOf('.');
+    if (file.category === 'dapp') {
+      const extPos = title.lastIndexOf('.');
       if (extPos > 0) {
-        libraryId = libraryId.substring(0, extPos);
+        libraryId = title.substring(0, extPos);
       }
       title = `${libraryId} dApp`;
     }
@@ -266,10 +266,10 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
     case 'p':
     case 'prod':
     case 'production':
-      rootUrl = `https://exos.origyn.network/-/${settings.args.collectionId}`;
+      rootUrl = `https://prptl.io/-/${settings.args.nftCanisterId}`;
       break;
     default: // dev, stage, etc.
-      rootUrl = `https://exos.origyn.network/-/${settings.args.nftCanisterId}`;
+      rootUrl = `https://prptl.io/-/${settings.args.nftCanisterId}`;
       break;
   }
 
