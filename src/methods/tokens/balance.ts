@@ -61,7 +61,7 @@ const extMethod = async (principal: Principal, token: Token): Promise<BalanceRes
   });
   const balanceResult: any = await actor.balance({
     token: token.canisterId,
-    user: { principal: principal },
+    user: { principal },
   });
   if ('ok' in balanceResult) return { value: balanceResult.ok.toString(), decimals: 8 };
 

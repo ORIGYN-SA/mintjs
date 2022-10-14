@@ -10,6 +10,7 @@ import { IdlStandard, getIdl } from '../../idls';
 import { AnyActor, PrivateIdentityKey } from '../../types/origynTypes';
 import origynNftIdl from '../../idls/origyn_nft_reference.did';
 import { FETCH } from '../../utils/constants';
+import { log } from '../../utils/log';
 
 const plugActor = async (canisterId: string, standard: IdlStandard) => {
   if (!(await window.ic.plug.isConnected())) {
@@ -22,7 +23,7 @@ const plugActor = async (canisterId: string, standard: IdlStandard) => {
   });
 
   const actor = await window.ic.plug.createActor({
-    canisterId: canisterId,
+    canisterId,
     interfaceFactory: getIdl(standard),
   });
   return actor;
@@ -43,7 +44,7 @@ const iiActor = async (canisterId: string, standard: IdlStandard) => {
 
   const actor = Actor.createActor(getIdl(standard), {
     agent: airdropAgent,
-    canisterId: canisterId,
+    canisterId,
   });
 
   return actor;
@@ -71,7 +72,7 @@ export const getActor = async (
   }
 
   const actor: AnyActor = Actor.createActor(origynNftIdl, {
-    agent: agent,
+    agent,
     canisterId: Principal.fromText(canisterId),
   });
 
@@ -81,8 +82,8 @@ export const getActor = async (
 function getAgent(host: string, identity: Identity | Promise<Identity>) {
   return new HttpAgent({
     fetch: FETCH,
-    host: host,
-    identity: identity,
+    host,
+    identity,
   });
 }
 export const getIdentity = async (privateIdentityKey: PrivateIdentityKey) => {
@@ -91,7 +92,7 @@ export const getIdentity = async (privateIdentityKey: PrivateIdentityKey) => {
     const rawBuffer = Uint8Array.from(ecPrivateKey as any).buffer;
     const pKey = Uint8Array.from(sha256(rawBuffer as any, { asBytes: true }));
     const identity = Secp256k1KeyIdentity.fromSecretKey(pKey);
-    console.log(`Loaded Secp256k1 identity ${identity.getPrincipal()} from arg.`);
+    log(`Loaded Secp256k1 identity ${identity.getPrincipal()} from arg.`);
     return identity;
   } else if (privateKey) {
     // var buf = pemfile.decode(privateKey);
@@ -102,16 +103,16 @@ export const getIdentity = async (privateIdentityKey: PrivateIdentityKey) => {
     // const identity = Ed25519KeyIdentity.fromSecretKey(pKey);
     // console.log(`Loaded Ed25519 identity ${identity.getPrincipal()} from arg.`);
     // return identity;
-    throw 'not supported yet';
+    throw Error('not supported yet');
   } else if ((seed || '').split(' ').length === 12) {
     // seed file
-    let _seed: Buffer = await mnemonicToSeed(seed ?? '');
+    const _seed: Buffer = await mnemonicToSeed(seed ?? '');
     const root = fromMasterSeed(_seed);
     const addrnode = root.derive("m/44'/223'/0'/0/0");
     const identity = Secp256k1KeyIdentity.fromSecretKey(addrnode.privateKey);
-    console.log(`Loaded identity ${identity.getPrincipal()} from seed arg.`);
+    log(`Loaded identity ${identity.getPrincipal()} from seed arg.`);
     return identity;
   } else {
-    throw 'Invalid seed phrase';
+    throw Error('Invalid seed phrase');
   }
 };

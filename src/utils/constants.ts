@@ -22,4 +22,5 @@ export const IMMUTABLE = true;
 
 export const IS_NODE_CONTEXT = typeof process !== 'undefined' && process?.release?.name === 'node';
 
+// tslint:disable-next-line no-var-requires
 export const FETCH = IS_NODE_CONTEXT ? require('node-fetch') : window.fetch.bind(window);

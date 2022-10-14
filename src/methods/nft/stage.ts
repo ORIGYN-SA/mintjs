@@ -1,3 +1,5 @@
+// tslint:disable prefer-for-of
+
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
@@ -5,6 +7,7 @@ import { wait } from '../../utils';
 import { arrayToBuffer } from '../../utils/binary';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
+import { log } from '../../utils/log';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
   FileInfoMap,
@@ -30,7 +33,7 @@ export const stage = async (config: StageConfigData) => {
   const items = [config.collection, ...config.nfts];
   const response = [];
   for (const item of items) {
-    var tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
+    const tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
 
     // Stage NFT
     const metadataToStage = deserializeConfig(item.meta);
@@ -52,25 +55,25 @@ export const stage = async (config: StageConfigData) => {
     response[tokenId] = itemResponse;
   }
 
-  console.log(`\nTotal Staged File Size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})\n`);
+  log(`\nTotal Staged File Size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})\n`);
 
-  console.log('\nFinished (stage subcommand)\n');
-  console.log(`------------------\n`);
+  log('\nFinished (stage subcommand)\n');
+  log(`------------------\n`);
   return { ok: response };
 };
 
 export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: string, metrics: Metrics) => {
-  console.log(`\nStaging asset: ${libraryAsset.library_id}`);
-  console.log(`\nFile path: ${libraryAsset.library_file.path}`);
+  log(`\nStaging asset: ${libraryAsset.library_id}`);
+  log(`\nFile path: ${libraryAsset.library_file.path}`);
 
   // slice file buffer into chunks of bytes that fit into the chunk size
   const fileSize = libraryAsset.library_file.size;
-  if (!fileSize) throw `There is no 'size' for library file '${libraryAsset.library_file.filename}'`;
+  if (!fileSize) throw Error(`There is no 'size' for library file '${libraryAsset.library_file.filename}'`);
 
   const chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
-  console.log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
-  console.log(`file size ${fileSize}`);
-  console.log(`chunk count ${chunkCount}`);
+  log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
+  log(`file size ${fileSize}`);
+  log(`chunk count ${chunkCount}`);
 
   const { actor } = OrigynClient.getInstance();
 
@@ -99,26 +102,22 @@ export const uploadChunk = async (
   const chunk = fileData.slice(start, end);
 
   try {
-    let result = await actor.stage_library_nft_origyn({
+    const result = await actor.stage_library_nft_origyn({
       token_id: tokenId,
       library_id: libraryId,
       filedata: { Empty: null },
       chunk: chunkNumber,
       content: Array.from(chunk),
     });
-    console.log(`Result of stage_library_nft_origyn: ${JSON.stringify(result)}`);
+    log(`Result of stage_library_nft_origyn: ${JSON.stringify(result)}`);
     metrics.totalFileSize += chunk.length;
-    console.log(`Cumulative staged file size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})`);
+    log(`Cumulative staged file size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})`);
   } catch (ex) {
     if (retries >= 5) {
-      console.log(
-        `\nMax retries of ${MAX_CHUNK_UPLOAD_RETRIES} has been reached for ${libraryId} chunk #${chunkNumber}.\n`,
-      );
+      log(`\nMax retries of ${MAX_CHUNK_UPLOAD_RETRIES} has been reached for ${libraryId} chunk #${chunkNumber}.\n`);
     } else {
-      console.log(JSON.stringify(ex));
-      console.log(
-        '\n*** Caught the above error while staging a library asset chunk. Waiting 3 seconds, then trying again.\n',
-      );
+      log(JSON.stringify(ex));
+      log('\n*** Caught the above error while staging a library asset chunk. Waiting 3 seconds, then trying again.\n');
       await wait(3000);
       retries++;
       await uploadChunk(actor, libraryId, tokenId, fileData, chunkNumber, metrics, retries);
@@ -127,7 +126,7 @@ export const uploadChunk = async (
 };
 
 export const buildStageConfig = async (args: StageConfigArgs): Promise<StageConfigData> => {
-  let settings = initConfigSettings(args) as any;
+  const settings = initConfigSettings(args) as any;
 
   // Get the Raw file if called from a node context (csm.js)
   for (let i = 0; i < args.collectionFiles.length; i++) {
@@ -227,7 +226,7 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
       const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
 
       for (const file of nft.files) {
-        console.log(`staging nft file ${file.filename}`);
+        log(`staging nft file ${file.filename}`);
         const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
 
         const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
@@ -284,7 +283,7 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
 
 export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
   if (!IS_NODE_CONTEXT) {
-    throw 'getFileArrayBuffer() cannot be used in a node context';
+    throw Error('getFileArrayBuffer() cannot be used in a node context');
   }
   const fs = require('fs');
   return fs.readFileSync(file.path);
@@ -292,7 +291,7 @@ export const getFileArrayBuffer = async (file: StageFile): Promise<Buffer> => {
 
 export const getFileSize = async (file: StageFile): Promise<number> => {
   if (!IS_NODE_CONTEXT) {
-    throw 'getFileArrayBuffer() cannot be used in a node context';
+    throw Error('getFileArrayBuffer() cannot be used in a node context');
   }
   const fs = require('fs');
   const { size } = fs.statSync(file.path);
@@ -300,14 +299,11 @@ export const getFileSize = async (file: StageFile): Promise<number> => {
 };
 
 export const deserializeConfig = (config) => {
-  // Iterates config object tree and converts all
-  // string values representing a Principal or Nat
-  // to a Principal object or BigInt respectively.
-
   if (typeof config !== 'object') {
     return config;
   }
-  for (var p in config) {
+  // tslint:disable forin
+  for (const p in config) {
     switch (typeof config[p]) {
       case 'object':
         // recurse objects

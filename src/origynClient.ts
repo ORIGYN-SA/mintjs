@@ -4,6 +4,7 @@ import origynIdl from './idls/origyn_nft_reference.did';
 import { FETCH, IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
 import { PrivateIdentityKey } from './types/origynTypes';
 import { getActor, getIdentity } from './methods/wallet/actor';
+import { error, warn } from './utils/log';
 
 export const DEFAULT_AGENT = new HttpAgent({
   fetch: FETCH,
@@ -68,8 +69,8 @@ export class OrigynClient {
 
     if (!isProd) {
       agent.fetchRootKey().catch((err) => {
-        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        console.error(err);
+        warn('Unable to fetch root key. Check to ensure that your local replica is running');
+        error(err);
       });
     }
   };

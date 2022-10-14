@@ -88,10 +88,10 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
 };
 export const configureNftsMetadata = (settings: StageConfigSettings): Meta[] => {
   let nftIndex = 0;
-  let nfts: Meta[] = [];
+  const nfts: Meta[] = [];
 
-  for (let i = 0; i < settings.args.nfts.length; i++) {
-    const nftQuantity = settings.args.nfts[i].quantity || 1;
+  for (const nft of settings.args.nfts) {
+    const nftQuantity = nft.quantity || 1;
     for (let j = 0; j < nftQuantity; j++) {
       const nftMetadata = configureNftMetadata(settings, nftIndex);
       nfts.push(nftMetadata);
@@ -365,7 +365,7 @@ function createClassesForResourceReferences(
 ): MetadataClass[] {
   const resourceReferences: MetadataClass[] = [];
 
-  for (let cls of resourceClasses) {
+  for (const cls of resourceClasses) {
     const libraryIdProperty = cls.Class.find((a) => a.name === 'library_id');
     if (!libraryIdProperty) {
       continue;
@@ -376,7 +376,7 @@ function createClassesForResourceReferences(
     let locationType = 'canister';
     let library = libraries.find((l) => l.library_id === libraryId);
     if (!library) {
-      //const collectionFiles = settings.args.files.filter((file) => file.type === 'collection');
+      // const collectionFiles = settings.args.files.filter((file) => file.type === 'collection');
       library = settings.collectionLibraries.find((l) => l.library_id === libraryId);
 
       if (library) {
@@ -395,7 +395,7 @@ function createClassesForResourceReferences(
     const contentHash = cls.Class.find((a) => a.name === 'content_hash')?.value;
 
     if (!title || !location || !size || !sort || !contentType || !contentHash) {
-      throw 'Unexpected missing properties of resource class.';
+      throw Error('Unexpected missing properties of resource class.');
     }
 
     resourceReferences.push({

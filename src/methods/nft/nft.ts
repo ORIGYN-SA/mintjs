@@ -44,7 +44,6 @@ export const mintNft = async (token_id: string, principal?: Principal): Promise<
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
   } catch (e: any) {
-    console.log(e);
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
