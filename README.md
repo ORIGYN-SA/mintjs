@@ -69,13 +69,13 @@ module.exports = (env, argv) => ({
     - [OrigynClient.getInstance().init(isProd, canisterId, auth) ⇒ `void```](#OrigynClient+getIntstance+init)
     - [` set` OrigynClient.getInstance().principal(principal) ⇒ `void`](#OrigynClient+setPrincipal)
     - [` get` OrigynClient.getInstance().principal⇒ `Principal`](#OrigynClient+getPrincipal)
-    - [🎬 Staging & Minting](#staging)
-      - [stageNft(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNft)
-      - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
-    - [🦾 Communication Functions](#others)
-    - [getNftBalance(principal)](#getNftBalance)
-    - [getNft(token)](#getNft)
-    - [getNftHistory(token_id, start, end)](#getNftHistory)
+  - [🎬 Staging & Minting](#staging)
+    - [stageNft(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNft)
+    - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
+  - [🦾 Communication Functions](#others)
+  - [getNftBalance(principal)](#getNftBalance)
+  - [getNft(token)](#getNft)
+  - [getNftHistory(token_id, start, end)](#getNftHistory)
 
 <a name="OrigynClient"></a>
 
