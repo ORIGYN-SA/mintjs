@@ -66,7 +66,7 @@ module.exports = (env, argv) => ({
 
 - [Documentation](#documentation)
   - [🔗 Initialization](#OrigynClient)
-    - [OrigynClient.getInstance().init(isProd, canisterId, auth) ⇒ `void```](#OrigynClient+getIntstance+init)
+    - [OrigynClient.getInstance().init(isProd, canisterId, auth) ⇒ `void`](#OrigynClient+getIntstance+init)
     - [` set` OrigynClient.getInstance().principal(principal) ⇒ `void`](#OrigynClient+setPrincipal)
     - [` get` OrigynClient.getInstance().principal⇒ `Principal`](#OrigynClient+getPrincipal)
   - [🎬 Staging & Minting](#staging)
