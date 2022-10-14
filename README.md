@@ -73,9 +73,9 @@ module.exports = (env, argv) => ({
     - [stageNft(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNft)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
-  - [getNftBalance(principal)](#getNftBalance)
-  - [getNft(token)](#getNft)
-  - [getNftHistory(token_id, start, end)](#getNftHistory)
+    - [getNftBalance(principal)](#getNftBalance)
+    - [getNft(token)](#getNft)
+    - [getNftHistory(token_id, start, end)](#getNftHistory)
 
 <a name="OrigynClient"></a>
 
