@@ -228,9 +228,9 @@ await OrigynClient.getInstance().init(IS_PROD, CANISTER_ID, auth);
 const mintResponse = await mintNft(config);
 
 if(mintResponse.ok)
-    // minting was succesfull
+  // minting was succesfull
 else
-    throw Error(mintResponse.err.text)
+  throw Error(mintResponse.err.text)
 ```
 
 <a name="others"></a>
@@ -287,7 +287,7 @@ OrigynClient.getInstance().principal = principalFromId;
 const response = await getNftBalance();
 
 if (response.ok)
-    // response.ok.nfts contains the list of nfts
+	// response.ok.nfts contains the list of nfts
 else if (response.err)
 	// something wrong happend
 ```
