@@ -287,9 +287,9 @@ OrigynClient.getInstance().principal = principalFromId;
 const response = await getNftBalance();
 
 if (response.ok)
-	// response.ok.nfts contains the list of nfts
+  // response.ok.nfts contains the list of nfts
 else if (response.err)
-	// something wrong happend
+  // something wrong happend
 ```
 
 <a name="getNft"></a>
@@ -312,13 +312,14 @@ Returns all data for a nft, which is provided using the `token_id` parameter.
 ```js
 const response = await getNft('nft-id');
 
-if (response.ok)
-	const { metadata } = response.ok;
-	const ownerField = metadata?.find((data) => data.name === 'owner');
-	console.log(ownerField.value.Principal.toText());
-	// This will output the principal id of the owner of the NFT.
+if (response.ok) {
+  const { metadata } = response.ok;
+  const ownerField = metadata?.find((data) => data.name === 'owner');
+  console.log(ownerField.value.Principal.toText());
+  // This will output the principal id of the owner of the NFT.
+}
 else if (response.err)
-	// something wrong happend
+  // something wrong happend
 ```
 
 <a name="getNftHistory"></a>
@@ -342,14 +343,15 @@ const start = 1662638707000000000n; // Thursday, September 8, 2022
 const end = 1662638707000000000n; // Friday, September 2, 2022
 const response = await getNftHistory('nft-id', start, end);
 
-if (response.ok)
-	const histoy: TransactionType[] = response.ok;
-	for(const transaction in history) {
-		const { token_id, txn_type, timestamp, index } = transaction;
-		console.log(`Token ${token_id} had a transaction (#${index}) on ${timestamp}: ${txn_type}`);
-	}
+if (response.ok) {
+  const histoy: TransactionType[] = response.ok;
+  for(const transaction in history) {
+    const { token_id, txn_type, timestamp, index } = transaction;
+    console.log(`Token ${token_id} had a transaction (#${index}) on ${timestamp}: ${txn_type}`);
+  }
+}
 else if (response.err)
-	// something wrong happend
+  // something wrong happend
 ```
 
 When the request is successful, an array of `TransactionType` will be returned. Each transaction will be represented within the object of `txn_type`, being one of the following:
