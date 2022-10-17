@@ -180,7 +180,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
     library: libraries,
   };
 };
-function createClassForResource(settings: StageConfigSettings, file: StageFile, sort: number): MetadataClass {
+export const createClassForResource = (settings: StageConfigSettings, file: StageFile, sort: number): MetadataClass => {
   // ensure there are no duplicate file names in folder heirarchy
   const fileNameLower = file.filename.toLowerCase();
 
@@ -208,40 +208,40 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
       createTextAttrib('read', 'public', !IMMUTABLE),
     ],
   };
-}
+};
 
-function createLibrary(settings: StageConfigSettings, file: StageFile): LibraryFile {
+export const createLibrary = (settings: StageConfigSettings, file: StageFile): LibraryFile => {
   return {
     library_id: settings.fileMap[file.path].libraryId,
     library_file: file,
   };
-}
+};
 
-function createTextAttrib(name: string, value: string, immutable: boolean): MetadataProperty {
+export const createTextAttrib = (name: string, value: string, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Text: value },
     immutable,
   };
-}
+};
 
-function createBoolAttrib(name: string, value: boolean, immutable: boolean): MetadataProperty {
+export const createBoolAttrib = (name: string, value: boolean, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Bool: value },
     immutable,
   };
-}
+};
 
-function createNatAttrib(name: string, value: number, immutable: boolean): MetadataProperty {
+export const createNatAttrib = (name: string, value: number, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Nat: value },
     immutable,
   };
-}
+};
 
-function createAppsAttribute(settings: StageConfigSettings): MetadataProperty {
+export const createAppsAttribute = (settings: StageConfigSettings): MetadataProperty => {
   return {
     name: '__apps',
     value: {
@@ -356,13 +356,13 @@ function createAppsAttribute(settings: StageConfigSettings): MetadataProperty {
     },
     immutable: false,
   };
-}
+};
 
-function createClassesForResourceReferences(
+export const createClassesForResourceReferences = (
   settings: StageConfigSettings,
   resourceClasses: MetadataClass[],
   libraries: LibraryFile[],
-): MetadataClass[] {
+): MetadataClass[] => {
   const resourceReferences: MetadataClass[] = [];
 
   for (const cls of resourceClasses) {
@@ -414,4 +414,4 @@ function createClassesForResourceReferences(
   }
 
   return resourceReferences;
-}
+};

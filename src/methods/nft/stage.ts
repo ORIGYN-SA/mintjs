@@ -10,6 +10,7 @@ import { formatBytes } from '../../utils/formatBytes';
 import { log } from '../../utils/log';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
+  CollectionLevelFile,
   FileInfoMap,
   LibraryFile,
   Meta,
@@ -199,46 +200,16 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
   for (const file of settings.args.collectionFiles) {
-    let title = file.filename;
-    let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
-
-    if (file.category === 'dapp') {
-      const extPos = title.lastIndexOf('.');
-      if (extPos > 0) {
-        libraryId = title.substring(0, extPos);
-      }
-      title = `${libraryId} dApp`;
-    }
-
-    const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
-
-    fileInfoMap[file.path] = {
-      title,
-      libraryId,
-      resourceUrl,
-      filePath: file.path,
-    };
+    fileInfoMap[file.path] = buildCollectionFile(settings, file);
   }
 
   let nftIndex = 0;
   for (const nft of settings.args.nfts) {
     for (let j = 0; j < (nft?.quantity ?? 1); j++) {
       const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
-
       for (const file of nft.files) {
         log(`staging nft file ${file.filename}`);
-        const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
-
-        const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
-
-        const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
-
-        fileInfoMap[file.path] = {
-          title,
-          libraryId,
-          resourceUrl,
-          filePath: file.path,
-        };
+        fileInfoMap[file.path] = buildNftFile(settings, file, tokenId, nftIndex);
       }
 
       nftIndex++;
@@ -247,7 +218,39 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
 
   return fileInfoMap;
 };
+export const buildCollectionFile = (settings: StageConfigSettings, file: CollectionLevelFile) => {
+  let title = file.filename;
+  let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
+  if (file.category === 'dapp') {
+    const extPos = title.lastIndexOf('.');
+    if (extPos > 0) {
+      libraryId = title.substring(0, extPos);
+    }
+    title = `${libraryId} dApp`;
+  }
+
+  const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
+
+  return {
+    title,
+    libraryId,
+    resourceUrl,
+    filePath: file.path,
+  };
+};
+export const buildNftFile = (settings: StageConfigSettings, file: StageFile, tokenId: string, nftIndex: number = 0) => {
+  const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
+  const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
+  const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
+
+  return {
+    title,
+    libraryId,
+    resourceUrl,
+    filePath: file.path,
+  };
+};
 export const getResourceUrl = (settings: StageConfigSettings, resourceName: string, tokenId: string = ''): string => {
   let rootUrl = '';
   switch ((settings.args.environment || '').toLowerCase()) {
