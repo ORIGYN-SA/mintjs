@@ -164,7 +164,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
     value: {
       Array: { thawed: [...resourceRefs] },
     },
-    immutable: true,
+    immutable: false,
   });
 
   const appsAttribute = createAppsAttribute(settings);
@@ -205,7 +205,7 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
       createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
       createNatAttrib('size', file.size ?? 0, IMMUTABLE),
       createNatAttrib('sort', sort, IMMUTABLE),
-      createTextAttrib('read', 'public', !IMMUTABLE),
+      createTextAttrib('read', 'public', IMMUTABLE),
     ],
   };
 };
@@ -408,7 +408,7 @@ export const createClassesForResourceReferences = (
         createTextAttrib('content_hash', (contentHash as TextValue).Text, IMMUTABLE),
         createNatAttrib('size', (size as NatValue).Nat, IMMUTABLE),
         createNatAttrib('sort', (sort as NatValue).Nat, IMMUTABLE),
-        createTextAttrib('read', 'public', !IMMUTABLE),
+        createTextAttrib('read', 'public', IMMUTABLE),
       ],
     });
   }
