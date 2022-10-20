@@ -1,12 +1,20 @@
 import { Principal } from '@dfinity/principal';
-import { getNftCollection } from '../index';
+import { getNftCollectionMeta, getNftCollectionInfo } from '../index';
 import { OrigynClient } from '../origynClient';
+import JSONbig from 'json-bigint';
 
-test('expect getNftCollection to return collection info', async () => {
-  const TEST_WALLET = 'jvdm5-xkwgc-4t2x7-ojmjd-ail2p-6agif-7m6a6-z6eok-oxueq-inzfb-zae';
-  //const principal = Principal.fromText(TEST_WALLET);
-  //OrigynClient.getInstance().principal = principal;
+const WALLET_SEED = '';
 
-  const response = await getNftCollection();
+test('expect getNftCollectionMeta to return collection meta', async () => {
+  await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+  const response = await getNftCollectionMeta();
+  console.log('🚀 ~ file: collection.test.ts ~ line 11 ~ test ~ response', JSONbig.stringify(response));
+  expect(response).toHaveProperty('ok');
+});
+
+test('expect getNftCollectionInfo to return collection info', async () => {
+  await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+  const response = await getNftCollectionInfo();
+  console.log('🚀 ~ file: collection.test.ts ~ line 17 ~ test ~ response', JSONbig.stringify(response));
   expect(response).toHaveProperty('ok');
 });

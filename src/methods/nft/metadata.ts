@@ -106,9 +106,10 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const resources: MetadataClass[] = [];
   const libraries: LibraryFile[] = [];
 
-  const tokenId = `${settings.args.tokenPrefix}${nftIndex}`;
+  const tokenId = `${settings.args.tokenPrefix}${(settings.args.startNftIndex ?? 0) + nftIndex}`;
+  console.log('i am here');
   const files = settings.args.nfts?.[nftIndex].files;
-
+  console.log('i did not crash');
   // TODO: Iterate all html and css files and replace local paths with NFT URLs
   const filesWithUrls = files.filter((f) => ['html', 'htm', 'css'].includes(f.filename.split('.').pop() ?? ''));
 
@@ -164,7 +165,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
     value: {
       Array: { thawed: [...resourceRefs] },
     },
-    immutable: true,
+    immutable: false,
   });
 
   const appsAttribute = createAppsAttribute(settings);
@@ -180,7 +181,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
     library: libraries,
   };
 };
-function createClassForResource(settings: StageConfigSettings, file: StageFile, sort: number): MetadataClass {
+export const createClassForResource = (settings: StageConfigSettings, file: StageFile, sort: number): MetadataClass => {
   // ensure there are no duplicate file names in folder heirarchy
   const fileNameLower = file.filename.toLowerCase();
 
@@ -205,43 +206,43 @@ function createClassForResource(settings: StageConfigSettings, file: StageFile, 
       createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
       createNatAttrib('size', file.size ?? 0, IMMUTABLE),
       createNatAttrib('sort', sort, IMMUTABLE),
-      createTextAttrib('read', 'public', !IMMUTABLE),
+      createTextAttrib('read', 'public', IMMUTABLE),
     ],
   };
-}
+};
 
-function createLibrary(settings: StageConfigSettings, file: StageFile): LibraryFile {
+export const createLibrary = (settings: StageConfigSettings, file: StageFile): LibraryFile => {
   return {
     library_id: settings.fileMap[file.path].libraryId,
     library_file: file,
   };
-}
+};
 
-function createTextAttrib(name: string, value: string, immutable: boolean): MetadataProperty {
+export const createTextAttrib = (name: string, value: string, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Text: value },
     immutable,
   };
-}
+};
 
-function createBoolAttrib(name: string, value: boolean, immutable: boolean): MetadataProperty {
+export const createBoolAttrib = (name: string, value: boolean, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Bool: value },
     immutable,
   };
-}
+};
 
-function createNatAttrib(name: string, value: number, immutable: boolean): MetadataProperty {
+export const createNatAttrib = (name: string, value: number, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Nat: value },
     immutable,
   };
-}
+};
 
-function createAppsAttribute(settings: StageConfigSettings): MetadataProperty {
+export const createAppsAttribute = (settings: StageConfigSettings): MetadataProperty => {
   return {
     name: '__apps',
     value: {
@@ -356,13 +357,13 @@ function createAppsAttribute(settings: StageConfigSettings): MetadataProperty {
     },
     immutable: false,
   };
-}
+};
 
-function createClassesForResourceReferences(
+export const createClassesForResourceReferences = (
   settings: StageConfigSettings,
   resourceClasses: MetadataClass[],
   libraries: LibraryFile[],
-): MetadataClass[] {
+): MetadataClass[] => {
   const resourceReferences: MetadataClass[] = [];
 
   for (const cls of resourceClasses) {
@@ -408,10 +409,10 @@ function createClassesForResourceReferences(
         createTextAttrib('content_hash', (contentHash as TextValue).Text, IMMUTABLE),
         createNatAttrib('size', (size as NatValue).Nat, IMMUTABLE),
         createNatAttrib('sort', (sort as NatValue).Nat, IMMUTABLE),
-        createTextAttrib('read', 'public', !IMMUTABLE),
+        createTextAttrib('read', 'public', IMMUTABLE),
       ],
     });
   }
 
   return resourceReferences;
-}
+};

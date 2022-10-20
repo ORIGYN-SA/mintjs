@@ -1,15 +1,16 @@
+import JSONbig from 'json-bigint';
 // tslint:disable prefer-for-of
 
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
-import { arrayToBuffer } from '../../utils/binary';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
 import { log } from '../../utils/log';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
+  CollectionLevelFile,
   FileInfoMap,
   LibraryFile,
   Meta,
@@ -21,8 +22,7 @@ import {
   StageFile,
   TextValue,
 } from './types';
-
-export const stage = async (config: StageConfigData) => {
+export const stage = async (config: StageConfigData, skipCollectionStaging: boolean = false) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
 
   // *** Stage NFTs and Library Assets
@@ -30,13 +30,14 @@ export const stage = async (config: StageConfigData) => {
   // the difference is that collections have an empty string for the id
   // so the library assets/files can be shared by multiple NFTs
   const metrics: Metrics = { totalFileSize: 0 };
-  const items = [config.collection, ...config.nfts];
+  const items = skipCollectionStaging ? config.nfts : [config.collection, ...config.nfts];
   const response = [];
   for (const item of items) {
     const tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
 
     // Stage NFT
     const metadataToStage = deserializeConfig(item.meta);
+    console.log('🚀 ~ file: stage.ts ~ line 42 ~ stage ~ metadataToStage', JSONbig.stringify(metadataToStage));
     const stageResult = await actor.stage_nft_origyn(metadataToStage);
     if (stageResult.err) {
       return { err: stageResult.err };
@@ -48,7 +49,7 @@ export const stage = async (config: StageConfigData) => {
 
     // *** Stage Library Assets (as chunks)
     for (const asset of item.library) {
-      await stageLibraryAsset(asset, tokenId, metrics);
+      await canisterStageLibraryAsset(asset, tokenId, metrics);
       // TODO: Add library staging response
       // itemResponse.libraryStage.push(res);
     }
@@ -62,7 +63,12 @@ export const stage = async (config: StageConfigData) => {
   return { ok: response };
 };
 
-export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: string, metrics: Metrics) => {
+export const canisterStageLibraryAsset = async (
+  libraryAsset: LibraryFile,
+  tokenId: string,
+  metrics: Metrics,
+  metadata?: any,
+) => {
   log(`\nStaging asset: ${libraryAsset.library_id}`);
   log(`\nFile path: ${libraryAsset.library_file.path}`);
 
@@ -83,7 +89,15 @@ export const stageLibraryAsset = async (libraryAsset: LibraryFile, tokenId: stri
     if (i > 0 && i % 10 === 0) {
       await wait(3000);
     }
-    await uploadChunk(actor, libraryAsset.library_id, tokenId, libraryAsset.library_file.rawFile!, i, metrics);
+    await uploadChunk(
+      actor,
+      libraryAsset.library_id,
+      tokenId,
+      libraryAsset.library_file.rawFile!,
+      i,
+      metrics,
+      metadata,
+    );
   }
 };
 
@@ -94,8 +108,10 @@ export const uploadChunk = async (
   fileData: Buffer,
   chunkNumber: number,
   metrics: Metrics,
+  metadata?: any,
   retries = 0,
 ) => {
+  console.log('🚀 ~ file: stage.ts ~ line 116 ~ metadata', metadata);
   const start = chunkNumber * MAX_STAGE_CHUNK_SIZE;
   const end = start + MAX_STAGE_CHUNK_SIZE > fileData.length ? fileData.length : start + MAX_STAGE_CHUNK_SIZE;
 
@@ -105,22 +121,22 @@ export const uploadChunk = async (
     const result = await actor.stage_library_nft_origyn({
       token_id: tokenId,
       library_id: libraryId,
-      filedata: { Empty: null },
+      filedata: metadata ?? { Empty: null },
       chunk: chunkNumber,
       content: Array.from(chunk),
     });
     log(`Result of stage_library_nft_origyn: ${JSON.stringify(result)}`);
     metrics.totalFileSize += chunk.length;
     log(`Cumulative staged file size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})`);
-  } catch (ex) {
+  } catch (ex: any) {
     if (retries >= 5) {
       log(`\nMax retries of ${MAX_CHUNK_UPLOAD_RETRIES} has been reached for ${libraryId} chunk #${chunkNumber}.\n`);
     } else {
-      log(JSON.stringify(ex));
+      log(ex);
       log('\n*** Caught the above error while staging a library asset chunk. Waiting 3 seconds, then trying again.\n');
       await wait(3000);
       retries++;
-      await uploadChunk(actor, libraryId, tokenId, fileData, chunkNumber, metrics, retries);
+      await uploadChunk(actor, libraryId, tokenId, fileData, chunkNumber, metrics, metadata, retries);
     }
   }
 };
@@ -199,46 +215,17 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   const fileInfoMap: FileInfoMap = {};
 
   for (const file of settings.args.collectionFiles) {
-    let title = file.filename;
-    let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
-
-    if (file.category === 'dapp') {
-      const extPos = title.lastIndexOf('.');
-      if (extPos > 0) {
-        libraryId = title.substring(0, extPos);
-      }
-      title = `${libraryId} dApp`;
-    }
-
-    const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
-
-    fileInfoMap[file.path] = {
-      title,
-      libraryId,
-      resourceUrl,
-      filePath: file.path,
-    };
+    fileInfoMap[file.path] = buildCollectionFile(settings, file);
   }
 
   let nftIndex = 0;
   for (const nft of settings.args.nfts) {
     for (let j = 0; j < (nft?.quantity ?? 1); j++) {
-      const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
-
+      const nftRelativeIndex = (settings.args.startNftIndex ?? 0) + nftIndex;
+      const tokenId = `${settings.args.tokenPrefix}${nftRelativeIndex}`.toLowerCase();
       for (const file of nft.files) {
         log(`staging nft file ${file.filename}`);
-        const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
-
-        const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
-
-        const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
-
-        fileInfoMap[file.path] = {
-          title,
-          libraryId,
-          resourceUrl,
-          filePath: file.path,
-        };
+        fileInfoMap[file.path] = buildNftFile(settings, file, tokenId, nftRelativeIndex);
       }
 
       nftIndex++;
@@ -247,7 +234,39 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
 
   return fileInfoMap;
 };
+export const buildCollectionFile = (settings: StageConfigSettings, file: CollectionLevelFile) => {
+  let title = file.filename;
+  let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
 
+  if (file.category === 'dapp') {
+    const extPos = title.lastIndexOf('.');
+    if (extPos > 0) {
+      libraryId = title.substring(0, extPos);
+    }
+    title = `${libraryId} dApp`;
+  }
+
+  const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
+
+  return {
+    title,
+    libraryId,
+    resourceUrl,
+    filePath: file.path,
+  };
+};
+export const buildNftFile = (settings: StageConfigSettings, file: StageFile, tokenId: string, nftIndex: number = 0) => {
+  const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
+  const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
+  const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
+
+  return {
+    title,
+    libraryId,
+    resourceUrl,
+    filePath: file.path,
+  };
+};
 export const getResourceUrl = (settings: StageConfigSettings, resourceName: string, tokenId: string = ''): string => {
   let rootUrl = '';
   switch ((settings.args.environment || '').toLowerCase()) {

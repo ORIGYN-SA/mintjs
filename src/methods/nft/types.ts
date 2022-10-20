@@ -36,6 +36,7 @@ export type StageConfigArgs = {
   nftOwnerId: string;
   useProxy?: boolean;
   soulbound?: boolean;
+  startNftIndex?: number;
 };
 export type StageConfigData = {
   settings: StageConfigSettings;

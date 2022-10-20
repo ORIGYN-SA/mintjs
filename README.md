@@ -70,7 +70,9 @@ module.exports = (env, argv) => ({
     - [` set` OrigynClient.getInstance().principal(principal) ⇒ `void`](#OrigynClient+setPrincipal)
     - [` get` OrigynClient.getInstance().principal⇒ `Principal`](#OrigynClient+getPrincipal)
   - [🎬 Staging & Minting](#staging)
-    - [stageNft(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNft)
+    - [stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageCollection)
+    - [stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNfts)
+    - [stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getNftBalance(principal)](#getNftBalance)
@@ -151,10 +153,9 @@ We can dynamically change the principal which calls the methods within OrigynCli
 ### 🎬 Staging & Minting
 
 We can use mint.js in order to stage NFT collections to the canister we initialized OrigynClient for. In order to do this, the Identity that was used to initialize OrigynClient needs to be the controller of the canister.
+<a name="staging+stageCollection"></a>
 
-<a name="staging+stageNft"></a>
-
-### stageNft(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+### stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 #### `StageConfigArgs` Type
 
@@ -205,6 +206,68 @@ export type StageFile = {
 #### Example
 
 For examples, please check the [test file of stage method](https://github.com/ORIGYN-SA/mintjs/blob/develop/src/__tests__/nft/stage.test.ts) (for node context) or [/examples](https://github.com/ORIGYN-SA/mintjs/blob/develop/examples) folder from the repository for web context.
+
+<a name="staging+stageNfts"></a>
+
+### stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+
+Stage a single NFT or multiple NFTs contained in the `nfts` array after the collection was already created.
+
+#### `StageNftsArgs` Type
+
+| Name | Type | Description |
+| --------------------- | ----------------------- | ------------------------------------------------------------------- | |
+| souldbound | `boolean` | Wheter the NFTs are soulbound or not |
+| useProxy | `boolean` | Wheter to use the proxy or not |
+| nfts | `StageNft[]` | The NFTs we want to append to the collection |
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const examplePayload = {
+  isProxy: true,
+  soulbound: false,
+  nfts: [
+    {
+      quantity: 1,
+      files: [
+        {
+          filename: 'file_name.jpg',
+          index: 0,
+          path: '/home/user/Desktop/file_name.jpg.jpg',
+        },
+      ],
+    },
+  ],
+};
+const stage_asset = await stageNfts(examplePayload);
+```
+
+<a name="staging+stageLibraryAsset"></a>
+
+### stageLibraryAsset(files: StageFile[],token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+
+Stages a new libray asset for an already staged NFT.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const payload = {
+  token_id: 'token-0', // This is the token id of the NFT we want to append library to
+  files: [
+    {
+      filename: 'file_name.jpg',
+      index: 0,
+      path: '/home/user/Desktop/file_name.jpg.jpg',
+    },
+  ],
+};
+const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
+```
+
+**Note: The `library` field of the NFT Metadata needs to be `true` in order to be able to stage library assets after minting.**
 
 <a name="staging+mintNft"></a>
 
