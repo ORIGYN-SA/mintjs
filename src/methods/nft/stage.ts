@@ -5,7 +5,6 @@ import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
-import { arrayToBuffer } from '../../utils/binary';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/formatBytes';
 import { log } from '../../utils/log';
@@ -15,7 +14,6 @@ import {
   FileInfoMap,
   LibraryFile,
   Meta,
-  MetadataClass,
   Metrics,
   StageConfigArgs,
   StageConfigData,
@@ -51,7 +49,7 @@ export const stage = async (config: StageConfigData, skipCollectionStaging: bool
 
     // *** Stage Library Assets (as chunks)
     for (const asset of item.library) {
-      await stageLibraryAsset(asset, tokenId, metrics);
+      await canisterStageLibraryAsset(asset, tokenId, metrics);
       // TODO: Add library staging response
       // itemResponse.libraryStage.push(res);
     }
@@ -65,7 +63,7 @@ export const stage = async (config: StageConfigData, skipCollectionStaging: bool
   return { ok: response };
 };
 
-export const stageLibraryAsset = async (
+export const canisterStageLibraryAsset = async (
   libraryAsset: LibraryFile,
   tokenId: string,
   metrics: Metrics,
@@ -223,10 +221,11 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
   let nftIndex = 0;
   for (const nft of settings.args.nfts) {
     for (let j = 0; j < (nft?.quantity ?? 1); j++) {
-      const tokenId = `${settings.args.tokenPrefix}${nftIndex}`.toLowerCase();
+      const nftRelativeIndex = (settings.args.startNftIndex ?? 0) + nftIndex;
+      const tokenId = `${settings.args.tokenPrefix}${nftRelativeIndex}`.toLowerCase();
       for (const file of nft.files) {
         log(`staging nft file ${file.filename}`);
-        fileInfoMap[file.path] = buildNftFile(settings, file, tokenId, nftIndex);
+        fileInfoMap[file.path] = buildNftFile(settings, file, tokenId, nftRelativeIndex);
       }
 
       nftIndex++;

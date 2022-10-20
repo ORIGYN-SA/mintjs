@@ -13,9 +13,9 @@ test('expect stage files to work', async () => {
         quantity: 1,
         files: [
           {
-            filename: 'circle-exclamation-solid.svg',
+            filename: 'wallpaper2.jpg',
             index: 0,
-            path: '/home/sebastian/Desktop/circle-exclamation-solid.svg',
+            path: '/home/sebastian/Desktop/wallpaper2.jpg',
           },
         ],
       },

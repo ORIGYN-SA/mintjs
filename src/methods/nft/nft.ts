@@ -1,13 +1,13 @@
 import { OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
 import {
-  buildStageConfig,
-  stage,
   buildCollectionFile,
   buildNftFile,
-  stageLibraryAsset as canisterStageLibraryAsset,
+  buildStageConfig,
+  canisterStageLibraryAsset,
   getFileArrayBuffer,
   getFileSize,
+  stage,
 } from './stage';
 import {
   StageConfigArgs,
@@ -161,12 +161,7 @@ export const stageLibraryAsset = async (
             // here we also need to create the Meta
             const libraryAsset: LibraryFile = createLibrary(settings, file);
 
-            const result: any = await canisterStageLibraryAsset(
-              libraryAsset,
-              token_id ?? '',
-              metrics,
-              resources[0].Class,
-            );
+            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, resources[0]);
             if (result.ok) {
               resolve(result.ok);
             } else {

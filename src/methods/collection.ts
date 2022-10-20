@@ -44,15 +44,12 @@ export const getNftCollectionInfo = async (
     ?.Text;
   const collectionCreatorPrincipal = dataField.value.Class.find((item) => item.name.indexOf('creator_principal') !== -1)
     ?.value?.Principal;
-  // const lastNftIndex =
-  //   collectionMeta?.ok?.token_ids?.reduce((previous: number, value: string) => {
-  //     if (typeof value === 'undefined') {
-  //       return 0;
-  //     }
-  //     const b = parseInt(value?.split('-')?.pop() ?? '0');
-  //     return previous < b ? previous : b;
-  //   }, 0) ?? 0;
-  const lastNftIndex = 2;
+
+  const lastNftIndex =
+    collectionMeta?.ok?.token_ids?.[0].reduce((previous: number, value: string) => {
+      const b = parseInt(value?.split('-')?.pop() ?? '0');
+      return previous > b ? previous : b;
+    }, 0) ?? 0;
 
   return {
     ok: {
@@ -70,7 +67,7 @@ export const getNftCollectionInfo = async (
       namespace,
       network: collectionMeta?.ok?.network?.[0] ?? '',
       read: readField,
-      tokens: collectionMeta?.ok?.token_ids ?? [],
+      tokens: collectionMeta?.ok?.token_ids?.[0] ?? [],
       tokensCount: collectionMeta?.ok?.token_ids_count?.[0],
       write: writeField,
     },
@@ -93,7 +90,7 @@ export type CollectionMeta = {
   token_ids_count?: BigInt;
   available_space?: BigInt;
   multi_canister?: Principal[];
-  token_ids?: string[];
+  token_ids?: string[][];
   total_supply?: BigInt;
   symbol?: string;
   allocated_storage?: BigInt;
