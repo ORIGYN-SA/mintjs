@@ -26,24 +26,25 @@ export const getNftCollectionInfo = async (
     return { err: collectionMeta.err };
   }
 
-  const meta = collectionMeta.ok?.metadata[0].Class;
-  const __appsValue = meta?.find((data) => data.name === '__apps').value;
-  const namespace = __appsValue.Array.thawed[0].Class.find((item) => item.name === 'app_id').value.Text;
-  const readField = __appsValue.Array.thawed[0].Class.find((item) => item.name === 'read').value.Text;
-  const writeField = __appsValue.Array.thawed[0].Class.find((item) => item.name === 'write')
+  const meta = collectionMeta.ok?.metadata?.[0]?.Class;
+  const __appsValue = meta?.find((data) => data.name === '__apps')?.value;
+  const namespace = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'app_id')?.value.Text;
+  const readField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'read')?.value.Text;
+  const writeField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'write')
     ?.value?.Class?.find((classItem) => classItem.name === 'list')
     ?.value?.Array?.thawed.map((principal) =>
       formatPrincipalAsString ? Principal.fromUint8Array(principal).toText() : principal,
     );
 
-  const dataField = __appsValue.Array.thawed[0].Class.find((item) => item.name === 'data');
-  const collectionId = dataField.value.Class.find((item) => item.name.indexOf('collectionid') !== -1)?.value?.Text;
-  const collectionName = dataField.value.Class.find((item) => item.name.indexOf('name') !== -1)?.value?.Text;
-  const collectionDescription = dataField.value.Class.find((item) => item.name === 'description')?.value?.Text;
-  const collectionCreatorName = dataField.value.Class.find((item) => item.name.indexOf('creator_name') !== -1)?.value
+  const dataField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'data');
+  const collectionId = dataField?.value?.Class?.find((item) => item.name.indexOf('collectionid') !== -1)?.value?.Text;
+  const collectionName = dataField?.value?.Class?.find((item) => item.name.indexOf('name') !== -1)?.value?.Text;
+  const collectionDescription = dataField?.value?.Class?.find((item) => item.name === 'description')?.value?.Text;
+  const collectionCreatorName = dataField?.value?.Class?.find((item) => item.name.indexOf('creator_name') !== -1)?.value
     ?.Text;
-  const collectionCreatorPrincipal = dataField.value.Class.find((item) => item.name.indexOf('creator_principal') !== -1)
-    ?.value?.Principal;
+  const collectionCreatorPrincipal = dataField?.value?.Class?.find(
+    (item) => item.name.indexOf('creator_principal') !== -1,
+  )?.value?.Principal;
 
   const lastNftIndex =
     collectionMeta?.ok?.token_ids?.[0].reduce((previous: number, value: string) => {
@@ -62,7 +63,7 @@ export const getNftCollectionInfo = async (
       },
       description: collectionDescription,
       id: collectionId,
-      lastNftIndex,
+      lastNftIndex: lastNftIndex ? lastNftIndex : collectionMeta?.ok?.token_ids_count?.[0],
       name: collectionName,
       namespace,
       network: collectionMeta?.ok?.network?.[0] ?? '',

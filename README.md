@@ -1,6 +1,6 @@
-## ORIGYN Mint.js
+# ORIGYN Mint.js
 
-### 🏁 Getting Started
+## 🏁 Getting Started
 
 In order to have a complete installation of the required packages, you will need to setup a [personal access token](https://github.com/settings/tokens) with `repo` and `read:packages` access. You will need this access token in order to use it as a password when running:
 
@@ -41,7 +41,7 @@ if (response.ok) console.log(response.ok.nfts);
 else console.log(`There was an error while getting the balance: ${response.err}`);
 ```
 
-### ❗ Using Mint.js in a Web Context
+## ❗ Using Mint.js in a Web Context
 
 Mint.js servers both Node and Web contexts. Using this in a front-end application will require a few polyfills in order to specify browserified versions of a few packages.
 
@@ -72,7 +72,7 @@ module.exports = (env, argv) => ({
   - [🎬 Staging & Minting](#staging)
     - [stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageCollection)
     - [stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNfts)
-    - [stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
+    - [stageLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getNftBalance(principal)](#getNftBalance)
@@ -81,13 +81,13 @@ module.exports = (env, argv) => ({
 
 <a name="OrigynClient"></a>
 
-### 🔗 Initialization
+## 🔗 Initialization
 
 The mint.js library is using a singleton in order to provide global configuration and access to canister configuration.
 
 <a name="OrigynClient+getIntstance+init"></a>
 
-### OrigynClient.getInstance().init(isProd, canisterId, auth) ⇒ `void`
+## OrigynClient.getInstance().init(isProd, canisterId, auth) ⇒ `void`
 
 | Param      | Type       | Default         | Description                                                                                                                                                            |
 | ---------- | ---------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ export type PrivateIdentityKey = {
 
 <a name="OrigynClient+setPrincipal"></a>
 
-### ` set` OrigynClient.getInstance().principal(principal) ⇒ `void`
+## ` set` OrigynClient.getInstance().principal(principal) ⇒ `void`
 
 We can dynamically change the principal which calls the methods within OrigynClient by changing the `principal`.
 
@@ -144,18 +144,18 @@ We can dynamically change the principal which calls the methods within OrigynCli
 
 <a name="OrigynClient+getPrincipal"></a>
 
-### ` get` OrigynClient.getInstance().principal⇒ `Principal`
+## ` get` OrigynClient.getInstance().principal⇒ `Principal`
 
 **Returns**: `Principal` - The current principal within the OrigynCleint
 
 <a name="staging"></a>
 
-### 🎬 Staging & Minting
+## 🎬 Staging & Minting
 
 We can use mint.js in order to stage NFT collections to the canister we initialized OrigynClient for. In order to do this, the Identity that was used to initialize OrigynClient needs to be the controller of the canister.
 <a name="staging+stageCollection"></a>
 
-### stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 #### `StageConfigArgs` Type
 
@@ -209,17 +209,17 @@ For examples, please check the [test file of stage method](https://github.com/OR
 
 <a name="staging+stageNfts"></a>
 
-### stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 Stage a single NFT or multiple NFTs contained in the `nfts` array after the collection was already created.
 
 #### `StageNftsArgs` Type
 
-| Name | Type | Description |
-| --------------------- | ----------------------- | ------------------------------------------------------------------- | |
-| souldbound | `boolean` | Wheter the NFTs are soulbound or not |
-| useProxy | `boolean` | Wheter to use the proxy or not |
-| nfts | `StageNft[]` | The NFTs we want to append to the collection |
+| Name       | Type         | Description                                  |
+| ---------- | ------------ | -------------------------------------------- |
+| souldbound | `boolean`    | Wheter the NFTs are soulbound or not         |
+| useProxy   | `boolean`    | Wheter to use the proxy or not               |
+| nfts       | `StageNft[]` | The NFTs we want to append to the collection |
 
 #### Example
 
@@ -246,7 +246,7 @@ const stage_asset = await stageNfts(examplePayload);
 
 <a name="staging+stageLibraryAsset"></a>
 
-### stageLibraryAsset(files: StageFile[],token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 Stages a new libray asset for an already staged NFT.
 
@@ -271,7 +271,7 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
 
 <a name="staging+mintNft"></a>
 
-### mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`
+## mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`
 
 Will mint the NFT provided as argument `tokenId` to the `principal`.
 
@@ -298,11 +298,11 @@ else
 
 <a name="others"></a>
 
-### 🦾 Communication Functions
+## 🦾 Communication Functions
 
 <a name="getNftBalance"></a>
 
-### getNftBalance(principal) ⇒ `Promise<OrigynResponse<BalanceOfNftOrigyn, GetBalanceErrors>>`
+## getNftBalance(principal) ⇒ `Promise<OrigynResponse<BalanceOfNftOrigyn, GetBalanceErrors>>`
 
 Returns the NFTs balance of the provided `principal`. If no `principal` is provided, it will use the `principal` in the `OrigynClient`. If there is no `principal` at all, this method will throw a [`NO_PRINCIPAL_PROVIDED`](#enum+balance+no-principal) error.
 
@@ -357,7 +357,7 @@ else if (response.err)
 
 <a name="getNft"></a>
 
-### getNft(token_id) ⇒ `Promise<OrigynResponse<NftInfoStable, GetNftErrors>>`
+## getNft(token_id) ⇒ `Promise<OrigynResponse<NftInfoStable, GetNftErrors>>`
 
 Returns all data for a nft, which is provided using the `token_id` parameter.
 

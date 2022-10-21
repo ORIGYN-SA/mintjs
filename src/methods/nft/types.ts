@@ -104,3 +104,8 @@ export type Meta = {
   };
   library: LibraryFile[];
 };
+
+export type ChunkUploadResult = {
+  ok?: any;
+  err?: any;
+};

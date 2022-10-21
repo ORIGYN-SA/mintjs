@@ -70,7 +70,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
     value: {
       Array: { thawed: [...resourceReferences] },
     },
-    immutable: true,
+    immutable: false, // TODO: replace with arg
   });
 
   const appsAttribute = createAppsAttribute(settings);
@@ -206,7 +206,7 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
       createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
       createNatAttrib('size', file.size ?? 0, IMMUTABLE),
       createNatAttrib('sort', sort, IMMUTABLE),
-      createTextAttrib('read', 'public', IMMUTABLE),
+      createTextAttrib('read', 'public', !IMMUTABLE),
     ],
   };
 };

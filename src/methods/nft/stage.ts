@@ -10,6 +10,7 @@ import { formatBytes } from '../../utils/formatBytes';
 import { log } from '../../utils/log';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
+  ChunkUploadResult,
   CollectionLevelFile,
   FileInfoMap,
   LibraryFile,
@@ -22,6 +23,7 @@ import {
   StageFile,
   TextValue,
 } from './types';
+import { Result } from 'ts-results';
 export const stage = async (config: StageConfigData, skipCollectionStaging: boolean = false) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
 
@@ -37,7 +39,6 @@ export const stage = async (config: StageConfigData, skipCollectionStaging: bool
 
     // Stage NFT
     const metadataToStage = deserializeConfig(item.meta);
-    console.log('🚀 ~ file: stage.ts ~ line 42 ~ stage ~ metadataToStage', JSONbig.stringify(metadataToStage));
     const stageResult = await actor.stage_nft_origyn(metadataToStage);
     if (stageResult.err) {
       return { err: stageResult.err };
@@ -83,13 +84,14 @@ export const canisterStageLibraryAsset = async (
 
   const { actor } = OrigynClient.getInstance();
 
+  let lastResult: ChunkUploadResult | undefined = undefined;
   for (let i = 0; i < chunkCount; i++) {
     // give the canister a 3 second break after every 10 chunks
     // attempt to prevent error: IC0515: Certified state is not available yet. Please try again…
     if (i > 0 && i % 10 === 0) {
       await wait(3000);
     }
-    await uploadChunk(
+    const result = await uploadChunk(
       actor,
       libraryAsset.library_id,
       tokenId,
@@ -98,7 +100,10 @@ export const canisterStageLibraryAsset = async (
       metrics,
       metadata,
     );
+    if (result.err) return result;
+    lastResult = result;
   }
+  return lastResult;
 };
 
 export const uploadChunk = async (
@@ -110,8 +115,7 @@ export const uploadChunk = async (
   metrics: Metrics,
   metadata?: any,
   retries = 0,
-) => {
-  console.log('🚀 ~ file: stage.ts ~ line 116 ~ metadata', metadata);
+): Promise<ChunkUploadResult> => {
   const start = chunkNumber * MAX_STAGE_CHUNK_SIZE;
   const end = start + MAX_STAGE_CHUNK_SIZE > fileData.length ? fileData.length : start + MAX_STAGE_CHUNK_SIZE;
 
@@ -125,18 +129,23 @@ export const uploadChunk = async (
       chunk: chunkNumber,
       content: Array.from(chunk),
     });
+
     log(`Result of stage_library_nft_origyn: ${JSON.stringify(result)}`);
     metrics.totalFileSize += chunk.length;
     log(`Cumulative staged file size: ${metrics.totalFileSize} (${formatBytes(metrics.totalFileSize)})`);
+    return result as ChunkUploadResult;
   } catch (ex: any) {
     if (retries >= 5) {
       log(`\nMax retries of ${MAX_CHUNK_UPLOAD_RETRIES} has been reached for ${libraryId} chunk #${chunkNumber}.\n`);
+      return {
+        err: 'MAX_RETRIES_EXCEEDED',
+      };
     } else {
       log(ex);
       log('\n*** Caught the above error while staging a library asset chunk. Waiting 3 seconds, then trying again.\n');
       await wait(3000);
       retries++;
-      await uploadChunk(actor, libraryId, tokenId, fileData, chunkNumber, metrics, metadata, retries);
+      return await uploadChunk(actor, libraryId, tokenId, fileData, chunkNumber, metrics, metadata, retries);
     }
   }
 };
@@ -269,26 +278,17 @@ export const buildNftFile = (settings: StageConfigSettings, file: StageFile, tok
 };
 export const getResourceUrl = (settings: StageConfigSettings, resourceName: string, tokenId: string = ''): string => {
   let rootUrl = '';
-  switch ((settings.args.environment || '').toLowerCase()) {
-    case 'l':
-    case 'local':
-    case 'localhost':
-      if (settings.args.useProxy) {
-        // url points to icx-proxy (port 3000) to buffer videos
-        rootUrl = `http://localhost:3000/-/${settings.args.nftCanisterId}`;
-      } else {
-        // url points to local canister (port 8000) but does not buffer videos
-        rootUrl = `http://${settings.args.nftCanisterId}.localhost:8000`;
-      }
-      break;
-    case 'p':
-    case 'prod':
-    case 'production':
-      rootUrl = `https://prptl.io/-/${settings.args.nftCanisterId}`;
-      break;
-    default: // dev, stage, etc.
-      rootUrl = `https://prptl.io/-/${settings.args.nftCanisterId}`;
-      break;
+  const { isMainNet, canisterId } = OrigynClient.getInstance();
+  if (!isMainNet) {
+    if (settings.args.useProxy) {
+      // url points to icx-proxy (port 3000) to buffer videos
+      rootUrl = `http://localhost:3000/-/${canisterId}`;
+    } else {
+      // url points to local canister (port 8000) but does not buffer videos
+      rootUrl = `http://${canisterId}.localhost:8000`;
+    }
+  } else {
+    rootUrl = `https://prptl.io/-/${canisterId}`;
   }
 
   if (tokenId) {

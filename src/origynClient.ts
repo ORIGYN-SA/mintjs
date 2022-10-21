@@ -16,6 +16,7 @@ export class OrigynClient {
   private _actor: any;
   private _principal: Principal | undefined;
   private _canisterId: string = '';
+  private _isMainNet: boolean = false;
 
   private constructor() {}
 
@@ -46,7 +47,12 @@ export class OrigynClient {
     return this._canisterId;
   }
 
+  public get isMainNet() {
+    return this._isMainNet;
+  }
+
   public init = async (isProd: boolean = true, canisterId?: string, auth?: AuthType): Promise<void> => {
+    this._isMainNet = isProd;
     let agent = auth?.agent ?? DEFAULT_AGENT;
     if (canisterId) this._canisterId = canisterId;
 

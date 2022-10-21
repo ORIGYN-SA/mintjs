@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { OrigynClient, stageNft, mintNft, getNft, getNftCollection } from '@origyn-sa/mintjs';
+import { mintNft, getNft, stageLibraryAsset, stageCollection, getNftCollectionInfo } from '@origyn-sa/mintjs';
+import { OrigynClient } from '@origyn-sa/mintjs';
 import ReactJson from 'react-json-view';
 import JSONbig from 'json-bigint';
+import './App.css';
 import { useForm } from 'react-hook-form';
 import { Buffer } from 'buffer';
 
 const TEST_IDENTITY = {
   principalId: '6i6da-t3dfv-vteyg-v5agl-tpgrm-63p4y-t5nmm-gi7nl-o72zu-jd3sc-7qe',
-  seed: 'seed here',
+  seed: '',
 };
 const App = () => {
-  const [canisterId, setCanisterId] = useState('2t4kb-eiaaa-aaaan-qaqfa-cai');
-  const [isProd, setIsProd] = useState(true);
+  const [canisterId, setCanisterId] = useState('rrkah-fqaaa-aaaaa-aaaaq-cai');
+  const [isProd, setIsProd] = useState(false);
   const [nfts, setNfts] = useState<any>([]);
   const [collection, setCollection] = useState<any>([]);
+  const [libaryAssets, setLibraryAssets] = useState<any>([]);
   const [dapps, setDapps] = useState<any>([]);
   const [jsonView, setJsonView] = useState({});
   const [tokenId, setTokenId] = useState<string>('');
@@ -22,7 +25,7 @@ const App = () => {
   const { register, handleSubmit } = useForm({
     defaultValues: {
       canisterId: canisterId,
-      isLocalEnv: !isProd,
+      isProduction: isProd,
       isSoulbound: true,
       collectionName: '',
       collectionId: '',
@@ -31,6 +34,7 @@ const App = () => {
   });
 
   const handleButtonClick = async (data) => {
+    console.log('🚀 ~ file: App.tsx ~ line 38 ~ awaitOrigynClient.getInstance ~ isProd', isProd);
     await OrigynClient.getInstance().init(isProd, canisterId, {
       key: {
         seed: TEST_IDENTITY.seed,
@@ -42,7 +46,7 @@ const App = () => {
     const collectionNameSplit = data.collectionName.split(' ');
     const getStageConfig = async () => {
       return {
-        environment: data.isLocalEnv ? 'local' : 'prod',
+        environment: data.isProduction ? 'prod' : 'local',
         nftCanisterId: data.canisterId,
         collectionId: data.collectionId,
         collectionDisplayName: data.collectionName,
@@ -104,8 +108,10 @@ const App = () => {
     };
 
     const stageConfig = await getStageConfig();
-    const stageResult = await stageNft(stageConfig);
+    console.log('🚀 ~ file: TestApp.tsx ~ line 113 ~ handleButtonClick ~ stageConfig', stageConfig);
+    const stageResult = await stageCollection(stageConfig);
     setTokenId(`${stageConfig.tokenPrefix}0`);
+    console.log('🚀 ~ file: TestApp.tsx ~ line 79 ~ handleButtonClick ~ stageResult', stageResult);
   };
 
   const handleMintClick = async () => {
@@ -115,6 +121,7 @@ const App = () => {
       },
     });
     const mintResponse = await mintNft(tokenId);
+    console.log('🚀 ~ file: TestApp.tsx ~ line 96 ~ handleMintClick ~ mintResponse', mintResponse);
   };
 
   const handleNftDataClick = async () => {
@@ -125,6 +132,7 @@ const App = () => {
     });
     const nftData = await getNft(tokenId);
     setJsonView(JSON.parse(JSONbig.stringify(nftData)));
+    console.log('🚀 ~ file: TestApp.tsx ~ line 107 ~ handleNftDataClick ~ nftData', nftData);
   };
 
   const handleNftCollectionClick = async () => {
@@ -133,10 +141,40 @@ const App = () => {
         seed: TEST_IDENTITY.seed,
       },
     });
-    const res = await getNftCollection([]);
+    const res = await getNftCollectionInfo();
+    console.log('🚀 ~ file: TestApp.tsx ~ line 134 ~ handleNftCollectionClick ~ res', res);
     setJsonView(JSON.parse(JSONbig.stringify(res)));
   };
 
+  const handleStageLibraryAssetClick = async () => {
+    await OrigynClient.getInstance().init(isProd, canisterId, {
+      key: {
+        seed: TEST_IDENTITY.seed,
+      },
+    });
+    let i = 0;
+    const payload = {
+      token_id: tokenId,
+      files: [
+        ...(await Promise.all(
+          [...libaryAssets].map(async (file) => {
+            return {
+              filename: file.name,
+              index: i++,
+              path: file.path ?? `${file.size}+${file.name}`,
+              size: file.size,
+              type: file.type,
+              rawFile: await readFileAsync(file),
+            };
+          }),
+        )),
+      ],
+    };
+    console.log('🚀 ~ file: App.tsx ~ line 179 ~ handleStageLibraryAssetClick ~ payload', payload);
+
+    const stage = await stageLibraryAsset(payload.files, false, payload.token_id);
+    console.log('🚀 ~ file: App.tsx ~ line 175 ~ handleStageLibraryAssetClick ~ stage', stage);
+  };
   // Functions needed for file to Buffer
   const arrayToBuffer = (arrayBuffer) => {
     const buffer = Buffer.alloc(arrayBuffer.byteLength);
@@ -200,12 +238,12 @@ const App = () => {
           <div>
             <input
               type="checkbox"
-              placeholder="Local Environment"
-              name="Local Environment"
-              onChange={(e) => setIsProd(!e.target.checked)}
-              {...register('isLocalEnv')}
+              placeholder="IC Main Net"
+              name="IC Main Net"
+              onChange={(e) => setIsProd(e.target.checked)}
+              {...register('isProduction')}
             />
-            <label> Local Environment</label>
+            <label> IC Main Net</label>
           </div>
           <div>
             <input type="checkbox" placeholder="Soulbound" name="Soulbound" {...register('isSoulbound')} />
@@ -281,6 +319,15 @@ const App = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10 }}>
           <button onClick={handleNftCollectionClick}>Get Collection Data</button>
+        </div>
+        <br />
+        <div style={{ display: 'flex', justifyContent: 'center', textAlign: 'left' }}>
+          <div>
+            <input type="file" onChange={(e) => setLibraryAssets(e.target.files)} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10 }}>
+          <button onClick={handleStageLibraryAssetClick}>Stage Library Asset</button>
         </div>
       </div>
       <ReactJson src={jsonView} />

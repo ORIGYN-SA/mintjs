@@ -1,10 +1,10 @@
 import { stageLibraryAsset } from '../../methods/nft/nft';
 import { OrigynClient } from '../../origynClient';
 
-const WALLET_SEED = 'inherit disease hill can squirrel zone science dentist sadness exist wear aim';
+const WALLET_SEED = '';
 
 test('expect stage library asset to work', async () => {
-  await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+  await OrigynClient.getInstance().init(true, 'rubbi-ryaaa-aaaap-aajqq-cai', { key: { seed: WALLET_SEED } });
   const example = {
     token_id: 'la-0',
     files: [

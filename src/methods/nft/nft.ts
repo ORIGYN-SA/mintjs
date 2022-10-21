@@ -19,7 +19,7 @@ import {
   StageNft,
 } from './types';
 import { Principal } from '@dfinity/principal';
-import { createClassesForResourceReferences, createClassForResource, createLibrary } from './metadata';
+import { createClassForResource, createLibrary } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 
 export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
@@ -93,6 +93,7 @@ export const stageNfts = async (
 
 export const stageLibraryAsset = async (
   files: StageFile[],
+  useProxy: boolean = false,
   token_id?: string,
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
@@ -106,12 +107,14 @@ export const stageLibraryAsset = async (
       return nftInfo;
     }
 
-    const { namespace } = collectionInfo.ok!;
+    const { namespace, name } = collectionInfo.ok!;
 
     const settings: StageConfigSettings = {
       // @ts-ignore
       args: {
         namespace,
+        useProxy,
+        collectionDisplayName: name,
       },
       fileMap: {},
       collectionLibraries: [],
@@ -140,10 +143,10 @@ export const stageLibraryAsset = async (
     // stage_library_nft_origyn
     for (const file of files) {
       if (token_id) {
+        settings.fileMap[file.path] = buildNftFile(settings, file, token_id);
+      } else {
         const fileCategory = file.filename.indexOf('.html') !== -1 ? 'dapp' : 'collection';
         settings.fileMap[file.path] = buildCollectionFile(settings, { category: fileCategory, ...file });
-      } else {
-        settings.fileMap[file.path] = buildNftFile(settings, file, token_id!);
       }
       settings.totalFileSize += file.size ?? 0;
       resources.push(createClassForResource(settings, file, sort));
@@ -162,15 +165,15 @@ export const stageLibraryAsset = async (
             const libraryAsset: LibraryFile = createLibrary(settings, file);
 
             const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, resources[0]);
-            if (result.ok) {
-              resolve(result.ok);
+            if (result?.ok) {
+              resolve({ ok: result.ok });
             } else {
-              reject(result.error);
+              reject({ err: result.err });
             }
           }),
       ),
     )
-      .then((result) => {
+      .then((result: any) => {
         return {
           ok: result,
         };
@@ -184,7 +187,8 @@ export const stageLibraryAsset = async (
         };
       });
   } catch (e: any) {
-    return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e.message } };
+    console.log(e);
+    return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
   }
 };
 
