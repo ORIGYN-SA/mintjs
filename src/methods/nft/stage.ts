@@ -84,7 +84,7 @@ export const canisterStageLibraryAsset = async (
 
   const { actor } = OrigynClient.getInstance();
 
-  let lastResult: ChunkUploadResult | undefined = undefined;
+  let lastResult: ChunkUploadResult | undefined;
   for (let i = 0; i < chunkCount; i++) {
     // give the canister a 3 second break after every 10 chunks
     // attempt to prevent error: IC0515: Certified state is not available yet. Please try again…

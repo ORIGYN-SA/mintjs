@@ -107,9 +107,8 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const libraries: LibraryFile[] = [];
 
   const tokenId = `${settings.args.tokenPrefix}${(settings.args.startNftIndex ?? 0) + nftIndex}`;
-  console.log('i am here');
   const files = settings.args.nfts?.[nftIndex].files;
-  console.log('i did not crash');
+
   // TODO: Iterate all html and css files and replace local paths with NFT URLs
   const filesWithUrls = files.filter((f) => ['html', 'htm', 'css'].includes(f.filename.split('.').pop() ?? ''));
 

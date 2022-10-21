@@ -48,7 +48,7 @@ export const getNftCollectionInfo = async (
 
   const lastNftIndex =
     collectionMeta?.ok?.token_ids?.[0].reduce((previous: number, value: string) => {
-      const b = parseInt(value?.split('-')?.pop() ?? '0');
+      const b = parseInt(value?.split('-')?.pop() ?? '0', 10);
       return previous > b ? previous : b;
     }, 0) ?? 0;
 

@@ -132,6 +132,7 @@ export const stageLibraryAsset = async (
     const resources: MetadataClass[] = [];
 
     // Get the Raw file if called from a node context (csm.js)
+    // tslint:disable-next-line prefer-for-of
     for (let i = 0; i < files.length; i++) {
       if (!files[i].rawFile) {
         files[i].rawFile = await getFileArrayBuffer(files[i]);
@@ -187,7 +188,6 @@ export const stageLibraryAsset = async (
         };
       });
   } catch (e: any) {
-    console.log(e);
     return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
   }
 };
