@@ -1,6 +1,4 @@
-import JSONbig from 'json-bigint';
 // tslint:disable prefer-for-of
-
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
@@ -23,7 +21,7 @@ import {
   StageFile,
   TextValue,
 } from './types';
-import { Result } from 'ts-results';
+
 export const stage = async (config: StageConfigData, skipCollectionStaging: boolean = false) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
 

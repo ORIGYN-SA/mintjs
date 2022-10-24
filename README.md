@@ -72,6 +72,7 @@ module.exports = (env, argv) => ({
   - [🎬 Staging & Minting](#staging)
     - [stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageCollection)
     - [stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNfts)
+    - [`raw` stageNftUsingMetadata(metadata: any) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNftUsingMetadata)
     - [stageLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
@@ -155,7 +156,7 @@ We can dynamically change the principal which calls the methods within OrigynCli
 We can use mint.js in order to stage NFT collections to the canister we initialized OrigynClient for. In order to do this, the Identity that was used to initialize OrigynClient needs to be the controller of the canister.
 <a name="staging+stageCollection"></a>
 
-## stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageCollection(stageConfigArgs: StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 #### `StageConfigArgs` Type
 
@@ -209,7 +210,7 @@ For examples, please check the [test file of stage method](https://github.com/OR
 
 <a name="staging+stageNfts"></a>
 
-## stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageNfts(stageNftsArgs: StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 Stage a single NFT or multiple NFTs contained in the `nfts` array after the collection was already created.
 
@@ -241,7 +242,37 @@ const examplePayload = {
     },
   ],
 };
-const stage_asset = await stageNfts(examplePayload);
+const stageAssetResult = await stageNfts(examplePayload);
+```
+
+<a name="staging+stageNftUsingMetadata"></a>
+
+## `raw` stageNftUsingMetadata(metadata: any) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+
+Stage a single NFT by passing raw metadata as argument. This is being used when staging an NFT which does not follow the standard.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const payload = {
+  metadata: {
+    Class: [
+      { name: 'id', value: { Text: 'my-nft-1' }, immutable: true },
+      {
+        name: 'owner',
+        value: { Principal: 'rrkah-fqaaa-aaaaa-aaaaq-cai' },
+        immutable: false,
+      },
+      {
+        name: 'is_soulbound',
+        value: { Bool: false },
+        immutable: false,
+      },
+    ],
+  },
+};
+const stagingResult = await stageNftUsingMetadata(payload);
 ```
 
 <a name="staging+stageLibraryAsset"></a>

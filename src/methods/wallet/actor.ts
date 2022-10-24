@@ -66,7 +66,7 @@ export const getActor = async (
   const identity = await getIdentity(privateIdentityKey);
 
   const agent = getAgent(isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000', identity);
-  // TODO: add this bac
+
   if (!isProd) {
     agent.fetchRootKey();
   }
@@ -86,6 +86,7 @@ function getAgent(host: string, identity: Identity | Promise<Identity>) {
     identity,
   });
 }
+
 export const getIdentity = async (privateIdentityKey: PrivateIdentityKey) => {
   const { ecPrivateKey, privateKey, seed } = privateIdentityKey;
   if (ecPrivateKey) {
