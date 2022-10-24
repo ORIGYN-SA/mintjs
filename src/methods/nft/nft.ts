@@ -90,6 +90,21 @@ export const stageNfts = async (
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
+export const stageNftUsingMetadata = async (
+  metadata: any,
+): Promise<OrigynResponse<any, GetNftErrors | GetCollectionErrors>> => {
+  try {
+    const { actor } = OrigynClient.getInstance();
+    const response = await actor.stage_nft_origyn(metadata);
+    if (response.ok || response.error) {
+      return response;
+    } else {
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e: any) {
+    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
+  }
+};
 
 export const stageLibraryAsset = async (
   files: StageFile[],
