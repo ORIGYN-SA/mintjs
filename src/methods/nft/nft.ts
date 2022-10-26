@@ -96,7 +96,7 @@ export const stageNftUsingMetadata = async (
   try {
     const { actor } = OrigynClient.getInstance();
     const response = await actor.stage_nft_origyn(metadata);
-    if (response.ok || response.error) {
+    if (response.ok || response.error || response.err) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
@@ -106,7 +106,7 @@ export const stageNftUsingMetadata = async (
   }
 };
 
-export const stageLibraryAsset = async (
+export const stageNewLibraryAsset = async (
   files: StageFile[],
   useProxy: boolean = false,
   token_id?: string,
@@ -181,6 +181,55 @@ export const stageLibraryAsset = async (
             const libraryAsset: LibraryFile = createLibrary(settings, file);
 
             const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, resources[0]);
+            if (result?.ok) {
+              resolve({ ok: result.ok });
+            } else {
+              reject({ err: result.err });
+            }
+          }),
+      ),
+    )
+      .then((result: any) => {
+        return {
+          ok: result,
+        };
+      })
+      .catch((err) => {
+        return {
+          err: {
+            error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING,
+            text: err,
+          },
+        };
+      });
+  } catch (e: any) {
+    return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
+  }
+};
+export const stageLibraryAsset = async (
+  files: StageFile[],
+  token_id?: string,
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
+  try {
+    // Get the Raw file if called from a node context (csm.js)
+    // tslint:disable-next-line prefer-for-of
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i].rawFile) {
+        files[i].rawFile = await getFileArrayBuffer(files[i]);
+        files[i].size = await getFileSize(files[i]);
+      }
+    }
+    const metrics: Metrics = { totalFileSize: 0 };
+
+    return Promise.all(
+      files.map(
+        async (file) =>
+          new Promise(async (resolve, reject) => {
+            const libraryAsset: LibraryFile = {
+              library_id: file.filename,
+              library_file: file,
+            };
+            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {

@@ -71,6 +71,11 @@ export class OrigynClient {
         canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
         agent,
       });
+    } else {
+      this._actor = Actor.createActor(origynIdl, {
+        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        agent,
+      });
     }
 
     if (!isProd) {

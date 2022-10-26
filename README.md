@@ -72,8 +72,9 @@ module.exports = (env, argv) => ({
   - [🎬 Staging & Minting](#staging)
     - [stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageCollection)
     - [stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNfts)
-    - [`raw` stageNftUsingMetadata(metadata: any) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNftUsingMetadata)
-    - [stageLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
+    - [stageNftUsingMetadata(metadata: any) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNftUsingMetadata)
+    - [stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
+    - [stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNewLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getNftBalance(principal)](#getNftBalance)
@@ -275,11 +276,11 @@ const payload = {
 const stagingResult = await stageNftUsingMetadata(payload);
 ```
 
-<a name="staging+stageLibraryAsset"></a>
+<a name="staging+stageNewLibraryAsset"></a>
 
-## stageLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
-Stages a new libray asset for an already staged NFT.
+Stages a new libray asset for an already staged NFT. Use this when the library is not already in the NFT Metadata. This wil also create the library meta and inject it into the NFT metadata.
 
 #### Example
 
@@ -299,6 +300,64 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
 ```
 
 **Note: The `library` field of the NFT Metadata needs to be `true` in order to be able to stage library assets after minting.**
+
+<a name="staging+stageLibraryAsset"></a>
+
+## stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+
+Stages a new libray asset for an already staged NFT. Use this when the library is already in the NFT Metadata.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const payload = {
+  token_id: 'token-0', // This is the token id of the NFT we want to append library to
+  files: [
+    {
+      filename: 'file_name.jpg',
+      index: 0,
+      path: '/home/user/Desktop/file_name.jpg.jpg',
+    },
+  ],
+};
+const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
+```
+
+#### token-0 Metadata:
+
+```js
+{
+  "name": "library",
+  "value": {
+    "Array": {
+      "thawed": [
+        {
+          "Class": [
+            {
+              "name": "library_id",
+              "value": {
+                "Text": "file_name.jpg" <--- The library that you want to stage should already be in the NFT Metadata.
+              },
+              "immutable": true
+            },
+            {
+              "name": "title",
+              "value": {
+                "Text": "File Name Image"
+              },
+              "immutable": true
+            },
+            .
+            .
+            .
+          ]
+        }
+      ]
+    }
+  },
+}
+```
 
 <a name="staging+mintNft"></a>
 
