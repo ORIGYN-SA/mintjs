@@ -1,6 +1,4 @@
-// import pemfile from 'pem-file';
-import sha256 from 'crypto-js/sha256';
-import { fromMasterSeed } from 'hdkey';
+import hdkey from 'hdkey';
 import { mnemonicToSeed } from 'bip39';
 import { Secp256k1KeyIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import { Actor, HttpAgent, Identity } from '@dfinity/agent';
@@ -8,9 +6,9 @@ import { AuthClient } from '@dfinity/auth-client';
 import { Principal } from '@dfinity/principal';
 import { IdlStandard, getIdl } from '../../idls';
 import { AnyActor, PrivateIdentityKey } from '../../types/origynTypes';
+import { FETCH, IS_NODE_CONTEXT } from '../../utils/constants';
+import { decode as decodePemFile } from '../../utils/pem-files';
 import origynNftIdl from '../../idls/origyn_nft_reference.did';
-import { FETCH } from '../../utils/constants';
-import { log } from '../../utils/log';
 
 const plugActor = async (canisterId: string, standard: IdlStandard) => {
   if (!(await window.ic.plug.isConnected())) {
@@ -58,6 +56,7 @@ export const createWalletActor = async (walletType: string, canisterId: string, 
       return await iiActor(canisterId, standard);
   }
 };
+
 export const getActor = async (
   isProd: boolean,
   privateIdentityKey: PrivateIdentityKey,
@@ -87,33 +86,36 @@ function getAgent(host: string, identity: Identity | Promise<Identity>) {
   });
 }
 
-export const getIdentity = async (privateIdentityKey: PrivateIdentityKey) => {
-  const { ecPrivateKey, privateKey, seed } = privateIdentityKey;
-  if (ecPrivateKey) {
-    const rawBuffer = Uint8Array.from(ecPrivateKey as any).buffer;
-    const pKey = Uint8Array.from(sha256(rawBuffer as any, { asBytes: true }));
-    const identity = Secp256k1KeyIdentity.fromSecretKey(pKey);
-    log(`Loaded Secp256k1 identity ${identity.getPrincipal()} from arg.`);
+export const getIdentity = async (privateIdentityKey: PrivateIdentityKey): Promise<Identity> => {
+  const { identityFile, seed: seedPhrase } = privateIdentityKey;
+  if (identityFile) {
+    let buffer;
+    if (typeof identityFile === 'string') {
+      if (!IS_NODE_CONTEXT) {
+        throw Error('Identity file must be a Buffer array');
+      }
+      const fs = require('fs');
+      const fileContent = fs.readFileSync(identityFile).toString();
+      buffer = decodePemFile(fileContent);
+      if (buffer.length != 85) {
+        throw Error('Expecting byte length 85 but got ' + buffer.length);
+      }
+    } else {
+      buffer = decodePemFile(identityFile);
+    }
+    if (!buffer) {
+      throw 'The file provided for identity is invalid';
+    }
+    let privateKey = Buffer.concat([buffer.slice(16, 48), buffer.slice(53, 85)]);
+    const identity = Ed25519KeyIdentity.fromSecretKey(privateKey);
     return identity;
-  } else if (privateKey) {
-    // var buf = pemfile.decode(privateKey);
-    // if (buf.length != 85) {
-    //   throw 'expecting byte length 85 but got ' + buf.length;
-    // }
-    // let pKey = Buffer.concat([buf.slice(16, 48), buf.slice(53, 85)]);
-    // const identity = Ed25519KeyIdentity.fromSecretKey(pKey);
-    // console.log(`Loaded Ed25519 identity ${identity.getPrincipal()} from arg.`);
-    // return identity;
-    throw Error('not supported yet');
-  } else if ((seed || '').split(' ').length === 12) {
-    // seed file
-    const _seed: Buffer = await mnemonicToSeed(seed ?? '');
-    const root = fromMasterSeed(_seed);
+  } else if (seedPhrase) {
+    let seed: Buffer = await mnemonicToSeed(seedPhrase);
+    const root = hdkey.fromMasterSeed(seed);
     const addrnode = root.derive("m/44'/223'/0'/0/0");
     const identity = Secp256k1KeyIdentity.fromSecretKey(addrnode.privateKey);
-    log(`Loaded identity ${identity.getPrincipal()} from seed arg.`);
     return identity;
   } else {
-    throw Error('Invalid seed phrase');
+    throw 'Could not load identity. Make sure you are prividing a valid seed phrase or an identity file.';
   }
 };
