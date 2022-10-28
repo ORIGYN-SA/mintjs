@@ -4,7 +4,7 @@ import { OrigynClient } from '../../origynClient';
 import { AnyActor } from '../../types/origynTypes';
 import { wait } from '../../utils';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
-import { formatBytes } from '../../utils/formatBytes';
+import { formatBytes } from '../../utils/binary';
 import { log } from '../../utils/log';
 import { configureCollectionMetadata, configureNftsMetadata } from './metadata';
 import {
