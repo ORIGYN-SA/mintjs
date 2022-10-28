@@ -99,6 +99,8 @@ The mint.js library is using a singleton in order to provide global configuratio
 
 ### Example
 
+Authenticate using the seed phrase:
+
 ```js
 const auth = {
   key: {
@@ -110,6 +112,22 @@ const IS_PROD = true;
 const CANISTER_ID = 'frfol-iqaaa-aaaaj-acogq-cai';
 await OrigynClient.getInstance().init(IS_PROD, CANISTER_ID, auth);
 ```
+
+Authenticate using the `.pem` file, it can be either `ed25519` or `sec256k1` private key:
+
+```js
+const auth = {
+  key: {
+    identityFile: './path/to/identity.pem',
+  },
+};
+
+const IS_PROD = true;
+const CANISTER_ID = 'frfol-iqaaa-aaaaj-acogq-cai';
+await OrigynClient.getInstance().init(IS_PROD, CANISTER_ID, auth);
+```
+
+🌐 Check the web example where we handle the upload of the .pem file. [/examples/ReactStageComponent.tsx#191](https://github.com/ORIGYN-SA/mintjs/blob/SI-82-auth-with-keys/examples/ReactStageComponent.tsx#L191)
 
 The `auth` object can have multiple ways to create an actor for the canister.
 
@@ -127,9 +145,8 @@ type AuthType = {
 #### PrivateIdentityKey
 
 ```js
-export type PrivateIdentityKey = {
-  ecPrivateKey?: string,
-  privateKey?: string,
+type PrivateIdentityKey = {
+  identityFile?: Buffer | string,
   seed?: string,
 };
 ```
