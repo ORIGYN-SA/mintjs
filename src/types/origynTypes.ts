@@ -207,7 +207,6 @@ export type IcTokenType = {
 export type AnyActor = ActorSubclass<Record<string, ActorMethod<unknown[], unknown>>>;
 
 export type PrivateIdentityKey = {
-  ecPrivateKey?: string;
-  privateKey?: string;
+  identityFile?: string | Buffer;
   seed?: string;
 };

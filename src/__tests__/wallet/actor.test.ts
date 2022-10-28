@@ -1,16 +1,35 @@
-import { getIdentity } from '../../methods/wallet/actor';
+import path from 'path';
+import { getIdentity } from '../../methods/wallet/identity';
 
-// // Disable this as it points to the local replica and will fail on the pipeline
-const privateKey = `-----BEGIN EC PARAMETERS-----\nBgUrgQQACg==\n-----END EC PARAMETERS-----\n-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIL2MKjbok/otJPhkQ1OniBROXbpaYN+7VP3nTPe/8c58oAcGBSuBBAAKoUQDQgAEsVyo+m95rzYIU/gZA1OueHqg/H3VVvHQ4CK6tRI3GyeTvIOR3AE6CASvNhcetbn/tqzGgQ9MR0oL2BCxOD1LjQ==\n-----END EC PRIVATE KEY-----\n`;
 const TEST_WALLET = {
-  ecPrivateKey: privateKey,
-  seed: 'scene imitate cloth syrup soldier certain priority setup curtain machine obey state',
-  principalId: 'excqp-nucd2-63jem-io6mj-vrkwo-gisca-ztyvu-gzjyq-wa4sl-exvdj-uae',
+  identityFile: path.resolve(__dirname, 'ed25519.pem'),
+  principalId: 'deald-w2dkr-abvrz-3z5xc-ksymr-6e74c-rum4p-dt7ju-e4gzz-dnaiw-yae',
+};
+const TEST_WALLET_2 = {
+  identityFile: path.resolve(__dirname, 'sec256k1.pem'),
+  seed: 'nerve lady tower arm shoulder garden hundred notice attend focus depend bitter',
+  principalId: '62j24-szpkv-o3co4-kzmjq-lv5fy-djyp7-2szjv-4av3t-d3sxj-il47n-iae',
 };
 test('expect getIdentity to return valid Principal for seed', async () => {
-  // const args = {
-  //   seed: TEST_WALLET.seed,
-  // };
-  // const idetntity = await getIdentity(args);
-  // expect(idetntity.getPrincipal().toText()).toMatch(TEST_WALLET.principalId);
+  const args = {
+    seed: TEST_WALLET_2.seed,
+  };
+  const idetntity = await getIdentity(args);
+  expect(idetntity.getPrincipal().toText()).toMatch(TEST_WALLET_2.principalId);
+});
+
+test('expect getIdentity to return valid Principal for identity file (ed25519)', async () => {
+  const args = {
+    identityFile: TEST_WALLET.identityFile,
+  };
+  const idetntity = await getIdentity(args);
+  expect(idetntity.getPrincipal().toText()).toMatch(TEST_WALLET.principalId);
+});
+
+test('expect getIdentity to return valid Principal for identity file (sec256k1)', async () => {
+  const args = {
+    identityFile: TEST_WALLET_2.identityFile,
+  };
+  const idetntity = await getIdentity(args);
+  expect(idetntity.getPrincipal().toText()).toMatch(TEST_WALLET_2.principalId);
 });

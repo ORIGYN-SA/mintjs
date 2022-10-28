@@ -5,3 +5,4 @@ export * from './methods/tokens';
 export * from './origynClient';
 export * from './methods/nft/stage';
 export * from './methods/wallet/actor';
+export * from './methods/wallet/identity';

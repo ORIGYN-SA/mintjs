@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { mintNft, getNft, stageLibraryAsset, stageCollection, getNftCollectionInfo } from '@origyn-sa/mintjs';
+import {
+  mintNft,
+  getNft,
+  stageLibraryAsset,
+  stageCollection,
+  getNftCollectionInfo,
+  stageNewLibraryAsset,
+  getIdentity,
+} from '@origyn-sa/mintjs';
 import { OrigynClient } from '@origyn-sa/mintjs';
 import ReactJson from 'react-json-view';
 import JSONbig from 'json-bigint';
@@ -21,6 +29,8 @@ const App = () => {
   const [jsonView, setJsonView] = useState({});
   const [tokenId, setTokenId] = useState<string>('');
   const [nftCollection, setNftCollection] = useState<string>('');
+  const [pemFile, setPemFile] = useState<any>();
+  const [principalId, setPrincipalId] = useState<string>(TEST_IDENTITY.principalId);
 
   const { register, handleSubmit } = useForm({
     defaultValues: {
@@ -29,7 +39,7 @@ const App = () => {
       isSoulbound: true,
       collectionName: '',
       collectionId: '',
-      creatorPrincipal: TEST_IDENTITY.principalId,
+      creatorPrincipal: principalId,
     },
   });
 
@@ -125,7 +135,8 @@ const App = () => {
   };
 
   const handleNftDataClick = async () => {
-    await OrigynClient.getInstance().init(isProd, canisterId, {
+    console.log('🚀 ~ file: App.tsx ~ line 140 ~ awaitOrigynClient.getInstance ~ canisterId', canisterId);
+    await OrigynClient.getInstance().init(false, canisterId, {
       key: {
         seed: TEST_IDENTITY.seed,
       },
@@ -165,6 +176,7 @@ const App = () => {
               size: file.size,
               type: file.type,
               rawFile: await readFileAsync(file),
+              assetType: 'preview' as 'preview', // Just make the first file of the NFT as preview asset, needs to be removed in the future
             };
           }),
         )),
@@ -172,9 +184,20 @@ const App = () => {
     };
     console.log('🚀 ~ file: App.tsx ~ line 179 ~ handleStageLibraryAssetClick ~ payload', payload);
 
-    const stage = await stageLibraryAsset(payload.files, false, payload.token_id);
+    const stage = await stageNewLibraryAsset(payload.files, false, payload.token_id);
     console.log('🚀 ~ file: App.tsx ~ line 175 ~ handleStageLibraryAssetClick ~ stage', stage);
   };
+
+  const handlePemFileClick = async () => {
+    await OrigynClient.getInstance().init(isProd, canisterId, {
+      key: {
+        identityFile: await readFileAsync(pemFile),
+      },
+    });
+    const { principal } = OrigynClient.getInstance();
+    setPrincipalId(principal.toText());
+  };
+
   // Functions needed for file to Buffer
   const arrayToBuffer = (arrayBuffer) => {
     const buffer = Buffer.alloc(arrayBuffer.byteLength);
@@ -218,8 +241,9 @@ const App = () => {
             <input
               placeholder="Canister ID"
               name="CanisterId"
-              onChange={(e) => setCanisterId(e.target.value)}
-              {...register('canisterId')}
+              {...register('canisterId', {
+                onChange: (e) => setCanisterId(e.target.value),
+              })}
             />
           </div>
           <br />
@@ -232,7 +256,13 @@ const App = () => {
           </div>
           <br />
           <div>
-            <input placeholder="Creator Principal" name="creatorPrincipal" {...register('creatorPrincipal')} />
+            <input
+              placeholder="Creator Principal"
+              name="creatorPrincipal"
+              value={principalId}
+              disabled
+              {...register('creatorPrincipal')}
+            />
           </div>
           <br />
           <div>
@@ -328,6 +358,15 @@ const App = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10 }}>
           <button onClick={handleStageLibraryAssetClick}>Stage Library Asset</button>
+        </div>
+        <br />
+        <div style={{ display: 'flex', justifyContent: 'center', textAlign: 'left' }}>
+          <div>
+            <input type="file" onChange={(e) => setPemFile(e.target.files[0])} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 10 }}>
+          <button onClick={handlePemFileClick}>Upload PEM File</button>
         </div>
       </div>
       <ReactJson src={jsonView} />
