@@ -82,12 +82,12 @@ export const getIdentity = async (privateIdentityKey: PrivateIdentityKey): Promi
     }
     return getIdentityFromPem(fileContent);
   } else if (seedPhrase) {
-    let seed: Buffer = await mnemonicToSeed(seedPhrase);
+    const seed: Buffer = await mnemonicToSeed(seedPhrase);
     const root = hdkey.fromMasterSeed(seed);
     const addrnode = root.derive("m/44'/223'/0'/0/0");
     const identity = Secp256k1KeyIdentity.fromSecretKey(addrnode.privateKey);
     return identity;
   } else {
-    throw 'Could not load identity. Make sure you are prividing a valid seed phrase or an identity file.';
+    throw Error('Could not load identity. Make sure you are prividing a valid seed phrase or an identity file.');
   }
 };

@@ -79,7 +79,7 @@ export const formatBytes = (bytes: number, decimals: number = 2): string => {
 
 export const fileBufferToText = (fileBuffer: Buffer): Promise<string | null | ArrayBuffer> => {
   return new Promise((resolve, reject) => {
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => {
       resolve(reader.result);
     };
