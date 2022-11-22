@@ -1,0 +1,11 @@
+{
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "linterOptions": {
+    "exclude": ["lib/", "src/idls/*"]
+  },
+  "rules": {
+    "variable-name": false,
+    "no-bitwise": false,
+    "adjacent-overload-signatures": false
+  }
+}
