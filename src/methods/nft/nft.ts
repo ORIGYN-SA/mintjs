@@ -1,3 +1,4 @@
+import { lookup } from 'mrmime';
 import { OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
 import {
@@ -14,13 +15,27 @@ import {
   StageFile,
   LibraryFile,
   Metrics,
+  Meta,
   MetadataClass,
+  MetadataProperty,
   StageConfigSettings,
   StageNft,
+  LocationType,
+  NatValue,
+  TextValue,
 } from './types';
 import { Principal } from '@dfinity/principal';
-import { createClassForResource, createLibrary } from './metadata';
+import {
+  createClassForResource,
+  createLibrary,
+  createTextAttrib,
+  createNatAttrib,
+  getLibraries,
+  getAttribute,
+  getClassByTextAttribute,
+} from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
+import { getFileHash } from '../../utils';
 
 export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
   try {
@@ -206,9 +221,130 @@ export const stageNewLibraryAsset = async (
     return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
   }
 };
+
+const buildLibraryMetadata = async (
+  tokenId: string,
+  namespace: string,
+  file: StageFile,
+  title: string,
+  locationType: LocationType,
+  collectionLibraryId?: string,
+  webUrl?: string): Promise<MetadataClass | undefined> => {
+  
+    const fileNameLower = file.filename.toLowerCase();
+    let libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
+    let location = '';
+    let contentType = '';
+    let size = file.size ?? 0
+
+    if (locationType === 'web') {
+      if (!webUrl?.trim()) {
+        throw 'Missing webUrl when locationType is web';
+      }
+      location = webUrl.trim();
+      contentType = 'text/html';
+      size = 0;
+    } else if (locationType === 'collection') {
+      if (!collectionLibraryId) {
+        throw 'Missing collectionLibraryId when locationType is collection';
+      }
+      // get the collection metadata
+      const collInfo = await getNft('');
+      if (collInfo.err) {
+        throw 'Could not retrieve collection metadata';
+      }
+      const collMetadata = collInfo.ok?.metadata;
+      const collMeta = JSON.parse(collMetadata) as Meta;
+      
+      // get the library in the collection metadata
+      const collLibraries = getLibraries(collMeta);
+      const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', collectionLibraryId);
+      if (!collLibrary) {
+        const err = `Could not find library "${collectionLibraryId}" at the collection level`;
+        throw err;
+      }
+
+      // get the location of the collection library
+      const collLibraryLocation = getAttribute(collLibrary, 'location');
+      if (!collLibraryLocation) {
+        const err = `Could not find the location attribute in the collection library "${collectionLibraryId}"`;
+        throw err;
+      }
+      location = (collLibraryLocation.value as TextValue).Text;
+
+      // get the mime-type of the collection library
+      const collContentType = getAttribute(collLibrary, 'content_type');
+      if (collContentType) {
+        contentType = (collContentType.value as TextValue)?.Text || lookup(fileNameLower) || '';
+      } else {
+        contentType = lookup(fileNameLower) || '';
+      }
+    } else if (locationType === 'canister') {
+      location = `-/${tokenId}/-/${libraryId}`;
+      contentType = lookup(fileNameLower) || '';
+    }
+
+    if (!contentType) {
+      const err = `Could not determine the content type of library "${libraryId}" with location type "${locationType}"`
+      throw err;
+    }
+    
+    // get the NFT
+    const nftInfo = await getNft(tokenId);
+    if (nftInfo.err) {
+      const err = `Could not find NFT with token ID "${tokenId}"`;
+      throw err;
+    }
+    
+    // check if the NFT library id already exists
+    const nftMetadata = nftInfo.ok?.metadata;
+    const nftMeta = JSON.parse(nftMetadata) as Meta;
+    const nftLibraries = getLibraries(nftMeta);
+    const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
+    if (existingNftLibrary) {
+      const err = `Could not find library "${libraryId}" in NFT token "${tokenId}"`;
+      throw err;
+    }
+
+    // get highest sort value
+    let maxSort = 0;
+    for (const library of nftLibraries) {
+      const sortAttrib = getAttribute(library, 'sort');
+      if (sortAttrib) {
+        const sort = (sortAttrib.value as NatValue)?.Nat || 0;
+        maxSort = Math.max(maxSort, sort);
+      }
+    }
+    if (maxSort < nftLibraries.length + 1) {
+      maxSort = nftLibraries.length + 1;
+    }
+
+    const attribs: MetadataProperty[] = [];
+  
+    attribs.push(createTextAttrib('library_id', libraryId, false))
+    attribs.push(createTextAttrib('title', title, false));
+    attribs.push(createTextAttrib('location_type', locationType, false));
+    attribs.push(createTextAttrib('location', location, false));
+    attribs.push(createTextAttrib('content_type', contentType, false));
+    if (locationType !== 'web') {
+      attribs.push(createTextAttrib('content_hash', getFileHash(file.rawFile), false));
+    }
+    attribs.push(createNatAttrib('size', size, false));
+    attribs.push(createNatAttrib('sort', maxSort + 1, false));
+    attribs.push(createTextAttrib('read', 'public', false));
+
+    const libraryMetadata = { Class: attribs };
+    console.log('Library Metadata', libraryMetadata);
+    return libraryMetadata;
+};
+
 export const stageLibraryAsset = async (
   files: StageFile[],
-  token_id?: string,
+  token_id: string = '',
+  title: string = '',
+  locationType: LocationType,
+  collectionLibraryId?: string,
+  webUrl?: string
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
     // Get the Raw file if called from a node context (csm.js)
@@ -221,15 +357,31 @@ export const stageLibraryAsset = async (
     }
     const metrics: Metrics = { totalFileSize: 0 };
 
+    const collectionInfo = await getNftCollectionInfo(true);
+    if (collectionInfo.err) {
+      // return error response
+      return collectionInfo;
+    }
+
     return Promise.all(
       files.map(
         async (file) =>
           new Promise(async (resolve, reject) => {
+
             const libraryAsset: LibraryFile = {
               library_id: file.filename,
               library_file: file,
             };
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics);
+
+            const namespace = collectionInfo.ok?.namespace || '';
+            let metadata: MetadataClass | undefined;
+            try {
+              metadata = await buildLibraryMetadata(token_id, namespace, file, title, locationType, collectionLibraryId, webUrl);
+            } catch (err: any) {
+              reject({ err: err.message ?? err });
+            }
+
+            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id, metrics, metadata);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {

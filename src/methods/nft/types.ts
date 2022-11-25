@@ -3,6 +3,9 @@ export type LibraryFile = {
   library_file: StageFile;
 };
 
+export type LocationType = 'collection' | 'canister' | 'web';
+export type AssetType = 'primary' | 'hidden' | 'experience' | 'preview';
+
 export type Metrics = {
   totalFileSize: number;
 };
@@ -15,7 +18,7 @@ export type StageNft = {
   quantity?: number;
 };
 export type StageFile = {
-  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
+  assetType?: AssetType;
   filename: string;
   index?: number;
   path: string;

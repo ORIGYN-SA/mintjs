@@ -11,7 +11,9 @@ import {
   StageConfigSettings,
   StageFile,
   TextValue,
+  ThawedArrayValue
 } from './types';
+import { lookup } from 'mrmime';
 
 export const configureCollectionMetadata = (settings: StageConfigSettings): Meta => {
   const resources: MetadataClass[] = [];
@@ -185,11 +187,7 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
   const fileNameLower = file.filename.toLowerCase();
 
   // ensure the file has a valid mime type
-  let mimeType = file.type;
-  if (IS_NODE_CONTEXT) {
-    const mime = require('mime-types');
-    mimeType = mime.lookup(fileNameLower);
-  }
+  const mimeType = lookup(fileNameLower);
   if (!mimeType) {
     const err = `Could not find mime type for file: ${file.filename}`;
     throw err;
@@ -415,3 +413,22 @@ export const createClassesForResourceReferences = (
 
   return resourceReferences;
 };
+
+export function getLibraries(nftOrColl: Meta):  MetadataClass[] {
+  const libraries = (nftOrColl.meta.metadata.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
+    .thawed as MetadataClass[];
+
+  return libraries;
+}
+
+export function getClassByTextAttribute(classes: MetadataClass[], name: string, value: string): MetadataClass | undefined {
+  const libraryMetadata = classes?.find((c) =>
+    c?.Class?.find((c) => c?.name === name && (c?.value as TextValue)?.Text === value),
+  );
+
+  return libraryMetadata;
+}
+
+export function getAttribute(nftOrColl: MetadataClass, name: string): MetadataProperty | undefined {
+  return nftOrColl?.Class?.find(a => a?.name === name);
+}

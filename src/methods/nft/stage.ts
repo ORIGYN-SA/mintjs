@@ -13,6 +13,7 @@ import {
   FileInfoMap,
   LibraryFile,
   Meta,
+  MetadataClass,
   Metrics,
   StageConfigArgs,
   StageConfigData,
@@ -66,7 +67,7 @@ export const canisterStageLibraryAsset = async (
   libraryAsset: LibraryFile,
   tokenId: string,
   metrics: Metrics,
-  metadata?: any,
+  metadata?: MetadataClass,
 ) => {
   log(`\nStaging asset: ${libraryAsset.library_id}`);
   log(`\nFile path: ${libraryAsset.library_file.path}`);
@@ -96,7 +97,7 @@ export const canisterStageLibraryAsset = async (
       libraryAsset.library_file.rawFile!,
       i,
       metrics,
-      metadata,
+      i === 0 ? metadata : undefined,
     );
     if (result.err) return result;
     lastResult = result;
@@ -111,7 +112,7 @@ export const uploadChunk = async (
   fileData: Buffer,
   chunkNumber: number,
   metrics: Metrics,
-  metadata?: any,
+  metadata?: MetadataClass,
   retries = 0,
 ): Promise<ChunkUploadResult> => {
   const start = chunkNumber * MAX_STAGE_CHUNK_SIZE;
