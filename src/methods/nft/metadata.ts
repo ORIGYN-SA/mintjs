@@ -423,7 +423,7 @@ export function getLibraries(nftOrColl: Meta):  MetadataClass[] {
 
 export function getClassByTextAttribute(classes: MetadataClass[], name: string, value: string): MetadataClass | undefined {
   const libraryMetadata = classes?.find((c) =>
-    c?.Class?.find((c) => c?.name === name && (c?.value as TextValue)?.Text === value),
+    c?.Class?.find((p) => p?.name === name && (p?.value as TextValue)?.Text === value),
   );
 
   return libraryMetadata;

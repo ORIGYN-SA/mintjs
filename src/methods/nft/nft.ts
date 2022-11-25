@@ -232,26 +232,26 @@ const buildLibraryMetadata = async (
   webUrl?: string): Promise<MetadataClass | undefined> => {
   
     const fileNameLower = file.filename.toLowerCase();
-    let libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
+    const libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
     let location = '';
     let contentType = '';
     let size = file.size ?? 0
 
     if (locationType === 'web') {
       if (!webUrl?.trim()) {
-        throw 'Missing webUrl when locationType is web';
+        throw new Error('Missing webUrl when locationType is web');
       }
       location = webUrl.trim();
       contentType = 'text/html';
       size = 0;
     } else if (locationType === 'collection') {
       if (!collectionLibraryId) {
-        throw 'Missing collectionLibraryId when locationType is collection';
+        throw new Error('Missing collectionLibraryId when locationType is collection');
       }
       // get the collection metadata
       const collInfo = await getNft('');
       if (collInfo.err) {
-        throw 'Could not retrieve collection metadata';
+        throw new Error('Could not retrieve collection metadata');
       }
       const collMetadata = collInfo.ok?.metadata;
       const collMeta = JSON.parse(collMetadata) as Meta;
@@ -261,14 +261,14 @@ const buildLibraryMetadata = async (
       const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', collectionLibraryId);
       if (!collLibrary) {
         const err = `Could not find library "${collectionLibraryId}" at the collection level`;
-        throw err;
+        throw new Error(err);
       }
 
       // get the location of the collection library
       const collLibraryLocation = getAttribute(collLibrary, 'location');
       if (!collLibraryLocation) {
         const err = `Could not find the location attribute in the collection library "${collectionLibraryId}"`;
-        throw err;
+        throw new Error(err);
       }
       location = (collLibraryLocation.value as TextValue).Text;
 
@@ -286,14 +286,14 @@ const buildLibraryMetadata = async (
 
     if (!contentType) {
       const err = `Could not determine the content type of library "${libraryId}" with location type "${locationType}"`
-      throw err;
+      throw new Error(err);
     }
     
     // get the NFT
     const nftInfo = await getNft(tokenId);
     if (nftInfo.err) {
       const err = `Could not find NFT with token ID "${tokenId}"`;
-      throw err;
+      throw new Error(err);
     }
     
     // check if the NFT library id already exists
@@ -303,7 +303,7 @@ const buildLibraryMetadata = async (
     const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
     if (existingNftLibrary) {
       const err = `Could not find library "${libraryId}" in NFT token "${tokenId}"`;
-      throw err;
+      throw new Error(err);
     }
 
     // get highest sort value
@@ -333,9 +333,7 @@ const buildLibraryMetadata = async (
     attribs.push(createNatAttrib('sort', maxSort + 1, false));
     attribs.push(createTextAttrib('read', 'public', false));
 
-    const libraryMetadata = { Class: attribs };
-    console.log('Library Metadata', libraryMetadata);
-    return libraryMetadata;
+    return { Class: attribs };
 };
 
 export const stageLibraryAsset = async (
