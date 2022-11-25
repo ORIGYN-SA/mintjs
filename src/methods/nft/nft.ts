@@ -229,7 +229,7 @@ const buildLibraryMetadata = async (
   title: string,
   locationType: LocationType,
   collectionLibraryId?: string,
-  webUrl?: string): Promise<MetadataClass | undefined> => {
+  webUrl?: string): Promise<MetadataClass> => {
   
     const fileNameLower = file.filename.toLowerCase();
     const libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
