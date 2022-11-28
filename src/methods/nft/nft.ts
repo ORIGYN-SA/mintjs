@@ -235,7 +235,7 @@ const buildLibraryMetadata = async (
     const libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
     let location = '';
     let contentType = '';
-    let size = file.size ?? 0
+    let size = 0n;
 
     if (locationType === 'web') {
       if (!webUrl?.trim()) {
@@ -243,21 +243,20 @@ const buildLibraryMetadata = async (
       }
       location = webUrl.trim();
       contentType = 'text/html';
-      size = 0;
     } else if (locationType === 'collection') {
       if (!collectionLibraryId) {
         throw new Error('Missing collectionLibraryId when locationType is collection');
       }
+
       // get the collection metadata
       const collInfo = await getNft('');
       if (collInfo.err) {
         throw new Error('Could not retrieve collection metadata');
       }
-      const collMetadata = collInfo.ok?.metadata;
-      const collMeta = JSON.parse(collMetadata) as Meta;
+      const collMetadataClass = collInfo.ok?.metadata as MetadataClass;
       
       // get the library in the collection metadata
-      const collLibraries = getLibraries(collMeta);
+      const collLibraries = getLibraries(collMetadataClass);
       const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', collectionLibraryId);
       if (!collLibrary) {
         const err = `Could not find library "${collectionLibraryId}" at the collection level`;
@@ -280,6 +279,7 @@ const buildLibraryMetadata = async (
         contentType = lookup(fileNameLower) || '';
       }
     } else if (locationType === 'canister') {
+      size = BigInt(file.size ?? 0);
       location = `-/${tokenId}/-/${libraryId}`;
       contentType = lookup(fileNameLower) || '';
     }
@@ -297,26 +297,25 @@ const buildLibraryMetadata = async (
     }
     
     // check if the NFT library id already exists
-    const nftMetadata = nftInfo.ok?.metadata;
-    const nftMeta = JSON.parse(nftMetadata) as Meta;
-    const nftLibraries = getLibraries(nftMeta);
+    const nftMetadataClass =  nftInfo.ok?.metadata as MetadataClass;
+    const nftLibraries = getLibraries(nftMetadataClass);
     const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
     if (existingNftLibrary) {
-      const err = `Could not find library "${libraryId}" in NFT token "${tokenId}"`;
+      const err = `Library "${libraryId}" already exists in NFT token "${tokenId}"`;
       throw new Error(err);
     }
 
     // get highest sort value
-    let maxSort = 0;
+    let maxSort = 0n;
     for (const library of nftLibraries) {
       const sortAttrib = getAttribute(library, 'sort');
       if (sortAttrib) {
-        const sort = (sortAttrib.value as NatValue)?.Nat || 0;
-        maxSort = Math.max(maxSort, sort);
+        const sort = (sortAttrib.value as NatValue)?.Nat || 0n;
+        maxSort = sort > maxSort ? sort : maxSort;
       }
     }
     if (maxSort < nftLibraries.length + 1) {
-      maxSort = nftLibraries.length + 1;
+      maxSort = BigInt(nftLibraries.length + 1);
     }
 
     const attribs: MetadataProperty[] = [];
@@ -330,7 +329,7 @@ const buildLibraryMetadata = async (
       attribs.push(createTextAttrib('content_hash', getFileHash(file.rawFile), false));
     }
     attribs.push(createNatAttrib('size', size, false));
-    attribs.push(createNatAttrib('sort', maxSort + 1, false));
+    attribs.push(createNatAttrib('sort', maxSort + 1n, false));
     attribs.push(createTextAttrib('read', 'public', false));
 
     return { Class: attribs };

@@ -201,8 +201,8 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
       createTextAttrib('location', settings.fileMap[file.path].resourceUrl, IMMUTABLE),
       createTextAttrib('content_type', mimeType, IMMUTABLE),
       createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
-      createNatAttrib('size', file.size ?? 0, IMMUTABLE),
-      createNatAttrib('sort', sort, IMMUTABLE),
+      createNatAttrib('size', BigInt(file.size ?? 0n), IMMUTABLE),
+      createNatAttrib('sort', BigInt(sort), IMMUTABLE),
       createTextAttrib('read', 'public', !IMMUTABLE),
     ],
   };
@@ -231,7 +231,7 @@ export const createBoolAttrib = (name: string, value: boolean, immutable: boolea
   };
 };
 
-export const createNatAttrib = (name: string, value: number, immutable: boolean): MetadataProperty => {
+export const createNatAttrib = (name: string, value: bigint, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Nat: value },
@@ -323,9 +323,9 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
                     {
                       name: `${settings.args.namespace}.total_in_collection`,
                       value: {
-                        Nat: settings.args.nfts.reduce((acumulator, nft) => {
+                        Nat: BigInt(settings.args.nfts.reduce((acumulator, nft) => {
                           return acumulator + (nft?.quantity ?? 1);
-                        }, 0),
+                        }, 0)),
                       },
                       immutable: false,
                     },
@@ -414,8 +414,8 @@ export const createClassesForResourceReferences = (
   return resourceReferences;
 };
 
-export function getLibraries(nftOrColl: Meta):  MetadataClass[] {
-  const libraries = (nftOrColl.meta.metadata.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
+export function getLibraries(nftOrColl: MetadataClass):  MetadataClass[] {
+  const libraries = (nftOrColl.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
     .thawed as MetadataClass[];
 
   return libraries;

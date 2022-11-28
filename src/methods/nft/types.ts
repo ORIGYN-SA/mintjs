@@ -76,7 +76,7 @@ export type TextValue = {
 };
 
 export type NatValue = {
-  Nat: number;
+  Nat: bigint;
 };
 
 export type BoolValue = {
