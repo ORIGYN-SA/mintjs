@@ -68,15 +68,20 @@ export const canisterStageLibraryAsset = async (
   tokenId: string,
   metrics: Metrics,
   metadata?: MetadataClass,
-) => {
+): Promise<ChunkUploadResult> => {
   log(`\nStaging asset: ${libraryAsset.library_id}`);
   log(`\nFile path: ${libraryAsset.library_file.path}`);
 
-  // slice file buffer into chunks of bytes that fit into the chunk size
-  const fileSize = libraryAsset.library_file.size;
-  if (!fileSize) throw Error(`There is no 'size' for library file '${libraryAsset.library_file.filename}'`);
+  // default for 'web' or 'collection' location type
+  // which need at least 1 chunk of 0 bytes to stage metadata
+  let chunkCount = 1;
 
-  const chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
+  const fileSize = libraryAsset.library_file.size;
+  if (fileSize) {
+    // slice file buffer into chunks of bytes that fit into the chunk size
+    chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
+  }
+  
   log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
   log(`file size ${fileSize}`);
   log(`chunk count ${chunkCount}`);
@@ -102,6 +107,11 @@ export const canisterStageLibraryAsset = async (
     if (result.err) return result;
     lastResult = result;
   }
+
+  if (!lastResult) {
+    throw new Error('No result after uploading last chunk');
+  }
+
   return lastResult;
 };
 

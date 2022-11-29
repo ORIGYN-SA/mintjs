@@ -15,7 +15,6 @@ import {
   StageFile,
   LibraryFile,
   Metrics,
-  Meta,
   MetadataClass,
   MetadataProperty,
   StageConfigSettings,
@@ -23,6 +22,7 @@ import {
   LocationType,
   NatValue,
   TextValue,
+  ChunkUploadResult,
 } from './types';
 import { Principal } from '@dfinity/principal';
 import {
@@ -225,13 +225,11 @@ export const stageNewLibraryAsset = async (
 const buildLibraryMetadata = async (
   tokenId: string,
   libraryId: string,
-  file: StageFile,
   title: string,
   locationType: LocationType,
-  collectionLibraryId?: string,
+  file?: StageFile,
   webUrl?: string): Promise<MetadataClass> => {
   
-    const fileNameLower = file.filename.toLowerCase();
     let location = '';
     let contentType = '';
     let size = 0n;
@@ -243,10 +241,6 @@ const buildLibraryMetadata = async (
       location = webUrl.trim();
       contentType = 'text/html';
     } else if (locationType === 'collection') {
-      if (!collectionLibraryId) {
-        throw new Error('Missing collectionLibraryId when locationType is collection');
-      }
-
       // get the collection metadata
       const collInfo = await getNft('');
       if (collInfo.err) {
@@ -256,16 +250,16 @@ const buildLibraryMetadata = async (
       
       // get the library in the collection metadata
       const collLibraries = getLibraries(collMetadataClass);
-      const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', collectionLibraryId);
+      const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', libraryId);
       if (!collLibrary) {
-        const err = `Could not find library "${collectionLibraryId}" at the collection level`;
+        const err = `Could not find library "${libraryId}" at the collection level`;
         throw new Error(err);
       }
 
       // get the location of the collection library
       const collLibraryLocation = getAttribute(collLibrary, 'location');
       if (!collLibraryLocation) {
-        const err = `Could not find the location attribute in the collection library "${collectionLibraryId}"`;
+        const err = `Could not find the location attribute in the collection library "${libraryId}"`;
         throw new Error(err);
       }
       location = (collLibraryLocation.value as TextValue).Text;
@@ -273,14 +267,19 @@ const buildLibraryMetadata = async (
       // get the mime-type of the collection library
       const collContentType = getAttribute(collLibrary, 'content_type');
       if (collContentType) {
-        contentType = (collContentType.value as TextValue)?.Text || lookup(fileNameLower) || '';
+        contentType = (collContentType.value as TextValue)?.Text || '';
       } else {
-        contentType = lookup(fileNameLower) || '';
+        const err = `Could not find the content_type attribute in collection library "${libraryId}"`;
+        throw err;
       }
     } else if (locationType === 'canister') {
+      if (!file) {
+        const err = `Missing file when locationType is canister`;
+        throw err;
+      }
       size = BigInt(file.size ?? 0);
       location = `-/${tokenId}/-/${libraryId}`;
-      contentType = lookup(fileNameLower) || '';
+      contentType = lookup(file.filename.toLowerCase()) || '';
     }
 
     if (!contentType) {
@@ -324,87 +323,108 @@ const buildLibraryMetadata = async (
     attribs.push(createTextAttrib('location_type', locationType, false));
     attribs.push(createTextAttrib('location', location, false));
     attribs.push(createTextAttrib('content_type', contentType, false));
-    if (locationType !== 'web') {
+    if (locationType === 'canister' && file) {
       attribs.push(createTextAttrib('content_hash', getFileHash(file.rawFile), false));
     }
     attribs.push(createNatAttrib('size', size, false));
     attribs.push(createNatAttrib('sort', maxSort + 1n, false));
     attribs.push(createTextAttrib('read', 'public', false));
 
-    return { Class: attribs };
+    const libraryMetadata =  { Class: attribs };
+    return libraryMetadata;
 };
 
-export const stageLibraryAsset = async (
-  files: StageFile[],
-  token_id: string = '',
+export const stageCollectionLibraryAsset = async (
+  tokenId: string = '',
   title: string = '',
-  locationType: LocationType,
-  collectionLibraryId?: string,
-  webUrl?: string
-): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
+  collectionLibraryId: string,
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
   try {
-    // Get the Raw file if called from a node context (csm.js)
-    // tslint:disable-next-line prefer-for-of
-    for (let i = 0; i < files.length; i++) {
-      if (!files[i].rawFile) {
-        files[i].rawFile = await getFileArrayBuffer(files[i]);
-        files[i].size = await getFileSize(files[i]);
-      }
-    }
+    const metadata = await buildLibraryMetadata(tokenId, collectionLibraryId, title, 'collection');
+
+    const libraryAsset: LibraryFile = {
+      library_id: collectionLibraryId,
+      library_file: { filename:'', path: '', size: 0, rawFile: Buffer.from([]) },
+    };
+
     const metrics: Metrics = { totalFileSize: 0 };
 
+    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
+  }
+}
+
+export const stageWebLibraryAsset = async (
+  tokenId: string = '',
+  title: string = '',
+  webUrl: string,
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
+
+  let namespace = '';
+
+  try {
     const collectionInfo = await getNftCollectionInfo(true);
     if (collectionInfo.err) {
-      // return error response
       return collectionInfo;
     }
 
-    return Promise.all(
-      files.map(
-        async (file) =>
-          new Promise(async (resolve, reject) => {
+    namespace = collectionInfo.ok?.namespace || '';
 
-            const namespace = collectionInfo.ok?.namespace || '';
+    const libraryId = `${namespace}${namespace ? '.' : ''}${title.toLowerCase().replace(/\s+/g, '-')}`;
 
-            // the library id is prefixed with the collection's namespace and spaces are replaced with hyphens
-            const library_id = `${namespace}${namespace ? '.' : ''}${file.filename.toLowerCase().replace(/\s+/g, '-')}`;
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'web', undefined, webUrl);
 
-            const libraryAsset: LibraryFile = {
-              library_id,
-              library_file: file,
-            };
+    const libraryAsset: LibraryFile = {
+      library_id: libraryId,
+      library_file: { filename:'', path: '', size: 0, rawFile: Buffer.from([]) },
+    };
 
-            let metadata: MetadataClass | undefined;
-            try {
-              metadata = await buildLibraryMetadata(token_id, library_id, file, title, locationType, collectionLibraryId, webUrl);
-            } catch (err: any) {
-              reject({ err: err.message ?? err });
-            }
+    const metrics: Metrics = { totalFileSize: 0 };
 
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id, metrics, metadata);
-            if (result?.ok) {
-              resolve({ ok: result.ok });
-            } else {
-              reject({ err: result.err });
-            }
-          }),
-      ),
-    )
-      .then((result: any) => {
-        return {
-          ok: result,
-        };
-      })
-      .catch((err) => {
-        return {
-          err: {
-            error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING,
-            text: err,
-          },
-        };
-      });
-  } catch (e: any) {
-    return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
+    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
+  }
+}
+
+export const stageLibraryAsset = async (
+  file: StageFile,
+  tokenId: string = '',
+  title: string = ''
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
+
+  let namespace = '';
+
+  try {
+    const collectionInfo = await getNftCollectionInfo(true);
+    if (collectionInfo.err) {
+      return collectionInfo;
+    }
+    namespace = collectionInfo.ok?.namespace || '';
+
+    // Get the Raw file if called from a node context (csm.js)
+    // tslint:disable-next-line prefer-for-of
+    if (!file.rawFile) {
+      file.rawFile = await getFileArrayBuffer(file);
+      file.size = await getFileSize(file);
+    }
+
+    const libraryId = `${namespace}${namespace ? '.' : ''}${file.filename.toLowerCase().replace(/\s+/g, '-')}`;
+
+    const libraryAsset: LibraryFile = {
+      library_id: libraryId,
+      library_file: file,
+    };
+
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'canister', file);
+    const metrics: Metrics = { totalFileSize: 0 };
+    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
   }
 };
 
