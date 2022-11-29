@@ -224,7 +224,7 @@ export const stageNewLibraryAsset = async (
 
 const buildLibraryMetadata = async (
   tokenId: string,
-  namespace: string,
+  libraryId: string,
   file: StageFile,
   title: string,
   locationType: LocationType,
@@ -232,7 +232,6 @@ const buildLibraryMetadata = async (
   webUrl?: string): Promise<MetadataClass> => {
   
     const fileNameLower = file.filename.toLowerCase();
-    const libraryId = `${namespace}${namespace ? '.' : ''}${fileNameLower}`;
     let location = '';
     let contentType = '';
     let size = 0n;
@@ -365,15 +364,19 @@ export const stageLibraryAsset = async (
         async (file) =>
           new Promise(async (resolve, reject) => {
 
+            const namespace = collectionInfo.ok?.namespace || '';
+
+            // the library id is prefixed with the collection's namespace and spaces are replaced with hyphens
+            const library_id = `${namespace}${namespace ? '.' : ''}${file.filename.toLowerCase().replace(/\s+/g, '-')}`;
+
             const libraryAsset: LibraryFile = {
-              library_id: file.filename,
+              library_id,
               library_file: file,
             };
 
-            const namespace = collectionInfo.ok?.namespace || '';
             let metadata: MetadataClass | undefined;
             try {
-              metadata = await buildLibraryMetadata(token_id, namespace, file, title, locationType, collectionLibraryId, webUrl);
+              metadata = await buildLibraryMetadata(token_id, library_id, file, title, locationType, collectionLibraryId, webUrl);
             } catch (err: any) {
               reject({ err: err.message ?? err });
             }
