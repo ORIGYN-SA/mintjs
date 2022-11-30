@@ -297,11 +297,11 @@ const buildLibraryMetadata = async (
     // check if the NFT library id already exists
     const nftMetadataClass =  nftInfo.ok?.metadata as MetadataClass;
     const nftLibraries = getLibraries(nftMetadataClass);
-    const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
-    if (existingNftLibrary) {
-      const err = `Library "${libraryId}" already exists in NFT token "${tokenId}"`;
-      throw new Error(err);
-    }
+    // const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
+    // if (existingNftLibrary) {
+    //   const err = `Library "${libraryId}" already exists in NFT token "${tokenId}"`;
+    //   throw new Error(err);
+    // }
 
     // get highest sort value
     let maxSort = 0n;
