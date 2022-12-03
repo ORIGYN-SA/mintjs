@@ -383,7 +383,7 @@ export const stageLibraryAsset = async (
   file: StageFile,
   tokenId: string = '',
   title: string = ''
-): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
+): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
 
   try {
 
@@ -403,10 +403,38 @@ export const stageLibraryAsset = async (
 
     const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'canister', file);
     const metrics: Metrics = { totalFileSize: 0 };
-    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+    const result = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
 
+    if (result.err) {
+      return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: JSON.stringify(result.err) } };  
+    }
+    return { ok: { ok: result.ok } };
   } catch (err: any) {
-    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: err?.message || err } };
+  }
+};
+
+export const deleteLibraryAsset = async (
+  tokenId: string,
+  libraryId: string
+  ): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
+  
+  try {
+    const { actor } = OrigynClient.getInstance();
+    const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
+      token_id: tokenId,
+      library_id: libraryId,
+      filedata: { Bool: false },
+      chunk: 0,
+      content:[]
+    });
+
+    if (result.err) {
+      return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: JSON.stringify(result.err) } };  
+    }
+    return { ok: { ok: result.ok } };
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: err?.message || err } };
   }
 };
 
@@ -456,6 +484,7 @@ export enum StageLibraryAssetErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
   ERROR_WHILE_STAGING,
+  ERROR_WHILE_DELETING,
 }
 
 type NftInfoStable = {
