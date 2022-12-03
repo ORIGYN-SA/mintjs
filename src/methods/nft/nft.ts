@@ -85,7 +85,6 @@ export const stageNfts = async (
       collectionId: collectionInfo.ok?.name ?? '',
       creatorPrincipal,
       environment: 'local',
-      namespace: collectionInfo.ok?.namespace ?? '',
       nftCanisterId: OrigynClient.getInstance().canisterId,
       nftOwnerId: creatorPrincipal,
       nfts: args.nfts,
@@ -137,12 +136,11 @@ export const stageNewLibraryAsset = async (
       return nftInfo;
     }
 
-    const { namespace, name } = collectionInfo.ok!;
+    const { name } = collectionInfo.ok!;
 
     const settings: StageConfigSettings = {
       // @ts-ignore
       args: {
-        namespace,
         useProxy,
         collectionDisplayName: name,
       },
@@ -294,14 +292,14 @@ const buildLibraryMetadata = async (
       throw new Error(err);
     }
     
-    // check if the NFT library id already exists
+    // ensure the title is not already used by one of the libraries
     const nftMetadataClass =  nftInfo.ok?.metadata as MetadataClass;
     const nftLibraries = getLibraries(nftMetadataClass);
-    // const existingNftLibrary = getClassByTextAttribute(nftLibraries, 'library_id', libraryId);
-    // if (existingNftLibrary) {
-    //   const err = `Library "${libraryId}" already exists in NFT token "${tokenId}"`;
-    //   throw new Error(err);
-    // }
+    const existingLibraryWithTitle = getClassByTextAttribute(nftLibraries, 'title', title);
+    if (existingLibraryWithTitle) {
+      const err = `Library already exists with title "${title}"`;
+      throw new Error(err);
+    }
 
     // get highest sort value
     let maxSort = 0n;
@@ -362,17 +360,8 @@ export const stageWebLibraryAsset = async (
   webUrl: string,
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
 
-  let namespace = '';
-
   try {
-    const collectionInfo = await getNftCollectionInfo(true);
-    if (collectionInfo.err) {
-      return collectionInfo;
-    }
-
-    namespace = collectionInfo.ok?.namespace || '';
-
-    const libraryId = `${namespace}${namespace ? '.' : ''}${title.toLowerCase().replace(/\s+/g, '-')}`;
+    const libraryId = title.toLowerCase().replace(/\s+/g, '-');
 
     const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'web', undefined, webUrl);
 
@@ -396,14 +385,7 @@ export const stageLibraryAsset = async (
   title: string = ''
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
 
-  let namespace = '';
-
   try {
-    const collectionInfo = await getNftCollectionInfo(true);
-    if (collectionInfo.err) {
-      return collectionInfo;
-    }
-    namespace = collectionInfo.ok?.namespace || '';
 
     // Get the Raw file if called from a node context (csm.js)
     // tslint:disable-next-line prefer-for-of
@@ -412,7 +394,7 @@ export const stageLibraryAsset = async (
       file.size = await getFileSize(file);
     }
 
-    const libraryId = `${namespace}${namespace ? '.' : ''}${file.filename.toLowerCase().replace(/\s+/g, '-')}`;
+    const libraryId = file.filename.toLowerCase().replace(/\s+/g, '-');
 
     const libraryAsset: LibraryFile = {
       library_id: libraryId,

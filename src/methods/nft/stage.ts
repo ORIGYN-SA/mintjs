@@ -254,14 +254,15 @@ export const buildFileMap = (settings: StageConfigSettings): FileInfoMap => {
 };
 export const buildCollectionFile = (settings: StageConfigSettings, file: CollectionLevelFile) => {
   let title = file.filename;
-  let libraryId = `${settings.args.namespace}.${title}`.toLowerCase();
+  let libraryId = file.filename.toLowerCase();
 
   if (file.category === 'dapp') {
-    const extPos = title.lastIndexOf('.');
+    const extPos = file.filename.lastIndexOf('.');
     if (extPos > 0) {
-      libraryId = title.substring(0, extPos);
+      title = title.substring(0, extPos);
+      libraryId = libraryId.substring(0, extPos);
     }
-    title = `${libraryId} dApp`;
+    title = `${title} dApp`;
   }
 
   const resourceUrl = `${getResourceUrl(settings, libraryId)}`.toLowerCase();
@@ -274,7 +275,7 @@ export const buildCollectionFile = (settings: StageConfigSettings, file: Collect
   };
 };
 export const buildNftFile = (settings: StageConfigSettings, file: StageFile, tokenId: string, nftIndex: number = 0) => {
-  const libraryId = `${settings.args.namespace}.${file.filename}`.toLowerCase();
+  const libraryId = file.filename.toLowerCase();
   const resourceUrl = `${getResourceUrl(settings, libraryId, tokenId)}`;
   const title = `${settings.args.collectionDisplayName} - ${nftIndex}`;
 

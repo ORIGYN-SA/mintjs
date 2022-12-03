@@ -53,7 +53,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
       properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
+        createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable),
       );
       alreadyPushedAssetTypes.push(file.assetType!);
     }
@@ -149,7 +149,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
       properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
+        createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable),
       );
       alreadyPushedAssetTypes.push(file.assetType!);
     }
@@ -249,7 +249,7 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
             Class: [
               {
                 name: 'app_id',
-                value: { Text: settings.args.namespace },
+                value: { Text: 'com.origyn.mintjs' },
                 immutable: false,
               },
               {
@@ -314,14 +314,14 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
                 value: {
                   Class: [
                     {
-                      name: `${settings.args.namespace}.name`,
+                      name: `name`,
                       value: {
                         Text: settings.args.collectionDisplayName,
                       },
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.total_in_collection`,
+                      name: `total_in_collection`,
                       value: {
                         Nat: BigInt(settings.args.nfts.reduce((acumulator, nft) => {
                           return acumulator + (nft?.quantity ?? 1);
@@ -330,14 +330,14 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.collectionid`,
+                      name: `collectionid`,
                       value: {
                         Text: settings.args.collectionId,
                       },
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.creator_principal`,
+                      name: `creator_principal`,
                       value: {
                         Principal: settings.args.creatorPrincipal,
                       },
@@ -423,7 +423,7 @@ export function getLibraries(nftOrColl: MetadataClass):  MetadataClass[] {
 
 export function getClassByTextAttribute(classes: MetadataClass[], name: string, value: string): MetadataClass | undefined {
   const libraryMetadata = classes?.find((c) =>
-    c?.Class?.find((p) => p?.name === name && (p?.value as TextValue)?.Text === value),
+    c?.Class?.find((p) => p?.name === name && (p?.value as TextValue)?.Text?.toLowerCase() === value.toLowerCase()),
   );
 
   return libraryMetadata;

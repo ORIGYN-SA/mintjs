@@ -32,7 +32,6 @@ export type StageConfigArgs = {
   collectionDisplayName: string;
   tokenPrefix: string;
   creatorPrincipal: string;
-  namespace: string;
   nftCanisterId: string;
   collectionFiles: CollectionLevelFile[];
   nfts: StageNft[];
