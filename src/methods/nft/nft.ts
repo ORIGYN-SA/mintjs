@@ -33,6 +33,7 @@ import {
   getLibraries,
   getAttribute,
   getClassByTextAttribute,
+  createBoolAttrib,
 } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
@@ -225,6 +226,7 @@ const buildLibraryMetadata = async (
   libraryId: string,
   title: string,
   locationType: LocationType,
+  immutable: boolean = false,
   file?: StageFile,
   webUrl?: string): Promise<MetadataClass> => {
   
@@ -327,6 +329,9 @@ const buildLibraryMetadata = async (
     attribs.push(createNatAttrib('size', size, false));
     attribs.push(createNatAttrib('sort', maxSort + 1n, false));
     attribs.push(createTextAttrib('read', 'public', false));
+    if (immutable) {
+      attribs.push(createBoolAttrib('com.origyn.immutable_library', true, true));
+    }
 
     const libraryMetadata =  { Class: attribs };
     return libraryMetadata;
@@ -336,9 +341,10 @@ export const stageCollectionLibraryAsset = async (
   tokenId: string = '',
   title: string = '',
   collectionLibraryId: string,
+  immutable: boolean = false
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
   try {
-    const metadata = await buildLibraryMetadata(tokenId, collectionLibraryId, title, 'collection');
+    const metadata = await buildLibraryMetadata(tokenId, collectionLibraryId, title, 'collection', immutable);
 
     const libraryAsset: LibraryFile = {
       library_id: collectionLibraryId,
@@ -358,12 +364,13 @@ export const stageWebLibraryAsset = async (
   tokenId: string = '',
   title: string = '',
   webUrl: string,
+  immutable: boolean = false
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
 
   try {
     const libraryId = title.toLowerCase().replace(/\s+/g, '-');
 
-    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'web', undefined, webUrl);
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'web', immutable, undefined, webUrl);
 
     const libraryAsset: LibraryFile = {
       library_id: libraryId,
@@ -382,7 +389,8 @@ export const stageWebLibraryAsset = async (
 export const stageLibraryAsset = async (
   file: StageFile,
   tokenId: string = '',
-  title: string = ''
+  title: string = '',
+  immutable: boolean = false
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
 
   try {
@@ -401,7 +409,7 @@ export const stageLibraryAsset = async (
       library_file: file,
     };
 
-    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'canister', file);
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'canister', immutable, file);
     const metrics: Metrics = { totalFileSize: 0 };
     const result = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
 
