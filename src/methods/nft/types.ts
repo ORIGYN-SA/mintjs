@@ -25,6 +25,8 @@ export type StageFile = {
   rawFile?: Buffer;
   size?: number;
   type?: string;
+  title?: string;
+  immutable?: boolean;
 };
 export type StageConfigArgs = {
   environment?: string;

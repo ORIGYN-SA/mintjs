@@ -387,38 +387,54 @@ export const stageWebLibraryAsset = async (
 }
 
 export const stageLibraryAsset = async (
-  file: StageFile,
-  tokenId: string = '',
-  title: string = '',
-  immutable: boolean = false
-): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
-
+  files: StageFile[],
+  token_id?: string,
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
-
     // Get the Raw file if called from a node context (csm.js)
     // tslint:disable-next-line prefer-for-of
-    if (!file.rawFile) {
-      file.rawFile = await getFileArrayBuffer(file);
-      file.size = await getFileSize(file);
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i].rawFile) {
+        files[i].rawFile = await getFileArrayBuffer(files[i]);
+        files[i].size = await getFileSize(files[i]);
+      }
     }
-
-    const libraryId = file.filename.toLowerCase().replace(/\s+/g, '-');
-
-    const libraryAsset: LibraryFile = {
-      library_id: libraryId,
-      library_file: file,
-    };
-
-    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'canister', immutable, file);
     const metrics: Metrics = { totalFileSize: 0 };
-    const result = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
 
-    if (result.err) {
-      return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: JSON.stringify(result.err) } };  
-    }
-    return { ok: { ok: result.ok } };
-  } catch (err: any) {
-    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: err?.message || err } };
+    return Promise.all(
+      files.map(
+        async (file) =>
+          new Promise(async (resolve, reject) => {
+            const libraryId = file.filename.toLowerCase().replace(/\s+/g, '-');
+            const libraryAsset: LibraryFile = {
+              library_id: libraryId,
+              library_file: file,
+            };
+            const metadata = await buildLibraryMetadata(token_id || '', libraryId, file.title || '', 'canister', file.immutable, file);
+            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, metadata);
+            if (result?.ok) {
+              resolve({ ok: result.ok });
+            } else {
+              reject({ err: result.err });
+            }
+          }),
+      ),
+    )
+      .then((result: any) => {
+        return {
+          ok: result,
+        };
+      })
+      .catch((err) => {
+        return {
+          err: {
+            error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING,
+            text: err,
+          },
+        };
+      });
+  } catch (e: any) {
+    return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
   }
 };
 
