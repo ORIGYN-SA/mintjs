@@ -278,7 +278,11 @@ const buildLibraryMetadata = async (
         throw err;
       }
       size = BigInt(file.size ?? 0);
-      location = `-/${tokenId}/-/${libraryId}`;
+      if (tokenId) { // nft
+        location = `-/${tokenId}/-/${libraryId}`;
+      } else { // collection
+        location = `collection/-/${libraryId}`;
+      }
       contentType = lookup(file.filename.toLowerCase()) || '';
     }
 
