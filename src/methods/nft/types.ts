@@ -26,6 +26,16 @@ export type StageFile = {
   size?: number;
   type?: string;
   title?: string;
+  // overrides filename, used in the location url
+  // for location 'canister'
+  // name of the collection's library_id
+  // for location 'collection'
+  libraryId?: string;
+  // overrides the content type derived by the file extension
+  // for location 'canister'
+  contentType?: string;
+  // adds com.origyn.immutable_library to the library class
+  webUrl?: string;
   immutable?: boolean;
 };
 export type StageConfigArgs = {

@@ -221,24 +221,30 @@ export const stageNewLibraryAsset = async (
   }
 };
 
+const buildLibraryId = (file: StageFile) => {
+  const libraryId = (file.libraryId || file.filename || file.title || '').replace(/\s+/g, '-');
+  return libraryId.toLowerCase();
+}
+
 const buildLibraryMetadata = async (
   tokenId: string,
   libraryId: string,
-  title: string,
-  locationType: LocationType,
-  immutable: boolean = false,
-  file?: StageFile,
-  webUrl?: string): Promise<MetadataClass> => {
+  file: StageFile,
+  locationType: LocationType): Promise<MetadataClass> => {
   
     let location = '';
     let contentType = '';
     let size = 0n;
 
+    if (!libraryId) {
+      throw new Error('Missing libraryId');
+    }
+
     if (locationType === 'web') {
-      if (!webUrl?.trim()) {
+      location = file.webUrl?.trim() || '';
+      if (!location) {
         throw new Error('Missing webUrl when locationType is web');
       }
-      location = webUrl.trim();
       contentType = 'text/html';
     } else if (locationType === 'collection') {
       // get the collection metadata
@@ -283,7 +289,7 @@ const buildLibraryMetadata = async (
       } else { // collection
         location = `collection/-/${libraryId}`;
       }
-      contentType = lookup(file.filename.toLowerCase()) || '';
+      contentType = (file.contentType || lookup(file.filename) || '').toLowerCase();
     }
 
     if (!contentType) {
@@ -298,13 +304,16 @@ const buildLibraryMetadata = async (
       throw new Error(err);
     }
     
-    // ensure the title is not already used by one of the libraries
     const nftMetadataClass =  nftInfo.ok?.metadata as MetadataClass;
     const nftLibraries = getLibraries(nftMetadataClass);
-    const existingLibraryWithTitle = getClassByTextAttribute(nftLibraries, 'title', title);
-    if (existingLibraryWithTitle) {
-      const err = `Library already exists with title "${title}"`;
-      throw new Error(err);
+
+    // ensure the title is not already used by one of the libraries
+    if (file.title) {
+      const existingLibraryWithTitle = getClassByTextAttribute(nftLibraries, 'title', file.title);
+      if (existingLibraryWithTitle) {
+        const err = `Library already exists with title "${file.title}"`;
+        throw new Error(err);
+      }
     }
 
     // get highest sort value
@@ -323,7 +332,9 @@ const buildLibraryMetadata = async (
     const attribs: MetadataProperty[] = [];
   
     attribs.push(createTextAttrib('library_id', libraryId, false))
-    attribs.push(createTextAttrib('title', title, false));
+    if (file.title) {
+      attribs.push(createTextAttrib('title', file.title, false));
+    }
     attribs.push(createTextAttrib('location_type', locationType, false));
     attribs.push(createTextAttrib('location', location, false));
     attribs.push(createTextAttrib('content_type', contentType, false));
@@ -333,7 +344,7 @@ const buildLibraryMetadata = async (
     attribs.push(createNatAttrib('size', size, false));
     attribs.push(createNatAttrib('sort', maxSort + 1n, false));
     attribs.push(createTextAttrib('read', 'public', false));
-    if (immutable) {
+    if (file.immutable) {
       attribs.push(createBoolAttrib('com.origyn.immutable_library', true, true));
     }
 
@@ -343,15 +354,15 @@ const buildLibraryMetadata = async (
 
 export const stageCollectionLibraryAsset = async (
   tokenId: string = '',
-  title: string = '',
-  collectionLibraryId: string,
-  immutable: boolean = false
+  file: StageFile
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
   try {
-    const metadata = await buildLibraryMetadata(tokenId, collectionLibraryId, title, 'collection', immutable);
+    // the library ID must match the library at the collection level
+    const libraryId = file.libraryId || '';
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'collection');
 
     const libraryAsset: LibraryFile = {
-      library_id: collectionLibraryId,
+      library_id: libraryId,
       library_file: { filename:'', path: '', size: 0, rawFile: Buffer.from([]) },
     };
 
@@ -366,15 +377,12 @@ export const stageCollectionLibraryAsset = async (
 
 export const stageWebLibraryAsset = async (
   tokenId: string = '',
-  title: string = '',
-  webUrl: string,
-  immutable: boolean = false
+  file: StageFile
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
 
   try {
-    const libraryId = title.toLowerCase().replace(/\s+/g, '-');
-
-    const metadata = await buildLibraryMetadata(tokenId, libraryId, title, 'web', immutable, undefined, webUrl);
+    const libraryId = buildLibraryId(file);
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'web');
 
     const libraryAsset: LibraryFile = {
       library_id: libraryId,
@@ -409,12 +417,14 @@ export const stageLibraryAsset = async (
       files.map(
         async (file) =>
           new Promise(async (resolve, reject) => {
-            const libraryId = file.filename.toLowerCase().replace(/\s+/g, '-');
+            const libraryId = buildLibraryId(file);
+            const metadata = await buildLibraryMetadata(token_id || '', libraryId, file, 'canister');
+            
             const libraryAsset: LibraryFile = {
               library_id: libraryId,
               library_file: file,
             };
-            const metadata = await buildLibraryMetadata(token_id || '', libraryId, file.title || '', 'canister', file.immutable, file);
+
             const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, metadata);
             if (result?.ok) {
               resolve({ ok: result.ok });
