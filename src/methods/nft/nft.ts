@@ -1,3 +1,4 @@
+import { lookup } from 'mrmime';
 import { OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
 import {
@@ -15,17 +16,32 @@ import {
   LibraryFile,
   Metrics,
   MetadataClass,
+  MetadataProperty,
   StageConfigSettings,
   StageNft,
+  LocationType,
+  NatValue,
+  TextValue,
+  ChunkUploadResult,
 } from './types';
 import { Principal } from '@dfinity/principal';
-import { createClassForResource, createLibrary } from './metadata';
+import {
+  createClassForResource,
+  createLibrary,
+  createTextAttrib,
+  createNatAttrib,
+  getLibraries,
+  getAttribute,
+  getClassByTextAttribute,
+  createBoolAttrib,
+} from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
+import { getFileHash } from '../../utils';
 
-export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
+export const getNft = async (tokenId: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
   try {
     const actor = OrigynClient.getInstance().actor;
-    const response: any = await actor.nft_origyn(token_id);
+    const response: any = await actor.nft_origyn(tokenId);
     if (response.ok || response.err) {
       return response;
     } else {
@@ -70,7 +86,6 @@ export const stageNfts = async (
       collectionId: collectionInfo.ok?.name ?? '',
       creatorPrincipal,
       environment: 'local',
-      namespace: collectionInfo.ok?.namespace ?? '',
       nftCanisterId: OrigynClient.getInstance().canisterId,
       nftOwnerId: creatorPrincipal,
       nfts: args.nfts,
@@ -109,7 +124,7 @@ export const stageNftUsingMetadata = async (
 export const stageNewLibraryAsset = async (
   files: StageFile[],
   useProxy: boolean = false,
-  token_id?: string,
+  tokenId: string = '',
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
     const collectionInfo = await getNftCollectionInfo();
@@ -117,17 +132,16 @@ export const stageNewLibraryAsset = async (
       return collectionInfo;
     }
 
-    const nftInfo = await getNft(token_id ?? '');
+    const nftInfo = await getNft(tokenId);
     if (nftInfo.err) {
       return nftInfo;
     }
 
-    const { namespace, name } = collectionInfo.ok!;
+    const { name } = collectionInfo.ok!;
 
     const settings: StageConfigSettings = {
       // @ts-ignore
       args: {
-        namespace,
         useProxy,
         collectionDisplayName: name,
       },
@@ -158,8 +172,8 @@ export const stageNewLibraryAsset = async (
     let sort = lastSortValue + 1;
     // stage_library_nft_origyn
     for (const file of files) {
-      if (token_id) {
-        settings.fileMap[file.path] = buildNftFile(settings, file, token_id);
+      if (tokenId) {
+        settings.fileMap[file.path] = buildNftFile(settings, file, tokenId);
       } else {
         const fileCategory = file.filename.indexOf('.html') !== -1 ? 'dapp' : 'collection';
         settings.fileMap[file.path] = buildCollectionFile(settings, { category: fileCategory, ...file });
@@ -180,7 +194,7 @@ export const stageNewLibraryAsset = async (
             // here we also need to create the Meta
             const libraryAsset: LibraryFile = createLibrary(settings, file);
 
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, resources[0]);
+            const result: any = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, resources[0]);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {
@@ -206,9 +220,187 @@ export const stageNewLibraryAsset = async (
     return { err: { error_code: StageLibraryAssetErrors.CANT_REACH_CANISTER, text: e } };
   }
 };
+
+const buildLibraryId = (file: StageFile) => {
+  const libraryId = (file.libraryId || file.filename || file.title || '').replace(/\s+/g, '-');
+  return libraryId.toLowerCase();
+}
+
+const buildLibraryMetadata = async (
+  tokenId: string,
+  libraryId: string,
+  file: StageFile,
+  locationType: LocationType): Promise<MetadataClass> => {
+  
+    let location = '';
+    let contentType = '';
+    let size = 0n;
+
+    if (!libraryId) {
+      throw new Error('Missing libraryId');
+    }
+
+    if (locationType === 'web') {
+      location = file.webUrl?.trim() || '';
+      if (!location) {
+        throw new Error('Missing webUrl when locationType is web');
+      }
+      contentType = 'text/html';
+    } else if (locationType === 'collection') {
+      // get the collection metadata
+      const collInfo = await getNft('');
+      if (collInfo.err) {
+        throw new Error('Could not retrieve collection metadata');
+      }
+      const collMetadataClass = collInfo.ok?.metadata as MetadataClass;
+      
+      // get the library in the collection metadata
+      const collLibraries = getLibraries(collMetadataClass);
+      const collLibrary = getClassByTextAttribute(collLibraries, 'library_id', libraryId);
+      if (!collLibrary) {
+        const err = `Could not find library "${libraryId}" at the collection level`;
+        throw new Error(err);
+      }
+
+      // get the location of the collection library
+      const collLibraryLocation = getAttribute(collLibrary, 'location');
+      if (!collLibraryLocation) {
+        const err = `Could not find the location attribute in the collection library "${libraryId}"`;
+        throw new Error(err);
+      }
+      location = (collLibraryLocation.value as TextValue).Text;
+
+      // get the mime-type of the collection library
+      const collContentType = getAttribute(collLibrary, 'content_type');
+      if (collContentType) {
+        contentType = (collContentType.value as TextValue)?.Text || '';
+      } else {
+        const err = `Could not find the content_type attribute in collection library "${libraryId}"`;
+        throw err;
+      }
+    } else if (locationType === 'canister') {
+      if (!file) {
+        const err = `Missing file when locationType is canister`;
+        throw err;
+      }
+      size = BigInt(file.size ?? 0);
+      if (tokenId) { // nft
+        location = `-/${tokenId}/-/${libraryId}`;
+      } else { // collection
+        location = `collection/-/${libraryId}`;
+      }
+      contentType = (file.contentType || lookup(file.filename) || '').toLowerCase();
+    }
+
+    if (!contentType) {
+      const err = `Could not determine the content type of library "${libraryId}" with location type "${locationType}"`
+      throw new Error(err);
+    }
+    
+    // get the NFT
+    const nftInfo = await getNft(tokenId);
+    if (nftInfo.err) {
+      const err = `Could not find NFT with token ID "${tokenId}"`;
+      throw new Error(err);
+    }
+    
+    const nftMetadataClass =  nftInfo.ok?.metadata as MetadataClass;
+    const nftLibraries = getLibraries(nftMetadataClass);
+
+    // ensure the title is not already used by one of the libraries
+    if (file.title) {
+      const existingLibraryWithTitle = getClassByTextAttribute(nftLibraries, 'title', file.title);
+      if (existingLibraryWithTitle) {
+        const err = `Library already exists with title "${file.title}"`;
+        throw new Error(err);
+      }
+    }
+
+    // get highest sort value
+    let maxSort = 0n;
+    for (const library of nftLibraries) {
+      const sortAttrib = getAttribute(library, 'sort');
+      if (sortAttrib) {
+        const sort = (sortAttrib.value as NatValue)?.Nat || 0n;
+        maxSort = sort > maxSort ? sort : maxSort;
+      }
+    }
+    if (maxSort < nftLibraries.length + 1) {
+      maxSort = BigInt(nftLibraries.length + 1);
+    }
+
+    const attribs: MetadataProperty[] = [];
+  
+    attribs.push(createTextAttrib('library_id', libraryId, false))
+    if (file.title) {
+      attribs.push(createTextAttrib('title', file.title, false));
+    }
+    attribs.push(createTextAttrib('location_type', locationType, false));
+    attribs.push(createTextAttrib('location', location, false));
+    attribs.push(createTextAttrib('content_type', contentType, false));
+    if (locationType === 'canister' && file) {
+      attribs.push(createTextAttrib('content_hash', getFileHash(file.rawFile), false));
+    }
+    attribs.push(createNatAttrib('size', size, false));
+    attribs.push(createNatAttrib('sort', maxSort + 1n, false));
+    attribs.push(createTextAttrib('read', 'public', false));
+    if (file.immutable) {
+      attribs.push(createBoolAttrib('com.origyn.immutable_library', true, true));
+    }
+
+    const libraryMetadata =  { Class: attribs };
+    return libraryMetadata;
+};
+
+export const stageCollectionLibraryAsset = async (
+  tokenId: string = '',
+  file: StageFile
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
+  try {
+    // the library ID must match the library at the collection level
+    const libraryId = file.libraryId || '';
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'collection');
+
+    const libraryAsset: LibraryFile = {
+      library_id: libraryId,
+      library_file: { filename:'', path: '', size: 0, rawFile: Buffer.from([]) },
+    };
+
+    const metrics: Metrics = { totalFileSize: 0 };
+
+    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
+  }
+}
+
+export const stageWebLibraryAsset = async (
+  tokenId: string = '',
+  file: StageFile
+): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
+
+  try {
+    const libraryId = buildLibraryId(file);
+    const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'web');
+
+    const libraryAsset: LibraryFile = {
+      library_id: libraryId,
+      library_file: { filename:'', path: '', size: 0, rawFile: Buffer.from([]) },
+    };
+
+    const metrics: Metrics = { totalFileSize: 0 };
+
+    return await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_STAGING, text: err?.message || err } };
+  }
+}
+
 export const stageLibraryAsset = async (
   files: StageFile[],
-  token_id?: string,
+  tokenId: string = '',
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
     // Get the Raw file if called from a node context (csm.js)
@@ -225,11 +417,15 @@ export const stageLibraryAsset = async (
       files.map(
         async (file) =>
           new Promise(async (resolve, reject) => {
+            const libraryId = buildLibraryId(file);
+            const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'canister');
+            
             const libraryAsset: LibraryFile = {
-              library_id: file.filename,
+              library_id: libraryId,
               library_file: file,
             };
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics);
+
+            const result: any = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {
@@ -256,10 +452,34 @@ export const stageLibraryAsset = async (
   }
 };
 
-export const mintNft = async (token_id: string, principal?: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
+export const deleteLibraryAsset = async (
+  tokenId: string = '',
+  libraryId: string
+  ): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
+  
+  try {
+    const { actor } = OrigynClient.getInstance();
+    const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
+      token_id: tokenId,
+      library_id: libraryId,
+      filedata: { Bool: false },
+      chunk: 0,
+      content:[]
+    });
+
+    if (result.err) {
+      return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: JSON.stringify(result.err) } };  
+    }
+    return { ok: { ok: result.ok } };
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_DELETING, text: err?.message || err } };
+  }
+};
+
+export const mintNft = async (tokenId: string, principal?: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
     const { actor, principal: _principal } = OrigynClient.getInstance();
-    const response = await actor.mint_nft_origyn(token_id, {
+    const response = await actor.mint_nft_origyn(tokenId, {
       principal: principal ?? _principal,
     });
     if (response.ok || response.err) {
@@ -273,7 +493,7 @@ export const mintNft = async (token_id: string, principal?: Principal): Promise<
 };
 
 export const getNftHistory = async (
-  token_id: string,
+  tokenId: string,
   start?: BigInt,
   end?: BigInt,
 ): Promise<OrigynResponse<TransactionType, GetNftErrors>> => {
@@ -283,7 +503,7 @@ export const getNftHistory = async (
       start: start ? [start] : [],
       end: end ? [end] : [],
     };
-    const response = await actor.history_nft_origyn(token_id, args.start, args.end);
+    const response = await actor.history_nft_origyn(tokenId, args.start, args.end);
     if (response.ok || response.error) {
       return response;
     } else {
@@ -302,6 +522,7 @@ export enum StageLibraryAssetErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
   ERROR_WHILE_STAGING,
+  ERROR_WHILE_DELETING,
 }
 
 type NftInfoStable = {
