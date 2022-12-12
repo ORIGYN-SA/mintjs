@@ -38,10 +38,10 @@ import {
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
 
-export const getNft = async (token_id: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
+export const getNft = async (tokenId: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
   try {
     const actor = OrigynClient.getInstance().actor;
-    const response: any = await actor.nft_origyn(token_id);
+    const response: any = await actor.nft_origyn(tokenId);
     if (response.ok || response.err) {
       return response;
     } else {
@@ -124,7 +124,7 @@ export const stageNftUsingMetadata = async (
 export const stageNewLibraryAsset = async (
   files: StageFile[],
   useProxy: boolean = false,
-  token_id?: string,
+  tokenId: string = '',
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
     const collectionInfo = await getNftCollectionInfo();
@@ -132,7 +132,7 @@ export const stageNewLibraryAsset = async (
       return collectionInfo;
     }
 
-    const nftInfo = await getNft(token_id ?? '');
+    const nftInfo = await getNft(tokenId);
     if (nftInfo.err) {
       return nftInfo;
     }
@@ -172,8 +172,8 @@ export const stageNewLibraryAsset = async (
     let sort = lastSortValue + 1;
     // stage_library_nft_origyn
     for (const file of files) {
-      if (token_id) {
-        settings.fileMap[file.path] = buildNftFile(settings, file, token_id);
+      if (tokenId) {
+        settings.fileMap[file.path] = buildNftFile(settings, file, tokenId);
       } else {
         const fileCategory = file.filename.indexOf('.html') !== -1 ? 'dapp' : 'collection';
         settings.fileMap[file.path] = buildCollectionFile(settings, { category: fileCategory, ...file });
@@ -194,7 +194,7 @@ export const stageNewLibraryAsset = async (
             // here we also need to create the Meta
             const libraryAsset: LibraryFile = createLibrary(settings, file);
 
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, resources[0]);
+            const result: any = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, resources[0]);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {
@@ -400,7 +400,7 @@ export const stageWebLibraryAsset = async (
 
 export const stageLibraryAsset = async (
   files: StageFile[],
-  token_id?: string,
+  tokenId: string = '',
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors | GetNftErrors>> => {
   try {
     // Get the Raw file if called from a node context (csm.js)
@@ -418,14 +418,14 @@ export const stageLibraryAsset = async (
         async (file) =>
           new Promise(async (resolve, reject) => {
             const libraryId = buildLibraryId(file);
-            const metadata = await buildLibraryMetadata(token_id || '', libraryId, file, 'canister');
+            const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'canister');
             
             const libraryAsset: LibraryFile = {
               library_id: libraryId,
               library_file: file,
             };
 
-            const result: any = await canisterStageLibraryAsset(libraryAsset, token_id ?? '', metrics, metadata);
+            const result: any = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {
@@ -476,10 +476,10 @@ export const deleteLibraryAsset = async (
   }
 };
 
-export const mintNft = async (token_id: string, principal?: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
+export const mintNft = async (tokenId: string, principal?: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
     const { actor, principal: _principal } = OrigynClient.getInstance();
-    const response = await actor.mint_nft_origyn(token_id, {
+    const response = await actor.mint_nft_origyn(tokenId, {
       principal: principal ?? _principal,
     });
     if (response.ok || response.err) {
@@ -493,7 +493,7 @@ export const mintNft = async (token_id: string, principal?: Principal): Promise<
 };
 
 export const getNftHistory = async (
-  token_id: string,
+  tokenId: string,
   start?: BigInt,
   end?: BigInt,
 ): Promise<OrigynResponse<TransactionType, GetNftErrors>> => {
@@ -503,7 +503,7 @@ export const getNftHistory = async (
       start: start ? [start] : [],
       end: end ? [end] : [],
     };
-    const response = await actor.history_nft_origyn(token_id, args.start, args.end);
+    const response = await actor.history_nft_origyn(tokenId, args.start, args.end);
     if (response.ok || response.error) {
       return response;
     } else {

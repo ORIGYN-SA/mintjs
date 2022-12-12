@@ -73,13 +73,13 @@ module.exports = (env, argv) => ({
     - [stageCollection(StageConfigArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageCollection)
     - [stageNfts(StageNftsArgs) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNfts)
     - [stageNftUsingMetadata(metadata: any) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNftUsingMetadata)
-    - [stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
-    - [stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNewLibraryAsset)
+    - [stageLibraryAsset(files: StageFile[], tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageLibraryAsset)
+    - [stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNewLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getNftBalance(principal)](#getNftBalance)
     - [getNft(token)](#getNft)
-    - [getNftHistory(token_id, start, end)](#getNftHistory)
+    - [getNftHistory(tokenId, start, end)](#getNftHistory)
 
 <a name="OrigynClient"></a>
 
@@ -300,7 +300,7 @@ const stagingResult = await stageNftUsingMetadata(payload);
 
 <a name="staging+stageNewLibraryAsset"></a>
 
-## stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 **Deprecated**
 
@@ -311,7 +311,7 @@ Stages a new library asset for an already staged NFT. Use this when the library 
 ```js
 await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
 const payload = {
-  token_id: 'token-0', // This is the token id of the NFT we want to append library to
+  tokenId: 'token-0', // This is the token id of the NFT we want to append library to
   files: [
     {
       filename: 'file_name.jpg',
@@ -320,14 +320,14 @@ const payload = {
     },
   ],
 };
-const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
+const stage_asset = await stageLibraryAsset(payload.files, payload.tokenId);
 ```
 
 **Note: The `library` field of the NFT Metadata needs to be `true` in order to be able to stage library assets after minting.**
 
 <a name="staging+stageLibraryAsset"></a>
 
-## stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
+## stageLibraryAsset(files: StageFile[], tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
 Stages a library asset for an already staged NFT. Use this for new libraries and existing libraries (the library is already in the NFT Metadata).
 
@@ -336,7 +336,7 @@ Stages a library asset for an already staged NFT. Use this for new libraries and
 ```js
 await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
 const payload = {
-  token_id: 'token-0', // This is the token id of the NFT we want to append library to
+  tokenId: 'token-0', // This is the token id of the NFT we want to append library to
   files: [
     {
       filename: 'file_name.jpg',
@@ -345,7 +345,7 @@ const payload = {
     },
   ],
 };
-const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
+const stage_asset = await stageLibraryAsset(payload.files, payload.tokenId);
 ```
 
 #### Library metadata:
@@ -383,7 +383,7 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
 }
 ```
 
-## stageCollectionLibraryAsset(token_id?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
+## stageCollectionLibraryAsset(tokenId?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
 
 Stages a library reference to an existing collection-level library asset for an already staged NFT.
 
@@ -392,7 +392,7 @@ Stages a library reference to an existing collection-level library asset for an 
 ```js
 await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
 const payload = {
-  token_id: 'token-1', // This is the token id of the NFT we want to append library to
+  tokenId: 'token-1', // This is the token id of the NFT we want to append library to
   files: [
     {
       libraryId: 'shared_file.png', // The id of an already staged file at the collection level
@@ -401,7 +401,7 @@ const payload = {
     },
   ],
 };
-const stage_asset = await stageCollectionLibraryAsset(payload.token_id, payload.files);
+const stage_asset = await stageCollectionLibraryAsset(payload.tokenId, payload.files);
 ```
 
 #### Library metadata:
@@ -494,7 +494,7 @@ const stage_asset = await stageCollectionLibraryAsset(payload.token_id, payload.
 ```
 
 
-## stageWebLibraryAsset(token_id?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
+## stageWebLibraryAsset(tokenId?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
 
 Stages a library reference to an existing collection-level library asset for an already staged NFT.
 
@@ -503,7 +503,7 @@ Stages a library reference to an existing collection-level library asset for an 
 ```js
 await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
 const payload = {
-  token_id: 'token-2', // This is the token id of the NFT we want to append library to
+  tokenId: 'token-2', // This is the token id of the NFT we want to append library to
   files: [
     {
       libraryId: 'origyn-dev-talk-1',
@@ -513,7 +513,7 @@ const payload = {
     },
   ],
 };
-const stage_asset = await stageWebLibraryAsset(payload.token_id, payload.files);
+const stage_asset = await stageWebLibraryAsset(payload.tokenId, payload.files);
 ```
 
 #### Library metadata:
@@ -697,9 +697,9 @@ else if (response.err)
 
 <a name="getNft"></a>
 
-## getNft(token_id) ⇒ `Promise<OrigynResponse<NftInfoStable, GetNftErrors>>`
+## getNft(tokenId) ⇒ `Promise<OrigynResponse<NftInfoStable, GetNftErrors>>`
 
-Returns all data for a nft, which is provided using the `token_id` parameter.
+Returns all data for a nft, which is provided using the `tokenId` parameter.
 
 #### `NftInfoStable` Type
 
@@ -727,13 +727,13 @@ else if (response.err)
 
 <a name="getNftHistory"></a>
 
-### getNftHistory(token_id, start, end) ⇒ `Promise<OrigynResponse<TransactionType, GetNftErrors>>`
+### getNftHistory(tokenId, start, end) ⇒ `Promise<OrigynResponse<TransactionType, GetNftErrors>>`
 
 Get transaction hitsory of an NFT between the `start` and the `end` date if provided.
 
 | Param    | Type     | Default | Description                            |
 | -------- | -------- | ------- | -------------------------------------- |
-| token_id | `string` |         | The token id of the NFT.               |
+| tokenId  | `string` |         | The token id of the NFT.               |
 | start    | `BigInt` | `[]`    | Bottom date of the transaction search. |
 | end      | `BigInt` | `[]`    | Upper date of the transaction search.  |
 
@@ -747,10 +747,10 @@ const end = 1662638707000000000n; // Friday, September 2, 2022
 const response = await getNftHistory('nft-id', start, end);
 
 if (response.ok) {
-  const histoy: TransactionType[] = response.ok;
+  const history: TransactionType[] = response.ok;
   for(const transaction in history) {
-    const { token_id, txn_type, timestamp, index } = transaction;
-    console.log(`Token ${token_id} had a transaction (#${index}) on ${timestamp}: ${txn_type}`);
+    const { tokenId, txn_type, timestamp, index } = transaction;
+    console.log(`Token ${tokenId} had a transaction (#${index}) on ${timestamp}: ${txn_type}`);
   }
 }
 else if (response.err)
