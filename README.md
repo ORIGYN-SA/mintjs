@@ -598,6 +598,16 @@ const stage_asset = await stageWebLibraryAsset(payload.token_id, payload.files);
 }
 ```
 
+## deleteLibraryAsset(tokenId?: string, libraryId: string) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors>>`
+
+Deletes an existing library asset from an already staged NFT.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const response = await deleteLibraryAsset('token-2', 'origyn-dev-talk-1');
+```
 
 <a name="staging+mintNft"></a>
 

@@ -453,7 +453,7 @@ export const stageLibraryAsset = async (
 };
 
 export const deleteLibraryAsset = async (
-  tokenId: string,
+  tokenId: string = '',
   libraryId: string
   ): Promise<OrigynResponse<any, StageLibraryAssetErrors>> => {
   
