@@ -186,7 +186,7 @@ We can use mint.js in order to stage NFT collections to the canister we initiali
 | collectionDisplayName | `string`                | Collection name                                                     |
 | tokenPrefix           | `string`                | Prefix for NFTs in the collection                                   |
 | creatorPrincipal      | `string`                | The creator of the collection                                       |
-| souldbound            | `boolean`               | Wheter the NFTs are soulbound or not                                |
+| soulbound             | `boolean`               | Wheter the NFTs are soulbound or not                                |
 | collectionFiles       | `CollectionLevelFile[]` | The files we want to upload at the collection level                 |
 | nfts                  | `StageNft[]`            | The NFTs we want to append to the collection                        |
 
@@ -211,14 +211,19 @@ type CollectionLevelFile = StageFile & {
 #### StageFile
 
 ```js
-type StageFile = {
-  assetType?: 'primary' | 'hidden' | 'experience' | 'preview',
-  filename: string,
-  index?: number,
-  path: string,
-  rawFile?: Buffer,
-  size?: number,
-  type?: string,
+export type StageFile = {
+  assetType?: AssetType;
+  filename: string;
+  index?: number;
+  path: string;
+  rawFile?: Buffer;
+  size?: number;
+  type?: string;
+  title?: string;
+  libraryId?: string;
+  contentType?: string;
+  webUrl?: string;
+  immutable?: boolean;
 };
 ```
 
@@ -236,7 +241,7 @@ Stage a single NFT or multiple NFTs contained in the `nfts` array after the coll
 
 | Name       | Type         | Description                                  |
 | ---------- | ------------ | -------------------------------------------- |
-| souldbound | `boolean`    | Wheter the NFTs are soulbound or not         |
+| soulbound  | `boolean`    | Wheter the NFTs are soulbound or not         |
 | useProxy   | `boolean`    | Wheter to use the proxy or not               |
 | nfts       | `StageNft[]` | The NFTs we want to append to the collection |
 
@@ -297,7 +302,9 @@ const stagingResult = await stageNftUsingMetadata(payload);
 
 ## stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
-Stages a new libray asset for an already staged NFT. Use this when the library is not already in the NFT Metadata. This wil also create the library meta and inject it into the NFT metadata.
+**Deprecated**
+
+Stages a new library asset for an already staged NFT. Use this when the library is not already in the NFT Metadata. This wil also create the library meta and inject it into the NFT metadata.
 
 #### Example
 
@@ -322,7 +329,7 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
 
 ## stageLibraryAsset(files: StageFile[], token_id?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`
 
-Stages a new libray asset for an already staged NFT. Use this when the library is already in the NFT Metadata.
+Stages a library asset for an already staged NFT. Use this for new libraries and existing libraries (the library is already in the NFT Metadata).
 
 #### Example
 
@@ -341,7 +348,7 @@ const payload = {
 const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
 ```
 
-#### token-0 Metadata:
+#### Library metadata:
 
 ```js
 {
@@ -354,7 +361,7 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
             {
               "name": "library_id",
               "value": {
-                "Text": "file_name.jpg" <--- The library that you want to stage should already be in the NFT Metadata.
+                "Text": "file_name.jpg"
               },
               "immutable": true
             },
@@ -375,6 +382,222 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.token_id);
   },
 }
 ```
+
+## stageCollectionLibraryAsset(token_id?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
+
+Stages a library reference to an existing collection-level library asset for an already staged NFT.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const payload = {
+  token_id: 'token-1', // This is the token id of the NFT we want to append library to
+  files: [
+    {
+      libraryId: 'shared_file.png', // The id of an already staged file at the collection level
+      title: 'A reference to my collection-level shared file',
+      immutable: true
+    },
+  ],
+};
+const stage_asset = await stageCollectionLibraryAsset(payload.token_id, payload.files);
+```
+
+#### Library metadata:
+
+```js
+{
+  "name": "library",
+  "value": {
+    "Array": {
+      "thawed": [
+        {
+          "Class": [
+            {
+              "name": "library_id",
+              "value": {
+                "Text": "shared_file.png"
+              },
+              "immutable": false
+            },
+            {
+              "name": "title",
+              "value": {
+                "Text": "A reference to my collection-level shared file"
+              },
+              "immutable": false
+            },
+            {
+              "name": "location_type",
+              "value": {
+                "Text": "collection"
+              },
+              "immutable": false
+            },
+            {
+              "name": "location",
+              "value": {
+                "Text": "collection/-/shared_file.png"
+              },
+              "immutable": false
+            },
+            {
+              "name": "content_type",
+              "value": {
+                "Text": "image/png"
+              },
+              "immutable": false
+            },
+            {
+              "name": "content_hash",
+              "value": {
+                "Text": "4b56b5f3526ccf851a7130f1b83d6412bc33644e79b84810a5c23c00ca75ff9d"
+              },
+              "immutable": false
+            },
+            {
+              "name": "size",
+              "value": {
+                "Nat": "0"
+              },
+              "immutable": false
+            },
+            {
+              "name": "sort",
+              "value": {
+                "Nat": "4"
+              },
+              "immutable": false
+            },
+            {
+              "name": "read",
+              "value": {
+                "Text": "public"
+              },
+              "immutable": false
+            },
+            {
+              "name": "com.origyn.immutable_library",
+              "value": {
+                "Bool": true
+              },
+              "immutable": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "immutable": false
+}
+```
+
+
+## stageWebLibraryAsset(token_id?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
+
+Stages a library reference to an existing collection-level library asset for an already staged NFT.
+
+#### Example
+
+```js
+await OrigynClient.getInstance().init(false, 'rrkah-fqaaa-aaaaa-aaaaq-cai', { key: { seed: WALLET_SEED } });
+const payload = {
+  token_id: 'token-2', // This is the token id of the NFT we want to append library to
+  files: [
+    {
+      libraryId: 'origyn-dev-talk-1',
+      webUrl: 'https://www.youtube.com/watch?v=JlLdwoCDUL8', // A URL to any web resource
+      title: 'Origyn Developer Talk #1',
+      immutable: true
+    },
+  ],
+};
+const stage_asset = await stageWebLibraryAsset(payload.token_id, payload.files);
+```
+
+#### Library metadata:
+
+```js
+{
+  "name": "library",
+  "value": {
+    "Array": {
+      "thawed": [
+        {
+          "Class": [
+            {
+              "name": "library_id",
+              "value": {
+                "Text": "origyn-dev-talk-1"
+              },
+              "immutable": false
+            },
+            {
+              "name": "title",
+              "value": {
+                "Text": "Origyn Developer Talk #1"
+              },
+              "immutable": false
+            },
+            {
+              "name": "location_type",
+              "value": {
+                "Text": "web"
+              },
+              "immutable": false
+            },
+            {
+              "name": "location",
+              "value": {
+                "Text": "https://www.youtube.com/watch?v=JlLdwoCDUL8"
+              },
+              "immutable": false
+            },
+            {
+              "name": "content_type",
+              "value": {
+                "Text": "text/html"
+              },
+              "immutable": false
+            },
+            {
+              "name": "size",
+              "value": {
+                "Nat": "0"
+              },
+              "immutable": false
+            },
+            {
+              "name": "sort",
+              "value": {
+                "Nat": "5"
+              },
+              "immutable": false
+            },
+            {
+              "name": "read",
+              "value": {
+                "Text": "public"
+              },
+              "immutable": false
+            },
+            {
+              "name": "com.origyn.immutable_library",
+              "value": {
+                "Bool": true
+              },
+              "immutable": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "immutable": false
+}
+```
+
 
 <a name="staging+mintNft"></a>
 
