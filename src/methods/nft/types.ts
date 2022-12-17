@@ -37,6 +37,7 @@ export type StageFile = {
   // adds com.origyn.immutable_library to the library class
   webUrl?: string;
   immutable?: boolean;
+  isNewLibrary?: boolean;
 };
 export type StageConfigArgs = {
   environment?: string;

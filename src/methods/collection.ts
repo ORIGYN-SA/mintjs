@@ -1,6 +1,7 @@
 import { OrigynResponse } from '../types/origynTypes';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
+import { getNft } from './nft/nft';
 
 export const getNftCollectionMeta = async (
   arg?: [string, BigInt?, BigInt?][],
@@ -72,6 +73,18 @@ export const getNftCollectionInfo = async (
     },
   };
 };
+
+export const getCollectionDapps = async () => {
+  const collection = await getNft('');
+  if (!collection?.ok) return [];
+
+  const library = collection.ok.metadata?.Class?.find((item) => item.name === 'library')?.value?.Array.thawed;
+  if (!library) return [];
+
+  const dApps = library.filter(({ Class }) => Class.some((prop) => prop.name === 'com.origyn.dapps.version'));
+  return dApps ?? [];
+};
+
 export enum GetCollectionErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
