@@ -77,9 +77,14 @@ module.exports = (env, argv) => ({
     - [stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNewLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
-    - [getNftBalance(principal)](#getNftBalance)
+    - [getCollectionLibrary(libraryId)](#getCollectionLibrary)
+    - [getCollectionLibraries()](#getCollectionLibraries)
     - [getNft(token)](#getNft)
+    - [getNftBalance(principal)](#getNftBalance)
     - [getNftHistory(tokenId, start, end)](#getNftHistory)
+    - [getNftLibrary(tokenId, libraryId)](#getNftLibrary)
+    - [getNftLibraries(tokenId)](#getNftLibraries)
+    - [updateLibraryMetadata(tokenId: string, libraryId: string, data: Record<string, string | number | boolean>) ⇒ `Promise<Array<MetdataClass>>`](#updateLibraryMetadata)
 
 <a name="OrigynClient"></a>
 
@@ -212,18 +217,18 @@ type CollectionLevelFile = StageFile & {
 
 ```js
 export type StageFile = {
-  assetType?: AssetType;
-  filename: string;
-  index?: number;
-  path: string;
-  rawFile?: Buffer;
-  size?: number;
-  type?: string;
-  title?: string;
-  libraryId?: string;
-  contentType?: string;
-  webUrl?: string;
-  immutable?: boolean;
+  assetType?: AssetType,
+  filename: string,
+  index?: number,
+  path: string,
+  rawFile?: Buffer,
+  size?: number,
+  type?: string,
+  title?: string,
+  libraryId?: string,
+  contentType?: string,
+  webUrl?: string,
+  immutable?: boolean,
 };
 ```
 
@@ -239,11 +244,11 @@ Stage a single NFT or multiple NFTs contained in the `nfts` array after the coll
 
 #### `StageNftsArgs` Type
 
-| Name       | Type         | Description                                  |
-| ---------- | ------------ | -------------------------------------------- |
-| soulbound  | `boolean`    | Wheter the NFTs are soulbound or not         |
-| useProxy   | `boolean`    | Wheter to use the proxy or not               |
-| nfts       | `StageNft[]` | The NFTs we want to append to the collection |
+| Name      | Type         | Description                                  |
+| --------- | ------------ | -------------------------------------------- |
+| soulbound | `boolean`    | Wheter the NFTs are soulbound or not         |
+| useProxy  | `boolean`    | Wheter to use the proxy or not               |
+| nfts      | `StageNft[]` | The NFTs we want to append to the collection |
 
 #### Example
 
@@ -397,7 +402,7 @@ const payload = {
     {
       libraryId: 'shared_file.png', // The id of an already staged file at the collection level
       title: 'A reference to my collection-level shared file',
-      immutable: true
+      immutable: true,
     },
   ],
 };
@@ -493,7 +498,6 @@ const stage_asset = await stageCollectionLibraryAsset(payload.tokenId, payload.f
 }
 ```
 
-
 ## stageWebLibraryAsset(tokenId?: string, files: StageFile[]) ⇒ `Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>>`
 
 Stages a library reference to an existing collection-level library asset for an already staged NFT.
@@ -509,7 +513,7 @@ const payload = {
       libraryId: 'origyn-dev-talk-1',
       webUrl: 'https://www.youtube.com/watch?v=JlLdwoCDUL8', // A URL to any web resource
       title: 'Origyn Developer Talk #1',
-      immutable: true
+      immutable: true,
     },
   ],
 };
@@ -731,11 +735,11 @@ else if (response.err)
 
 Get transaction hitsory of an NFT between the `start` and the `end` date if provided.
 
-| Param    | Type     | Default | Description                            |
-| -------- | -------- | ------- | -------------------------------------- |
-| tokenId  | `string` |         | The token id of the NFT.               |
-| start    | `BigInt` | `[]`    | Bottom date of the transaction search. |
-| end      | `BigInt` | `[]`    | Upper date of the transaction search.  |
+| Param   | Type     | Default | Description                            |
+| ------- | -------- | ------- | -------------------------------------- |
+| tokenId | `string` |         | The token id of the NFT.               |
+| start   | `BigInt` | `[]`    | Bottom date of the transaction search. |
+| end     | `BigInt` | `[]`    | Upper date of the transaction search.  |
 
 `GetNftErrors` Enumeration is the same as [`GetBalanceErrors`](#OrigynClient+getPrincipal) .
 
@@ -773,3 +777,42 @@ When the request is successful, an array of `TransactionType` will be returned. 
 - `sale_ended`
 - `sale_opened`
 - `sale_withdraw`
+
+<a name="getCollectionLibrary"></a>
+
+### getCollectionLibrary(libraryId) ⇒ `Promise<Array<MetdataClass>>`
+
+Get the collection level library, specified as argument.
+
+| Param     | Type     | Default | Description                                |
+| --------- | -------- | ------- | ------------------------------------------ |
+| libraryId | `string` |         | The `library_id` of the requested library. |
+
+#### Usage example:
+
+```js
+const response = await getCollectionLibrary('dapp.html');
+
+console.log('Library title: ', response.Class.library_title);
+```
+
+<a name="updateLibraryMetadata"></a>
+
+### updateLibraryMetadata(tokenId: string, libraryId: string, data: `Record<string, string | number | boolean>`) ⇒ `Promise<Array<MetdataClass>>`
+
+Update the properties within the metadata of a library.
+
+| Param     | Type                    | Default | Description                                                     |
+| --------- | ----------------------- | ------- | --------------------------------------------------------------- |
+| tokenId   | `string`                |         | The `tokenId` which contains the library.                       |
+| libraryId | `string`                |         | The `libraryId` of the library we want to update.               |
+| data      | `Record<string, value>` |         | A key, value record containing the properties we want to update |
+
+#### Usage example:
+
+```js
+const data = {
+  title: 'New Wallet Title',
+};
+const response = await updateLibraryMetadata('token-01', 'wallet.html', data);
+```

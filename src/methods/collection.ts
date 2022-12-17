@@ -1,7 +1,7 @@
 import { OrigynResponse } from '../types/origynTypes';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
-import { getNft } from './nft/nft';
+import { getNftLibraries } from './nft/nft';
 
 export const getNftCollectionMeta = async (
   arg?: [string, BigInt?, BigInt?][],
@@ -73,13 +73,18 @@ export const getNftCollectionInfo = async (
     },
   };
 };
+export const getCollectionLibraries = async () => getNftLibraries('');
+
+export const getCollectionLibrary = async (libraryId: string) => {
+  const libraries = await getCollectionLibraries();
+
+  return libraries.find(({ Class }) =>
+    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+  );
+};
 
 export const getCollectionDapps = async () => {
-  const collection = await getNft('');
-  if (!collection?.ok) return [];
-
-  const library = collection.ok.metadata?.Class?.find((item) => item.name === 'library')?.value?.Array.thawed;
-  if (!library) return [];
+  const library = await getCollectionLibraries();
 
   const dApps = library.filter(({ Class }) => Class.some((prop) => prop.name === 'com.origyn.dapps.version'));
   return dApps ?? [];
