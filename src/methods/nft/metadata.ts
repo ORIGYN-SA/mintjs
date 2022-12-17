@@ -11,7 +11,7 @@ import {
   StageConfigSettings,
   StageFile,
   TextValue,
-  ThawedArrayValue
+  ThawedArrayValue,
 } from './types';
 import { lookup } from 'mrmime';
 
@@ -52,9 +52,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
   const alreadyPushedAssetTypes: string[] = [];
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
-      properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable),
-      );
+      properties.push(createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable));
       alreadyPushedAssetTypes.push(file.assetType!);
     }
   }
@@ -148,9 +146,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const alreadyPushedAssetTypes: string[] = [];
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
-      properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable),
-      );
+      properties.push(createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable));
       alreadyPushedAssetTypes.push(file.assetType!);
     }
   }
@@ -323,9 +319,11 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
                     {
                       name: `total_in_collection`,
                       value: {
-                        Nat: BigInt(settings.args.nfts.reduce((acumulator, nft) => {
-                          return acumulator + (nft?.quantity ?? 1);
-                        }, 0)),
+                        Nat: BigInt(
+                          settings.args.nfts.reduce((acumulator, nft) => {
+                            return acumulator + (nft?.quantity ?? 1);
+                          }, 0),
+                        ),
                       },
                       immutable: false,
                     },
@@ -414,14 +412,18 @@ export const createClassesForResourceReferences = (
   return resourceReferences;
 };
 
-export function getLibraries(nftOrColl: MetadataClass):  MetadataClass[] {
+export function getLibraries(nftOrColl: MetadataClass): MetadataClass[] {
   const libraries = (nftOrColl.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
     .thawed as MetadataClass[];
 
   return libraries;
 }
 
-export function getClassByTextAttribute(classes: MetadataClass[], name: string, value: string): MetadataClass | undefined {
+export function getClassByTextAttribute(
+  classes: MetadataClass[],
+  name: string,
+  value: string,
+): MetadataClass | undefined {
   const libraryMetadata = classes?.find((c) =>
     c?.Class?.find((p) => p?.name === name && (p?.value as TextValue)?.Text?.toLowerCase() === value.toLowerCase()),
   );
@@ -430,5 +432,16 @@ export function getClassByTextAttribute(classes: MetadataClass[], name: string, 
 }
 
 export function getAttribute(nftOrColl: MetadataClass, name: string): MetadataProperty | undefined {
-  return nftOrColl?.Class?.find(a => a?.name === name);
+  return nftOrColl?.Class?.find((a) => a?.name === name);
+}
+
+export function toCandyValue(payload: string | number | boolean) {
+  switch (typeof payload) {
+    case 'number':
+      return { Nat: BigInt(payload) };
+    case 'boolean':
+      return { Bool: payload.toString() === 'true' };
+    default:
+      return { Text: payload };
+  }
 }

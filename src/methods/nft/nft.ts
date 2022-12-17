@@ -34,6 +34,7 @@ import {
   getAttribute,
   getClassByTextAttribute,
   createBoolAttrib,
+  toCandyValue,
 } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
@@ -355,7 +356,7 @@ const buildLibraryMetadata = async (
 };
 
 export const stageCollectionLibraryAsset = async (
-  tokenId: string = '',
+  tokenId: string,
   file: StageFile,
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
   try {
@@ -377,7 +378,7 @@ export const stageCollectionLibraryAsset = async (
 };
 
 export const stageWebLibraryAsset = async (
-  tokenId: string = '',
+  tokenId: string,
   file: StageFile,
 ): Promise<OrigynResponse<any, StageLibraryAssetErrors | GetCollectionErrors>> => {
   try {
@@ -456,13 +457,26 @@ export const stageLibraryAsset = async (
   }
 };
 
-export const updateLibraryMetadata = async (tokenId: string, libraryId: string, metadata: any) => {
+export const updateLibraryMetadata = async (
+  tokenId: string,
+  libraryId: string,
+  data: Record<string, string | number | boolean>,
+) => {
   try {
     const { actor } = OrigynClient.getInstance();
+    const library = await getNftLibrary(tokenId, libraryId);
+    for (const [key, value] of Object.entries(data)) {
+      let property: MetadataProperty | undefined = library.Class.find(({ name }) => name === key);
+      if (property) {
+        property.value = toCandyValue(value);
+      } else {
+        library.Class.push({ name: key, value: toCandyValue(value), immutable: false } as MetadataProperty);
+      }
+    }
     const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
       token_id: tokenId,
       library_id: libraryId,
-      filedata: metadata,
+      filedata: library,
       chunk: 0,
       content: [],
     });
@@ -534,6 +548,24 @@ export const getNftHistory = async (
   } catch (e) {
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
   }
+};
+
+// TODO: Add error handling and response type
+export const getNftLibraries = async (tokenId: string) => {
+  const nft = await getNft(tokenId);
+  if (!nft?.ok) return [];
+
+  const library = nft.ok.metadata?.Class?.find((item) => item.name === 'library')?.value?.Array.thawed;
+  if (!library) return [];
+  return library;
+};
+
+export const getNftLibrary = async (tokenId: string, libraryId: string) => {
+  const libraries = await getNftLibraries(tokenId);
+
+  return libraries.find(({ Class }) =>
+    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+  );
 };
 
 export enum GetNftErrors {
