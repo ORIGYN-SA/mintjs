@@ -111,7 +111,7 @@ export const stageNftUsingMetadata = async (
   try {
     const { actor } = OrigynClient.getInstance();
     const response = await actor.stage_nft_origyn(metadata);
-    if (response.ok || response.error || response.err) {
+    if (response.ok || response.ok === '' || response.error || response.err) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
@@ -416,15 +416,20 @@ export const stageLibraryAsset = async (
       files.map(
         async (file) =>
           new Promise(async (resolve, reject) => {
-            const libraryId = buildLibraryId(file);
-            const metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'canister');
-
+            let metadata: MetadataClass | undefined = undefined;
             const libraryAsset: LibraryFile = {
-              library_id: libraryId,
+              library_id: file.filename,
               library_file: file,
             };
 
+            if (file.isNewLibrary) {
+              const libraryId = buildLibraryId(file);
+              metadata = await buildLibraryMetadata(tokenId, libraryId, file, 'canister');
+              libraryAsset.library_id = libraryId;
+            }
+
             const result: any = await canisterStageLibraryAsset(libraryAsset, tokenId, metrics, metadata);
+
             if (result?.ok) {
               resolve({ ok: result.ok });
             } else {

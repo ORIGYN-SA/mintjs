@@ -81,7 +81,7 @@ export const canisterStageLibraryAsset = async (
     // slice file buffer into chunks of bytes that fit into the chunk size
     chunkCount = Math.ceil(fileSize / MAX_STAGE_CHUNK_SIZE);
   }
-  
+
   log(`max chunk size ${MAX_STAGE_CHUNK_SIZE}`);
   log(`file size ${fileSize}`);
   log(`chunk count ${chunkCount}`);
@@ -102,7 +102,7 @@ export const canisterStageLibraryAsset = async (
       libraryAsset.library_file.rawFile!,
       i,
       metrics,
-      i === 0 ? metadata : undefined,
+      i === 0 && metadata ? metadata : undefined,
     );
     if (result.err) return result;
     lastResult = result;
