@@ -38,6 +38,7 @@ export type StageFile = {
   webUrl?: string;
   immutable?: boolean;
   isNewLibrary?: boolean;
+  metadata?: MetadataClass;
 };
 export type StageConfigArgs = {
   environment?: string;
