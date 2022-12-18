@@ -417,7 +417,7 @@ export const stageLibraryAsset = async (
       files.map(
         async (file) =>
           new Promise(async (resolve, reject) => {
-            let metadata: MetadataClass | undefined = undefined;
+            let metadata: MetadataClass | undefined = file.metadata ?? undefined;
             const libraryAsset: LibraryFile = {
               library_id: file.filename,
               library_file: file,
@@ -461,6 +461,7 @@ export const updateLibraryMetadata = async (
   tokenId: string,
   libraryId: string,
   data: Record<string, string | number | boolean>,
+  stageToCanister = true,
 ) => {
   try {
     const { actor } = OrigynClient.getInstance();
@@ -473,19 +474,60 @@ export const updateLibraryMetadata = async (
         library.Class.push({ name: key, value: toCandyValue(value), immutable: false } as MetadataProperty);
       }
     }
-    const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
-      token_id: tokenId,
-      library_id: libraryId,
-      filedata: library,
-      chunk: 0,
-      content: [],
-    });
-    if (result.err) {
-      return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING, text: JSON.stringify(result.err) } };
+    if (!stageToCanister) {
+      return library;
+    } else {
+      const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
+        token_id: tokenId,
+        library_id: libraryId,
+        filedata: library,
+        chunk: 0,
+        content: [],
+      });
+      if (result.err) {
+        return {
+          err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: JSON.stringify(result.err) },
+        };
+      }
+      return { ok: { ok: result.ok } };
     }
-    return { ok: { ok: result.ok } };
   } catch (err: any) {
-    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING, text: err?.message || err } };
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: err?.message || err } };
+  }
+};
+// TODO: Error handling
+export const updateLibraryFileContent = async (tokenId: string, libraryId: string, file: StageFile) => {
+  try {
+    // TODO: Does it work for node context?
+    const propertiesToUpdate = {
+      size: file.size ?? 0,
+      content_type: file.type ?? '',
+      content_hash: getFileHash(file.rawFile),
+    };
+
+    // Change the metadata of the old file, updating the size and content type + hash
+    const metadata = await updateLibraryMetadata(tokenId, libraryId, propertiesToUpdate, false);
+
+    // Get the filename of the old file
+    const filename = metadata.Class.find(({ name }) => name === 'library_id').value.Text;
+
+    // Delete the old Library
+    const deleteResult = await deleteLibraryAsset(tokenId, libraryId);
+
+    // Stage the new library (metadata = from old one + size, content changed)
+    const files = [{ ...file, filename, metadata }];
+    const updateFileContent = await stageLibraryAsset(files, tokenId);
+    if (updateFileContent.err) {
+      return {
+        err: {
+          error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_FILE,
+          text: JSON.stringify(updateFileContent.err),
+        },
+      };
+    }
+    return { ok: { ok: updateFileContent.ok } };
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_FILE, text: err?.message || err } };
   }
 };
 
@@ -577,7 +619,8 @@ export enum StageLibraryAssetErrors {
   CANT_REACH_CANISTER,
   ERROR_WHILE_STAGING,
   ERROR_WHILE_DELETING,
-  ERROR_WHILE_UPDATING,
+  ERROR_WHILE_UPDATING_FILE,
+  ERROR_WHILE_UPDATING_METADATA,
 }
 
 type NftInfoStable = {
