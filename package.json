@@ -1,6 +1,6 @@
 {
   "name": "@origyn-sa/mintjs",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.3",
   "description": "JavaScript library for staging and minting Origyn NFTs",
   "keywords": [
     "mint",

@@ -467,7 +467,7 @@ export const updateLibraryMetadata = async (
     const { actor } = OrigynClient.getInstance();
     const library = await getNftLibrary(tokenId, libraryId);
     for (const [key, value] of Object.entries(data)) {
-      let property: MetadataProperty | undefined = library.Class.find(({ name }) => name === key);
+      const property: MetadataProperty | undefined = library.Class.find(({ name }) => name === key);
       if (property) {
         property.value = toCandyValue(value);
       } else {
