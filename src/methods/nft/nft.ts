@@ -1,5 +1,5 @@
 import { lookup } from 'mrmime';
-import { OrigynResponse, TransactionType } from '../../types/origynTypes';
+import { KnownError, OrigynError, OrigynResponse, TransactionType } from '../../types/origynTypes';
 import { OrigynClient } from '../../origynClient';
 import {
   buildCollectionFile,
@@ -353,6 +353,48 @@ const buildLibraryMetadata = async (
 
   const libraryMetadata = { Class: attribs };
   return libraryMetadata;
+};
+
+export const setLibraryImmutable = async (
+  tokenId: string, 
+  libraryId: string,
+  stageToCanister = true
+  ):Promise<OrigynResponse<undefined, StageLibraryAssetErrors >> => {
+  try {
+    const { actor } = OrigynClient.getInstance();
+    const library = await getNftLibrary(tokenId, libraryId);
+    const immutableNode: MetadataProperty =  createBoolAttrib('com.origyn.immutable_library', true, true);
+
+    // set all immutable to true
+    let item : MetadataProperty;
+    for(item of library.Class){
+      item.immutable = true;
+    };
+    
+    // add the immutable node
+    library.Class.push(immutableNode);
+    
+    if (!stageToCanister) {
+      return library;
+    } else {
+      const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
+        token_id: tokenId,
+        library_id: libraryId,
+        filedata: library,
+        chunk: 0,
+        content: [],
+      });
+      console.log('result', result);
+      if (result.err) {
+        return {
+          err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: JSON.stringify(result.err) },
+        };
+      }
+      return { ok: undefined};
+    }
+  } catch (err: any) {
+    return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: err?.message || err } };
+  }
 };
 
 export const stageCollectionLibraryAsset = async (
