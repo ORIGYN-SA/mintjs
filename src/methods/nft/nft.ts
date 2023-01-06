@@ -370,7 +370,7 @@ export const setLibraryImmutable = async (
     for(item of library.Class){
       item.immutable = true;
     };
-    
+
     // add the immutable node
     library.Class.push(immutableNode);
     
@@ -384,7 +384,6 @@ export const setLibraryImmutable = async (
         chunk: 0,
         content: [],
       });
-      console.log('result', result);
       if (result.err) {
         return {
           err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: JSON.stringify(result.err) },
