@@ -85,6 +85,7 @@ module.exports = (env, argv) => ({
     - [getNftLibrary(tokenId, libraryId)](#getNftLibrary)
     - [getNftLibraries(tokenId)](#getNftLibraries)
     - [updateLibraryMetadata(tokenId: string, libraryId: string, data: Record<string, string | number | boolean>) ⇒ `Promise<Array<MetdataClass>>`](#updateLibraryMetadata)
+    - [setLibraryImmutable(tokenId: string, libraryId: string) ⇒ `Promise<OrigynResponse<undefined, StageLibraryAssetErrors >>`](#setLibraryImmutable)
 
 <a name="OrigynClient"></a>
 
@@ -815,4 +816,19 @@ const data = {
   title: 'New Wallet Title',
 };
 const response = await updateLibraryMetadata('token-01', 'wallet.html', data);
+```
+
+<a name="setLibraryImmutable"></a>
+
+### setLibraryImmutable(tokenId: string, libraryId: string) ⇒ `Promise<OrigynResponse<undefined, StageLibraryAssetErrors >>`
+
+Update a mutable library to immutable.
+
+| Param     | Type                    | Default | Description                                                     |
+| --------- | ----------------------- | ------- | --------------------------------------------------------------- |
+| tokenId   | `string`                |         | The `tokenId` which contains the library.                       |
+| libraryId | `string`                |         | The `libraryId` of the library we want to update.               |
+
+```js
+const response = await setLibraryImmutable('token-01', 'wallet.html');
 ```
