@@ -366,7 +366,7 @@ export const setLibraryImmutable = async (
     const immutableNode: MetadataProperty =  createBoolAttrib('com.origyn.immutable_library', true, true);
 
     // set all immutable to true
-    for(let item of library.Class){
+    for(const item of library.Class){
       item.immutable = true;
     };
 
