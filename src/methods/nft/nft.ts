@@ -358,7 +358,7 @@ const buildLibraryMetadata = async (
 export const setLibraryImmutable = async (
   tokenId: string, 
   libraryId: string,
-  stageToCanister = true
+  metadataOnly = true
   ):Promise<OrigynResponse<undefined, StageLibraryAssetErrors >> => {
   try {
     const { actor } = OrigynClient.getInstance();
@@ -366,15 +366,14 @@ export const setLibraryImmutable = async (
     const immutableNode: MetadataProperty =  createBoolAttrib('com.origyn.immutable_library', true, true);
 
     // set all immutable to true
-    let item : MetadataProperty;
-    for(item of library.Class){
+    for(const item of library.Class){
       item.immutable = true;
     };
 
     // add the immutable node
     library.Class.push(immutableNode);
     
-    if (!stageToCanister) {
+    if (!metadataOnly) {
       return library;
     } else {
       const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
@@ -502,7 +501,7 @@ export const updateLibraryMetadata = async (
   tokenId: string,
   libraryId: string,
   data: Record<string, string | number | boolean>,
-  stageToCanister = true,
+  metadataOnly = true,
 ) => {
   try {
     const { actor } = OrigynClient.getInstance();
@@ -515,7 +514,7 @@ export const updateLibraryMetadata = async (
         library.Class.push({ name: key, value: toCandyValue(value), immutable: false } as MetadataProperty);
       }
     }
-    if (!stageToCanister) {
+    if (!metadataOnly) {
       return library;
     } else {
       const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
