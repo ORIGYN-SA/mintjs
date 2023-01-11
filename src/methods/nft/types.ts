@@ -3,6 +3,9 @@ export type LibraryFile = {
   library_file: StageFile;
 };
 
+export type LocationType = 'collection' | 'canister' | 'web';
+export type AssetType = 'primary' | 'hidden' | 'experience' | 'preview';
+
 export type Metrics = {
   totalFileSize: number;
 };
@@ -15,13 +18,27 @@ export type StageNft = {
   quantity?: number;
 };
 export type StageFile = {
-  assetType?: 'primary' | 'hidden' | 'experience' | 'preview';
+  assetType?: AssetType;
   filename: string;
   index?: number;
   path: string;
   rawFile?: Buffer;
   size?: number;
   type?: string;
+  title?: string;
+  // overrides filename, used in the location url
+  // for location 'canister'
+  // name of the collection's library_id
+  // for location 'collection'
+  libraryId?: string;
+  // overrides the content type derived by the file extension
+  // for location 'canister'
+  contentType?: string;
+  // adds com.origyn.immutable_library to the library class
+  webUrl?: string;
+  immutable?: boolean;
+  isNewLibrary?: boolean;
+  metadata?: MetadataClass;
 };
 export type StageConfigArgs = {
   environment?: string;
@@ -29,7 +46,6 @@ export type StageConfigArgs = {
   collectionDisplayName: string;
   tokenPrefix: string;
   creatorPrincipal: string;
-  namespace: string;
   nftCanisterId: string;
   collectionFiles: CollectionLevelFile[];
   nfts: StageNft[];
@@ -73,7 +89,7 @@ export type TextValue = {
 };
 
 export type NatValue = {
-  Nat: number;
+  Nat: bigint;
 };
 
 export type BoolValue = {

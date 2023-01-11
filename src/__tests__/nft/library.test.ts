@@ -1,4 +1,4 @@
-import { stageLibraryAsset } from '../../methods/nft/nft';
+import { stageLibraryAsset, updateLibraryMetadata } from '../../methods/nft/nft';
 import { OrigynClient } from '../../origynClient';
 
 const WALLET_SEED = '';
@@ -20,3 +20,11 @@ test('expect stage library asset to work', async () => {
   // const stage_asset = await stageLibraryAsset(example.files, example.token_id);
   // console.log('🚀 ~ file: stage.test.ts ~ line 84 ~ test ~ stage_asset', stage_asset);
 });
+// test('expect update library metadata to work', async () => {
+//   await OrigynClient.getInstance().init(true, 'dytv5-jaaaa-aaaal-qbgtq-cai', { key: { seed: WALLET_SEED } });
+//   const data = {
+//     title: 'modified again - experience3.html',
+//   };
+//   const stage_asset = await updateLibraryMetadata('medulla-brainstem-fornix', 'experience3.html', data);
+//   console.log('🚀 ~ file: stage.test.ts ~ line 84 ~ test ~ stage_asset', stage_asset);
+// });

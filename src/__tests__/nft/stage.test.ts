@@ -12,7 +12,6 @@ test('expect stage to work', async () => {
   //   collectionDisplayName: 'Louie Anderson',
   //   tokenPrefix: 'la-',
   //   creatorPrincipal: '6i6da-t3dfv-vteyg-v5agl-tpgrm-63p4y-t5nmm-gi7nl-o72zu-jd3sc-7qe',
-  //   namespace: 'louie.anderson',
   //   soulbound: false,
   //   nftOwnerId: '6i6da-t3dfv-vteyg-v5agl-tpgrm-63p4y-t5nmm-gi7nl-o72zu-jd3sc-7qe',
   //   collectionFiles: [

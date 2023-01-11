@@ -62,7 +62,6 @@ const App = () => {
         collectionDisplayName: data.collectionName,
         tokenPrefix: `${data.collectionId}-`,
         creatorPrincipal: data.creatorPrincipal,
-        namespace: collectionNameSplit.map((word) => word.toLowerCase()).join('.'),
         soulbound: data.isSoulbound,
         nftOwnerId: data.creatorPrincipal,
         collectionFiles: [

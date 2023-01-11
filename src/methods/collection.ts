@@ -1,6 +1,7 @@
 import { OrigynResponse } from '../types/origynTypes';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
+import { getNftLibraries } from './nft/nft';
 
 export const getNftCollectionMeta = async (
   arg?: [string, BigInt?, BigInt?][],
@@ -28,7 +29,6 @@ export const getNftCollectionInfo = async (
 
   const meta = collectionMeta.ok?.metadata?.[0]?.Class;
   const __appsValue = meta?.find((data) => data.name === '__apps')?.value;
-  const namespace = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'app_id')?.value.Text;
   const readField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'read')?.value.Text;
   const writeField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'write')
     ?.value?.Class?.find((classItem) => classItem.name === 'list')
@@ -65,7 +65,6 @@ export const getNftCollectionInfo = async (
       id: collectionId,
       lastNftIndex: lastNftIndex ? lastNftIndex : collectionMeta?.ok?.token_ids_count?.[0],
       name: collectionName,
-      namespace,
       network: collectionMeta?.ok?.network?.[0] ?? '',
       read: readField,
       tokens: collectionMeta?.ok?.token_ids?.[0] ?? [],
@@ -74,6 +73,23 @@ export const getNftCollectionInfo = async (
     },
   };
 };
+export const getCollectionLibraries = async () => getNftLibraries('');
+
+export const getCollectionLibrary = async (libraryId: string) => {
+  const libraries = await getCollectionLibraries();
+
+  return libraries.find(({ Class }) =>
+    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+  );
+};
+
+export const getCollectionDapps = async () => {
+  const library = await getCollectionLibraries();
+
+  const dApps = library.filter(({ Class }) => Class.some((prop) => prop.name === 'com.origyn.dapps.version'));
+  return dApps ?? [];
+};
+
 export enum GetCollectionErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
@@ -106,7 +122,6 @@ export type CollectionInfo = {
   description: string;
   id: string;
   name: string;
-  namespace: string;
   network: string;
   read: string;
   tokens: string[];
