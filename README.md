@@ -2,11 +2,7 @@
 
 ## 🏁 Getting Started
 
-In order to have a complete installation of the required packages, you will need to setup a [personal access token](https://github.com/settings/tokens) with `repo` and `read:packages` access. You will need this access token in order to use it as a password when running:
-
-```
-npm login --registry=https://npm.pkg.github.com --scope=@origyn-sa
-```
+Mint.js is used to interact with a canister using the [origyn_nft](https://github.com/origyn-sa/origyn_nft) standard.
 
 ### Installation
 
@@ -824,10 +820,10 @@ const response = await updateLibraryMetadata('token-01', 'wallet.html', data);
 
 Update a mutable library to immutable.
 
-| Param     | Type                    | Default | Description                                                     |
-| --------- | ----------------------- | ------- | --------------------------------------------------------------- |
-| tokenId   | `string`                |         | The `tokenId` which contains the library.                       |
-| libraryId | `string`                |         | The `libraryId` of the library we want to update.               |
+| Param     | Type     | Default | Description                                       |
+| --------- | -------- | ------- | ------------------------------------------------- |
+| tokenId   | `string` |         | The `tokenId` which contains the library.         |
+| libraryId | `string` |         | The `libraryId` of the library we want to update. |
 
 ```js
 const response = await setLibraryImmutable('token-01', 'wallet.html');
