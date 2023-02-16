@@ -1,0 +1,27 @@
+image: node:16
+
+stages:
+  - lint
+  - release
+
+lint_test:
+  stage: lint
+  script:
+    - npm install
+    - npm run lint
+    - npm run test
+  tags:
+    - docker
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG == null
+
+release:
+  stage: release
+  script:
+    - npm i
+    - npm run test && npm run lint
+    - npm publish
+  tags:
+    - docker
+  rules:
+    - if: $CI_COMMIT_TAG != null
