@@ -54,6 +54,10 @@
       "pre-commit": "npm run lint"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ORIGYN-SA/mintjs.git"
+  },
   "files": [
     "lib/**/*"
   ],
@@ -62,7 +66,7 @@
     "url": "https://github.com/ORIGYN-SA/mintjs/issues"
   },
   "publishConfig": {
-    "@origyn-sa:registry": "https://gitlab.origyn.ch/api/v4/projects/10019/packages/npm/"
+    "registry": "https://npm.pkg.github.com"
   },
   "homepage": "https://github.com/ORIGYN-SA/mintjs#readme"
 }

@@ -20,6 +20,8 @@ release:
   script:
     - npm i
     - npm run test && npm run lint
+    - npm config set -- //${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${GITLAB_TOKEN}
+    - npm config set @${CI_PROJECT_ROOT_NAMESPACE}:registry=https://${CI_SERVER_HOST}/api/v4/projects/${CI_PROJECT_ID}/packages/npm/
     - npm publish
   tags:
     - docker
