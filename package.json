@@ -1,6 +1,6 @@
 {
   "name": "@origyn-sa/mintjs",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.6",
   "description": "JavaScript library for staging and minting Origyn NFTs",
   "keywords": [
     "mint",
@@ -56,7 +56,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ORIGYN-SA/mintjs.git"
+    "url": "git+https://github.com/ORIGYN-SA/mintjs.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "lib/**/*"
@@ -65,8 +68,10 @@
   "bugs": {
     "url": "https://github.com/ORIGYN-SA/mintjs/issues"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+  "homepage": "https://github.com/ORIGYN-SA/mintjs#readme",
+  "directories": {
+    "example": "examples",
+    "lib": "lib"
   },
-  "homepage": "https://github.com/ORIGYN-SA/mintjs#readme"
+  "license": "Apache-2.0"
 }
