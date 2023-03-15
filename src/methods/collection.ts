@@ -1,14 +1,18 @@
-import { OrigynResponse } from '../types/origynTypes';
+import { OrigynResponse } from '../types/methods';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
 import { getNftLibraries } from './nft/nft';
 
 export const getNftCollectionMeta = async (
-  arg?: [string, BigInt?, BigInt?][],
+  arg?: any[],
 ): Promise<OrigynResponse<CollectionMeta, GetCollectionErrors>> => {
   try {
+    // TODO: make sense out of this type
+    // collection_nft_origyn(fields : ?[(Text,?Nat, ?Nat)])
+    const fields = arg as [[string, [] | [bigint], [] | [bigint]][]];
+
     const actor = OrigynClient.getInstance().actor;
-    const response: any = await actor.collection_nft_origyn(arg ?? []);
+    const response: any = await actor.collection_nft_origyn(fields ?? []);
     if (response.ok || response.error) {
       return response;
     } else {
@@ -21,7 +25,7 @@ export const getNftCollectionMeta = async (
 
 export const getNftCollectionInfo = async (
   formatPrincipalAsString: boolean = false,
-): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
+): Promise<OrigynResponse<CollectionInfoType, GetCollectionErrors>> => {
   const collectionMeta = await getNftCollectionMeta();
   if (collectionMeta.err) {
     return { err: collectionMeta.err };
@@ -113,7 +117,7 @@ export type CollectionMeta = {
   allocated_storage?: BigInt;
 };
 
-export type CollectionInfo = {
+export type CollectionInfoType = {
   availableSpace: number;
   creator: {
     name: string;

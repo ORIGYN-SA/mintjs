@@ -1,7 +1,7 @@
 import hdkey from 'hdkey';
 import { Secp256k1KeyIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
 import { mnemonicToSeed } from 'bip39';
-import { PrivateIdentityKey } from '../../types/origynTypes';
+import { PrivateIdentityKey } from '../../types/methods';
 import { IS_NODE_CONTEXT } from '../../utils/constants';
 import { fileBufferToText } from '../../utils/binary';
 
