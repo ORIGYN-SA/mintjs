@@ -1,2 +1,2 @@
-export * from './origyn-nft';
-export * from './methods';
+export * from './origyn-nft.d';
+export * from './methods.d';
