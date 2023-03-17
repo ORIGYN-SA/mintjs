@@ -6,11 +6,13 @@ import { Principal } from '@dfinity/principal';
 import {
   Account,
   CandyValue,
+  EscrowReceipt,
   ICTokenSpec,
   ManageSaleRequest,
   ManageSaleResponse,
   MarketTransferRequest,
   MarketTransferRequestReponse,
+  SalesConfig,
 } from '../types/origyn-nft';
 
 const convertToken = (token: IcTokenType): ICTokenSpec => {
@@ -195,7 +197,47 @@ export const withdrawEscrow = async (
   }
 };
 
-export const rejectEscrow = async (escrow: EscrowActionArgs): Promise<OrigynResponse<any, BaseErrors>> => {
+export const acceptEscrow = async (
+  escrow: EscrowActionArgs,
+): Promise<OrigynResponse<MarketTransferRequestReponse, BaseErrors>> => {
+  try {
+    const { actor, principal } = OrigynClient.getInstance();
+    if (!principal) {
+      return { err: { error_code: BaseErrors.NO_PRINCIPAL } };
+    }
+
+    const escrowReceipt: EscrowReceipt = {
+      seller: convertAccount(escrow.seller),
+      buyer: convertAccount(escrow.buyer),
+      token_id: escrow.token_id,
+      token: { ic: convertToken(escrow.ic_token) },
+      amount: BigInt(escrow.amount),
+    };
+
+    const saleReceipt: SalesConfig = {
+      broker_id: [],
+      pricing: { instant: null },
+      escrow_receipt: [escrowReceipt],
+    };
+
+    const response = await actor.market_transfer_nft_origyn({
+      token_id: escrow.token_id,
+      sales_config: saleReceipt,
+    });
+
+    if ('ok' in response || 'err' in response) {
+      return response;
+    } else {
+      return { err: { error_code: BaseErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    return { err: { error_code: BaseErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export const rejectEscrow = async (
+  escrow: EscrowActionArgs,
+): Promise<OrigynResponse<ManageSaleResponse, BaseErrors>> => {
   try {
     const { actor, principal } = OrigynClient.getInstance();
     if (!principal) {
@@ -239,17 +281,17 @@ export enum SendEscrowErrors {
   NO_PRINCIPAL,
 }
 
-type EscrowActionArgs = {
+export type EscrowActionArgs = {
   amount: bigint;
   buyer: AccountType;
-  ic_token?: IcTokenType;
+  ic_token: IcTokenType;
   seller: AccountType;
   token_id: string;
 };
 
 // TODO: change number to bigint for all currency fields to support
 // large numbers then update function implementation.
-type StartAuctionArgs = {
+export type StartAuctionArgs = {
   buyNowPrice?: number;
   endDate: number;
   priceStep: number;
@@ -261,7 +303,7 @@ type StartAuctionArgs = {
 
 // TODO: change number to bigint for amount to support
 // large numbers then update function implementation.
-type SendEscrowArgs = {
+export type SendEscrowArgs = {
   ic_token?: IcTokenType;
   lock_to_date?: number;
   sale_id?: string;

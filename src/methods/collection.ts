@@ -2,18 +2,20 @@ import { OrigynResponse } from '../types/methods';
 import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
 import { getNftLibraries } from './nft/nft';
+import { CollectionInfo } from '../types';
 
 export const getNftCollectionMeta = async (
   arg?: any[],
-): Promise<OrigynResponse<CollectionMeta, GetCollectionErrors>> => {
+): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
   try {
     // TODO: make sense out of this type
     // collection_nft_origyn(fields : ?[(Text,?Nat, ?Nat)])
     const fields = arg as [[string, [] | [bigint], [] | [bigint]][]];
 
     const actor = OrigynClient.getInstance().actor;
-    const response: any = await actor.collection_nft_origyn(fields ?? []);
-    if (response.ok || response.error) {
+
+    const response = await actor.collection_nft_origyn(fields ?? []);
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
       return { err: { error_code: GetCollectionErrors.UNKNOWN_ERROR } };
@@ -31,7 +33,8 @@ export const getNftCollectionInfo = async (
     return { err: collectionMeta.err };
   }
 
-  const meta = collectionMeta.ok?.metadata?.[0]?.Class;
+  /* tslint:disable:no-string-literal */
+  const meta = collectionMeta.ok?.metadata?.[0]?.['Class'];
   const __appsValue = meta?.find((data) => data.name === '__apps')?.value;
   const readField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'read')?.value.Text;
   const writeField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'write')
@@ -51,14 +54,14 @@ export const getNftCollectionInfo = async (
   )?.value?.Principal;
 
   const lastNftIndex =
-    collectionMeta?.ok?.token_ids?.[0].reduce((previous: number, value: string) => {
+    collectionMeta?.ok?.token_ids?.[0]?.reduce((previous: number, value: string) => {
       const b = parseInt(value?.split('-')?.pop() ?? '0', 10);
       return previous > b ? previous : b;
     }, 0) ?? 0;
 
   return {
     ok: {
-      availableSpace: collectionMeta?.ok?.available_space?.[0],
+      availableSpace: Number(collectionMeta?.ok?.available_space?.[0] || 0),
       creator: {
         name: collectionCreatorName,
         principal: formatPrincipalAsString
@@ -67,12 +70,12 @@ export const getNftCollectionInfo = async (
       },
       description: collectionDescription,
       id: collectionId,
-      lastNftIndex: lastNftIndex ? lastNftIndex : collectionMeta?.ok?.token_ids_count?.[0],
+      lastNftIndex: Number(lastNftIndex ? lastNftIndex : collectionMeta?.ok?.token_ids_count?.[0] || 0),
       name: collectionName,
-      network: collectionMeta?.ok?.network?.[0] ?? '',
+      network: collectionMeta?.ok?.network?.[0]?.toText() ?? '',
       read: readField,
       tokens: collectionMeta?.ok?.token_ids?.[0] ?? [],
-      tokensCount: collectionMeta?.ok?.token_ids_count?.[0],
+      tokensCount: Number(collectionMeta?.ok?.token_ids_count?.[0] || 0),
       write: writeField,
     },
   };

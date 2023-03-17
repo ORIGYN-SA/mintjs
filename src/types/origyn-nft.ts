@@ -9,11 +9,6 @@ export type Account =
   | { extensible: CandyValue }
   | { account: { owner: Principal; sub_account: [] | [Array<number>] } };
 export type AccountIdentifier = string;
-export type Account__1 =
-  | { account_id: string }
-  | { principal: Principal }
-  | { extensible: CandyValue }
-  | { account: { owner: Principal; sub_account: [] | [Array<number>] } };
 export interface AllocationRecordStable {
   allocated_space: bigint;
   token_id: string;
@@ -52,7 +47,7 @@ export interface AuctionStateStable {
   allow_list: [] | [Array<[Principal, boolean]>];
   current_broker_id: [] | [Principal];
   min_next_bid: bigint;
-  config: PricingConfig__1;
+  config: PricingConfig;
 }
 export type Balance = bigint;
 export interface BalanceRequest {
@@ -81,9 +76,9 @@ export interface BidResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -99,9 +94,9 @@ export interface BidResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -115,7 +110,7 @@ export interface BidResponse {
         auction_bid: {
           token: TokenSpec;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: string;
         };
@@ -125,17 +120,17 @@ export interface BidResponse {
     | {
         sale_ended: {
           token: TokenSpec;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
       }
     | {
         mint: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
           extensible: CandyValue;
         };
@@ -144,10 +139,10 @@ export interface BidResponse {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account__1;
-          seller: Account__1;
+          reciever: Account;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
@@ -155,8 +150,8 @@ export interface BidResponse {
     | { extensible: CandyValue }
     | {
         owner_transfer: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           extensible: CandyValue;
         };
       }
@@ -179,9 +174,9 @@ export interface BidResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -191,7 +186,7 @@ export interface BidResponse {
           token: TokenSpec;
           trx_id: TransactionID;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       };
@@ -336,9 +331,9 @@ export interface EndSaleResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -354,9 +349,9 @@ export interface EndSaleResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -370,7 +365,7 @@ export interface EndSaleResponse {
         auction_bid: {
           token: TokenSpec;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: string;
         };
@@ -380,17 +375,17 @@ export interface EndSaleResponse {
     | {
         sale_ended: {
           token: TokenSpec;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
       }
     | {
         mint: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
           extensible: CandyValue;
         };
@@ -399,10 +394,10 @@ export interface EndSaleResponse {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account__1;
-          seller: Account__1;
+          reciever: Account;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
@@ -410,8 +405,8 @@ export interface EndSaleResponse {
     | { extensible: CandyValue }
     | {
         owner_transfer: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           extensible: CandyValue;
         };
       }
@@ -434,9 +429,9 @@ export interface EndSaleResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -446,7 +441,7 @@ export interface EndSaleResponse {
           token: TokenSpec;
           trx_id: TransactionID;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       };
@@ -501,16 +496,16 @@ export type Errors =
 export interface EscrowReceipt {
   token: TokenSpec;
   token_id: string;
-  seller: Account__1;
-  buyer: Account__1;
+  seller: Account;
+  buyer: Account;
   amount: bigint;
 }
 export interface EscrowRecord {
   token: TokenSpec;
   token_id: string;
-  seller: Account__1;
+  seller: Account;
   lock_to_date: [] | [bigint];
-  buyer: Account__1;
+  buyer: Account;
   amount: bigint;
   sale_id: [] | [string];
   account_hash: [] | [Array<number>];
@@ -631,9 +626,9 @@ export interface MarketTransferRequestReponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -649,9 +644,9 @@ export interface MarketTransferRequestReponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -665,7 +660,7 @@ export interface MarketTransferRequestReponse {
         auction_bid: {
           token: TokenSpec;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: string;
         };
@@ -675,17 +670,17 @@ export interface MarketTransferRequestReponse {
     | {
         sale_ended: {
           token: TokenSpec;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
       }
     | {
         mint: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
           extensible: CandyValue;
         };
@@ -694,10 +689,10 @@ export interface MarketTransferRequestReponse {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account__1;
-          seller: Account__1;
+          reciever: Account;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
@@ -705,8 +700,8 @@ export interface MarketTransferRequestReponse {
     | { extensible: CandyValue }
     | {
         owner_transfer: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           extensible: CandyValue;
         };
       }
@@ -729,9 +724,9 @@ export interface MarketTransferRequestReponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -741,7 +736,7 @@ export interface MarketTransferRequestReponse {
           token: TokenSpec;
           trx_id: TransactionID;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       };
@@ -916,20 +911,6 @@ export type PricingConfig =
         decay_per_hour: number;
       };
     };
-export type PricingConfig__1 =
-  | {
-      flat: { token: TokenSpec; amount: bigint };
-    }
-  | { extensible: { candyClass: null } }
-  | { instant: null }
-  | { auction: AuctionConfig }
-  | {
-      dutch: {
-        start_price: bigint;
-        reserve: [] | [bigint];
-        decay_per_hour: number;
-      };
-    };
 export interface Property {
   value: CandyValue;
   name: string;
@@ -992,7 +973,7 @@ export interface SaleStatusStable {
 }
 export interface SalesConfig {
   broker_id: [] | [Principal];
-  pricing: PricingConfig__1;
+  pricing: PricingConfig;
   escrow_receipt: [] | [EscrowReceipt];
 }
 export interface ShareWalletRequest {
@@ -1088,9 +1069,9 @@ export interface TransactionRecord {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1106,9 +1087,9 @@ export interface TransactionRecord {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1122,7 +1103,7 @@ export interface TransactionRecord {
         auction_bid: {
           token: TokenSpec;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: string;
         };
@@ -1132,17 +1113,17 @@ export interface TransactionRecord {
     | {
         sale_ended: {
           token: TokenSpec;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
       }
     | {
         mint: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
           extensible: CandyValue;
         };
@@ -1151,10 +1132,10 @@ export interface TransactionRecord {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account__1;
-          seller: Account__1;
+          reciever: Account;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
@@ -1162,8 +1143,8 @@ export interface TransactionRecord {
     | { extensible: CandyValue }
     | {
         owner_transfer: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           extensible: CandyValue;
         };
       }
@@ -1186,9 +1167,9 @@ export interface TransactionRecord {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1198,7 +1179,7 @@ export interface TransactionRecord {
           token: TokenSpec;
           trx_id: TransactionID;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       };
@@ -1257,9 +1238,9 @@ export interface WithdrawResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1275,9 +1256,9 @@ export interface WithdrawResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1291,7 +1272,7 @@ export interface WithdrawResponse {
         auction_bid: {
           token: TokenSpec;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: string;
         };
@@ -1301,17 +1282,17 @@ export interface WithdrawResponse {
     | {
         sale_ended: {
           token: TokenSpec;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
       }
     | {
         mint: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
           extensible: CandyValue;
         };
@@ -1320,10 +1301,10 @@ export interface WithdrawResponse {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account__1;
-          seller: Account__1;
+          reciever: Account;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
         };
@@ -1331,8 +1312,8 @@ export interface WithdrawResponse {
     | { extensible: CandyValue }
     | {
         owner_transfer: {
-          to: Account__1;
-          from: Account__1;
+          to: Account;
+          from: Account;
           extensible: CandyValue;
         };
       }
@@ -1355,9 +1336,9 @@ export interface WithdrawResponse {
           token: TokenSpec;
           token_id: string;
           trx_id: TransactionID;
-          seller: Account__1;
+          seller: Account;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       }
@@ -1367,7 +1348,7 @@ export interface WithdrawResponse {
           token: TokenSpec;
           trx_id: TransactionID;
           extensible: CandyValue;
-          buyer: Account__1;
+          buyer: Account;
           amount: bigint;
         };
       };

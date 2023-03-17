@@ -94,7 +94,7 @@ export const stageNfts = async (
       soulbound: args.soulbound ?? true,
       tokenPrefix: `${collectionInfo.ok?.id}-`,
       useProxy: args.useProxy ?? true,
-      startNftIndex: (collectionInfo.ok?.lastNftIndex ?? -1) + 1,
+      startNftIndex: Number(collectionInfo.ok?.lastNftIndex ?? -1) + 1,
     };
     const stageConfig = await buildStageConfig(stageConfigArgs);
     const response = await stage(stageConfig, true);
