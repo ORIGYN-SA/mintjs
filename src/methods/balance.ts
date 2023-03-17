@@ -1,27 +1,35 @@
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../origynClient';
-import { EscrowRecord, OrigynResponse, StakeRecord } from '../types/origynTypes';
+import { OrigynResponse } from '../types/methods';
+import { BalanceResponse } from '../types/origyn-nft';
 
 export const getNftBalance = async (
   principal?: Principal | string,
-): Promise<OrigynResponse<BalanceOfNftOrigyn, GetBalanceErrors>> => {
+): Promise<OrigynResponse<BalanceResponse, GetBalanceErrors>> => {
   try {
     const { actor, principal: _principal } = OrigynClient.getInstance();
 
-    if (principal && typeof principal === 'string') {
-      principal = Principal.fromText(principal);
+    let p: Principal | undefined;
+
+    if (principal) {
+      if (typeof principal === 'string') {
+        p = Principal.fromText(principal);
+      } else {
+        p = principal;
+      }
+    } else if (_principal) {
+      if (typeof _principal === 'string') {
+        p = Principal.fromText(_principal);
+      } else {
+        p = _principal;
+      }
     }
 
-    if (!principal && !_principal) {
+    if (!p) {
       return { err: { error_code: GetBalanceErrors.NO_PRINCIPAL_PROVIDED } };
     }
 
-    const response = await actor.balance_of_nft_origyn({ principal: principal ?? _principal });
-    if (response.ok || response.error) {
-      return response;
-    } else {
-      return { err: { error_code: GetBalanceErrors.UNKNOWN_ERROR } };
-    }
+    return await actor.balance_of_nft_origyn({ principal: p });
   } catch (e) {
     return { err: { error_code: GetBalanceErrors.CANT_REACH_CANISTER } };
   }
@@ -32,12 +40,3 @@ export enum GetBalanceErrors {
   CANT_REACH_CANISTER,
   NO_PRINCIPAL_PROVIDED,
 }
-
-export type BalanceOfNftOrigyn = {
-  nfts: string[];
-  offers: EscrowRecord[];
-  sales: EscrowRecord[];
-  stake: StakeRecord[];
-  multi_canister?: Principal[];
-  escrow: EscrowRecord[];
-};

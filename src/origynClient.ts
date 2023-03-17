@@ -1,8 +1,8 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
-import origynIdl from './idls/origyn_nft_reference.did';
+import origynIdl from './idls/origyn-nft.did';
 import { FETCH, IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
-import { PrivateIdentityKey } from './types/origynTypes';
+import { PrivateIdentityKey, OrigynNftActor } from './types/methods';
 import { getActor } from './methods/wallet/actor';
 import { getIdentity } from './methods/wallet/identity';
 import { error, warn } from './utils/log';
@@ -14,7 +14,7 @@ export const DEFAULT_AGENT = new HttpAgent({
 
 export class OrigynClient {
   private static _instance: OrigynClient;
-  private _actor: any;
+  private _actor: OrigynNftActor | undefined;
   private _principal: Principal | undefined;
   private _canisterId: string = '';
   private _isMainNet: boolean = false;
@@ -96,8 +96,8 @@ export class OrigynClient {
   }
 }
 
-type AuthType = {
-  actor?: ActorSubclass<any>;
+export type AuthType = {
+  actor?: OrigynNftActor;
   identity?: Identity;
   agent?: HttpAgent;
   key?: PrivateIdentityKey;

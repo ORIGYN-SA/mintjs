@@ -11,7 +11,9 @@ import {
   StageConfigSettings,
   StageFile,
   TextValue,
+  ThawedArrayValue,
 } from './types';
+import { lookup } from 'mrmime';
 
 export const configureCollectionMetadata = (settings: StageConfigSettings): Meta => {
   const resources: MetadataClass[] = [];
@@ -50,9 +52,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
   const alreadyPushedAssetTypes: string[] = [];
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
-      properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
-      );
+      properties.push(createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable));
       alreadyPushedAssetTypes.push(file.assetType!);
     }
   }
@@ -146,9 +146,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   const alreadyPushedAssetTypes: string[] = [];
   for (const file of filesWithAssetType) {
     if (alreadyPushedAssetTypes.indexOf(file.assetType!) === -1) {
-      properties.push(
-        createTextAttrib(`${file.assetType}_asset`, `${settings.args.namespace}.${file.filename}`, immutable),
-      );
+      properties.push(createTextAttrib(`${file.assetType}_asset`, `${file.filename}`, immutable));
       alreadyPushedAssetTypes.push(file.assetType!);
     }
   }
@@ -185,11 +183,7 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
   const fileNameLower = file.filename.toLowerCase();
 
   // ensure the file has a valid mime type
-  let mimeType = file.type;
-  if (IS_NODE_CONTEXT) {
-    const mime = require('mime-types');
-    mimeType = mime.lookup(fileNameLower);
-  }
+  const mimeType = lookup(fileNameLower);
   if (!mimeType) {
     const err = `Could not find mime type for file: ${file.filename}`;
     throw err;
@@ -203,8 +197,8 @@ export const createClassForResource = (settings: StageConfigSettings, file: Stag
       createTextAttrib('location', settings.fileMap[file.path].resourceUrl, IMMUTABLE),
       createTextAttrib('content_type', mimeType, IMMUTABLE),
       createTextAttrib('content_hash', getFileHash(file.rawFile), IMMUTABLE),
-      createNatAttrib('size', file.size ?? 0, IMMUTABLE),
-      createNatAttrib('sort', sort, IMMUTABLE),
+      createNatAttrib('size', BigInt(file.size ?? 0n), IMMUTABLE),
+      createNatAttrib('sort', BigInt(sort), IMMUTABLE),
       createTextAttrib('read', 'public', !IMMUTABLE),
     ],
   };
@@ -233,7 +227,7 @@ export const createBoolAttrib = (name: string, value: boolean, immutable: boolea
   };
 };
 
-export const createNatAttrib = (name: string, value: number, immutable: boolean): MetadataProperty => {
+export const createNatAttrib = (name: string, value: bigint, immutable: boolean): MetadataProperty => {
   return {
     name,
     value: { Nat: value },
@@ -251,7 +245,7 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
             Class: [
               {
                 name: 'app_id',
-                value: { Text: settings.args.namespace },
+                value: { Text: 'com.origyn.mintjs' },
                 immutable: false,
               },
               {
@@ -316,30 +310,32 @@ export const createAppsAttribute = (settings: StageConfigSettings): MetadataProp
                 value: {
                   Class: [
                     {
-                      name: `${settings.args.namespace}.name`,
+                      name: `name`,
                       value: {
                         Text: settings.args.collectionDisplayName,
                       },
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.total_in_collection`,
+                      name: `total_in_collection`,
                       value: {
-                        Nat: settings.args.nfts.reduce((acumulator, nft) => {
-                          return acumulator + (nft?.quantity ?? 1);
-                        }, 0),
+                        Nat: BigInt(
+                          settings.args.nfts.reduce((acumulator, nft) => {
+                            return acumulator + (nft?.quantity ?? 1);
+                          }, 0),
+                        ),
                       },
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.collectionid`,
+                      name: `collectionid`,
                       value: {
                         Text: settings.args.collectionId,
                       },
                       immutable: false,
                     },
                     {
-                      name: `${settings.args.namespace}.creator_principal`,
+                      name: `creator_principal`,
                       value: {
                         Principal: settings.args.creatorPrincipal,
                       },
@@ -415,3 +411,37 @@ export const createClassesForResourceReferences = (
 
   return resourceReferences;
 };
+
+export function getLibraries(nftOrColl: MetadataClass): MetadataClass[] {
+  const libraries = (nftOrColl.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
+    .thawed as MetadataClass[];
+
+  return libraries;
+}
+
+export function getClassByTextAttribute(
+  classes: MetadataClass[],
+  name: string,
+  value: string,
+): MetadataClass | undefined {
+  const libraryMetadata = classes?.find((c) =>
+    c?.Class?.find((p) => p?.name === name && (p?.value as TextValue)?.Text?.toLowerCase() === value.toLowerCase()),
+  );
+
+  return libraryMetadata;
+}
+
+export function getAttribute(nftOrColl: MetadataClass, name: string): MetadataProperty | undefined {
+  return nftOrColl?.Class?.find((a) => a?.name === name);
+}
+
+export function toCandyValue(payload: string | number | boolean) {
+  switch (typeof payload) {
+    case 'number':
+      return { Nat: BigInt(payload) };
+    case 'boolean':
+      return { Bool: payload.toString() === 'true' };
+    default:
+      return { Text: payload };
+  }
+}

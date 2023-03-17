@@ -1,6 +1,6 @@
 {
-  "name": "@origyn-sa/mintjs",
-  "version": "1.0.0-alpha.1",
+  "name": "@origyn/mintjs",
+  "version": "1.0.0-alpha.8",
   "description": "JavaScript library for staging and minting Origyn NFTs",
   "keywords": [
     "mint",
@@ -23,16 +23,16 @@
     "version": "npm run format && git add -A src"
   },
   "dependencies": {
-    "@dfinity/agent": "^0.13.1",
-    "@dfinity/auth-client": "^0.13.2",
-    "@dfinity/candid": "^0.13.1",
-    "@dfinity/identity": "^0.13.1",
-    "@dfinity/principal": "^0.13.1",
+    "@dfinity/agent": "^0.13.3",
+    "@dfinity/auth-client": "^0.13.3",
+    "@dfinity/candid": "^0.13.3",
+    "@dfinity/identity": "^0.13.3",
+    "@dfinity/principal": "^0.13.3",
     "bip39": "^3.0.4",
     "buffer-crc32": "^0.2.13",
     "crypto-js": "^4.1.1",
     "hdkey": "^2.0.1",
-    "mime-types": "^2.1.35",
+    "mrmime": "^1.0.1",
     "node-fetch": "^2.6.7",
     "pem-file": "^1.0.1",
     "sha256": "^0.2.0",
@@ -56,7 +56,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ORIGYN-SA/mintjs.git"
+    "url": "git+https://github.com/ORIGYN-SA/mintjs.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "lib/**/*"
@@ -65,8 +68,10 @@
   "bugs": {
     "url": "https://github.com/ORIGYN-SA/mintjs/issues"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+  "homepage": "https://github.com/ORIGYN-SA/mintjs#readme",
+  "directories": {
+    "example": "examples",
+    "lib": "lib"
   },
-  "homepage": "https://github.com/ORIGYN-SA/mintjs#readme"
+  "license": "Apache-2.0"
 }

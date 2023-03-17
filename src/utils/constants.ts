@@ -1,4 +1,4 @@
-import { IcTokenType } from './../types/origynTypes';
+import { IcTokenType } from '../types/methods';
 import { Principal } from '@dfinity/principal';
 
 export const ORIGYN_CANISTER_ID = 'frfol-iqaaa-aaaaj-acogq-cai';

@@ -1,14 +1,10 @@
 import { ActorMethod, ActorSubclass } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
+import { OrigynError } from './origyn-nft';
+import { OrigynNftCanister } from './origyn-nft';
+
 export type KnownError<T> = {
   error_code: T;
-};
-
-export type OrigynError = {
-  text: string;
-  error: object;
-  number: BigInt;
-  flag_point: string;
 };
 
 export type OrigynResponse<T, K> = {
@@ -17,14 +13,15 @@ export type OrigynResponse<T, K> = {
 };
 
 export type AccountType = {
-  account_id: string;
-  principal: Principal;
-  extensible: any;
-  account: {
+  account_id?: string;
+  principal?: Principal;
+  extensible?: any;
+  account?: {
     of: Principal;
     sub_account?: number[];
   };
 };
+
 export type TokenType = {
   ic?: {
     fee: BigInt;
@@ -41,7 +38,7 @@ export type TokenType = {
   extensible?: any;
 };
 
-export type EscrowRecord = {
+export type EscrowRecordType = {
   token: TokenType;
   token_id: string;
   seller: AccountType;
@@ -53,7 +50,7 @@ export type EscrowRecord = {
   balances?: [AccountType, BigInt][];
 };
 
-export type StakeRecord = {
+export type StakeRecordType = {
   staker: AccountType;
   token_id: string;
   amount: BigInt;
@@ -194,8 +191,8 @@ export type AuctionConfigType = {
 
 export type IcTokenType = {
   canister: Principal;
-  decimals: BigInt;
-  fee: BigInt;
+  decimals: bigint;
+  fee: bigint;
   standard: {
     DIP20?: null;
     EXTFungible?: null;
@@ -204,7 +201,10 @@ export type IcTokenType = {
   };
   symbol: string;
 };
+
 export type AnyActor = ActorSubclass<Record<string, ActorMethod<unknown[], unknown>>>;
+
+export type OrigynNftActor = ActorSubclass<OrigynNftCanister>;
 
 export type PrivateIdentityKey = {
   identityFile?: string | Buffer;

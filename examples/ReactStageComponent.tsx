@@ -7,8 +7,8 @@ import {
   getNftCollectionInfo,
   stageNewLibraryAsset,
   getIdentity,
-} from '@origyn-sa/mintjs';
-import { OrigynClient } from '@origyn-sa/mintjs';
+} from '@origyn/mintjs';
+import { OrigynClient } from '@origyn/mintjs';
 import ReactJson from 'react-json-view';
 import JSONbig from 'json-bigint';
 import './App.css';
@@ -62,7 +62,6 @@ const App = () => {
         collectionDisplayName: data.collectionName,
         tokenPrefix: `${data.collectionId}-`,
         creatorPrincipal: data.creatorPrincipal,
-        namespace: collectionNameSplit.map((word) => word.toLowerCase()).join('.'),
         soulbound: data.isSoulbound,
         nftOwnerId: data.creatorPrincipal,
         collectionFiles: [

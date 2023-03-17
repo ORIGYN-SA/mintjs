@@ -2,8 +2,8 @@ import { Actor, HttpAgent, Identity } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { Principal } from '@dfinity/principal';
 import { getIdl, IdlStandard } from '../../idls';
-import origynNftIdl from '../../idls/origyn_nft_reference.did';
-import { AnyActor, PrivateIdentityKey } from '../../types/origynTypes';
+import origynNftIdl from '../../idls/origyn-nft.did';
+import { OrigynNftActor, PrivateIdentityKey } from '../../types/methods';
 import { FETCH } from '../../utils/constants';
 import { getIdentity } from './identity';
 
@@ -58,7 +58,7 @@ export const getActor = async (
   isProd: boolean,
   privateIdentityKey: PrivateIdentityKey,
   canisterId: string,
-): Promise<[AnyActor, HttpAgent]> => {
+): Promise<[OrigynNftActor, HttpAgent]> => {
   const identity = await getIdentity(privateIdentityKey);
 
   const agent = getAgent(isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000', identity);
@@ -67,7 +67,7 @@ export const getActor = async (
     agent.fetchRootKey();
   }
 
-  const actor: AnyActor = Actor.createActor(origynNftIdl, {
+  const actor: OrigynNftActor = Actor.createActor(origynNftIdl, {
     agent,
     canisterId: Principal.fromText(canisterId),
   });
