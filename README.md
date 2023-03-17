@@ -1,13 +1,32 @@
 # ORIGYN Mint.js
 
-## 🏁 Getting Started
+## Overview
 
-Mint.js is used to interact with a canister using the [origyn_nft](https://github.com/origyn-sa/origyn_nft) standard.
+Mint.js is the official JavaScript library for interacting with any Internet Computer canister running the Origyn NFT standard: https://github.com/origyn-sa/origyn_nft.
+
+### Compatibility
+
+```
+Mint.js version 1.0.0-alpha.8 is compatible with canisters running version 0.1.3 of the Origyn NFT standard.
+```
 
 ### Installation
 
 ```
-npm i @origyn-sa/mintjs
+npm i @origyn/mintjs
+```
+
+### Build
+
+```
+npm ci
+npm run build
+```
+
+### Run Unit Test
+
+```
+npm run test
 ```
 
 ### Local testing of unpublished mint.js
@@ -23,7 +42,7 @@ npm i <path-to-mint-js>
 Start by importing the `mintjs` in your code.
 
 ```js
-import { getNftBalance } from '@origyn-sa/mintjs';
+import { getNftBalance } from '@origyn/mintjs';
 ```
 
 Now, we can call the `getNftBalance` method anywhere in the code.

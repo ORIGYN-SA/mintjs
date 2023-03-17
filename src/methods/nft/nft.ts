@@ -1,5 +1,5 @@
 import { lookup } from 'mrmime';
-import { KnownError, OrigynError, OrigynResponse, TransactionType } from '../../types/origynTypes';
+import { OrigynResponse, TransactionType } from '../../types/methods';
 import { OrigynClient } from '../../origynClient';
 import {
   buildCollectionFile,
@@ -38,6 +38,7 @@ import {
 } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
+import { CandyValue, Property, TransactionRecord } from '../../types/origyn-nft';
 
 export const getNft = async (tokenId: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
   try {
@@ -57,10 +58,10 @@ export const stageCollection = async (args: StageConfigArgs): Promise<OrigynResp
   try {
     const stageConfig = await buildStageConfig(args);
     const response = await stage(stageConfig);
-    if (response.ok || response.err) {
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
-      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR, text: response.err } };
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
   } catch (e: any) {
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
@@ -93,14 +94,14 @@ export const stageNfts = async (
       soulbound: args.soulbound ?? true,
       tokenPrefix: `${collectionInfo.ok?.id}-`,
       useProxy: args.useProxy ?? true,
-      startNftIndex: (collectionInfo.ok?.lastNftIndex ?? -1) + 1,
+      startNftIndex: Number(collectionInfo.ok?.lastNftIndex ?? -1) + 1,
     };
     const stageConfig = await buildStageConfig(stageConfigArgs);
     const response = await stage(stageConfig, true);
-    if (response.ok || response.err) {
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
-      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR, text: response.err } };
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
     }
   } catch (e: any) {
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
@@ -112,7 +113,7 @@ export const stageNftUsingMetadata = async (
   try {
     const { actor } = OrigynClient.getInstance();
     const response = await actor.stage_nft_origyn(metadata);
-    if (response.ok || response.ok === '' || response.error || response.err) {
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
@@ -356,23 +357,23 @@ const buildLibraryMetadata = async (
 };
 
 export const setLibraryImmutable = async (
-  tokenId: string, 
+  tokenId: string,
   libraryId: string,
-  metadataOnly = true
-  ):Promise<OrigynResponse<undefined, StageLibraryAssetErrors >> => {
+  metadataOnly = true,
+): Promise<OrigynResponse<undefined, StageLibraryAssetErrors>> => {
   try {
     const { actor } = OrigynClient.getInstance();
     const library = await getNftLibrary(tokenId, libraryId);
-    const immutableNode: MetadataProperty =  createBoolAttrib('com.origyn.immutable_library', true, true);
+    const immutableNode: MetadataProperty = createBoolAttrib('com.origyn.immutable_library', true, true);
 
     // set all immutable to true
-    for(const item of library.Class){
+    for (const item of library.Class) {
       item.immutable = true;
-    };
+    }
 
     // add the immutable node
     library.Class.push(immutableNode);
-    
+
     if (!metadataOnly) {
       return library;
     } else {
@@ -380,7 +381,7 @@ export const setLibraryImmutable = async (
         token_id: tokenId,
         library_id: libraryId,
         filedata: library,
-        chunk: 0,
+        chunk: BigInt(0),
         content: [],
       });
       if (result.err) {
@@ -388,7 +389,7 @@ export const setLibraryImmutable = async (
           err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: JSON.stringify(result.err) },
         };
       }
-      return { ok: undefined};
+      return { ok: undefined };
     }
   } catch (err: any) {
     return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: err?.message || err } };
@@ -521,7 +522,7 @@ export const updateLibraryMetadata = async (
         token_id: tokenId,
         library_id: libraryId,
         filedata: library,
-        chunk: 0,
+        chunk: BigInt(0),
         content: [],
       });
       if (result.err) {
@@ -581,7 +582,7 @@ export const deleteLibraryAsset = async (
       token_id: tokenId,
       library_id: libraryId,
       filedata: { Bool: false },
-      chunk: 0,
+      chunk: BigInt(0),
       content: [],
     });
 
@@ -597,10 +598,25 @@ export const deleteLibraryAsset = async (
 export const mintNft = async (tokenId: string, principal?: Principal): Promise<OrigynResponse<any, GetNftErrors>> => {
   try {
     const { actor, principal: _principal } = OrigynClient.getInstance();
+
+    let p: Principal | undefined;
+
+    if (principal) {
+      if (typeof principal === 'string') {
+        p = Principal.fromText(principal);
+      } else {
+        p = principal;
+      }
+    } else if (_principal && typeof _principal === 'string') {
+      p = Principal.fromText(_principal);
+    } else {
+      throw new Error('Identity principal could not be determined');
+    }
+
     const response = await actor.mint_nft_origyn(tokenId, {
-      principal: principal ?? _principal,
+      principal: p,
     });
-    if (response.ok || response.err) {
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
@@ -612,17 +628,17 @@ export const mintNft = async (tokenId: string, principal?: Principal): Promise<O
 
 export const getNftHistory = async (
   tokenId: string,
-  start?: BigInt,
-  end?: BigInt,
-): Promise<OrigynResponse<TransactionType, GetNftErrors>> => {
+  start?: bigint,
+  end?: bigint,
+): Promise<OrigynResponse<TransactionRecord[], GetNftErrors>> => {
   try {
     const actor = OrigynClient.getInstance().actor;
-    const args = {
-      start: start ? [start] : [],
-      end: end ? [end] : [],
-    };
-    const response = await actor.history_nft_origyn(tokenId, args.start, args.end);
-    if (response.ok || response.error) {
+
+    const startArg: [] | [bigint] = start ? [start] : [];
+    const endArg: [] | [bigint] = end ? [end] : [];
+
+    const response = await actor.history_nft_origyn(tokenId, startArg, endArg);
+    if ('ok' in response || 'err' in response) {
       return response;
     } else {
       return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };

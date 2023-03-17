@@ -1,7 +1,7 @@
 // tslint:disable prefer-for-of
 import { Principal } from '@dfinity/principal';
 import { OrigynClient } from '../../origynClient';
-import { AnyActor } from '../../types/origynTypes';
+import { OrigynNftActor } from '../../types/methods';
 import { wait } from '../../utils';
 import { MAX_STAGE_CHUNK_SIZE, MAX_CHUNK_UPLOAD_RETRIES, IS_NODE_CONTEXT } from '../../utils/constants';
 import { formatBytes } from '../../utils/binary';
@@ -22,6 +22,7 @@ import {
   StageFile,
   TextValue,
 } from './types';
+import { CandyValue } from '../../types/origyn-nft';
 
 export const stage = async (config: StageConfigData, skipCollectionStaging: boolean = false) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
@@ -39,8 +40,8 @@ export const stage = async (config: StageConfigData, skipCollectionStaging: bool
     // Stage NFT
     const metadataToStage = deserializeConfig(item.meta);
     const stageResult = await actor.stage_nft_origyn(metadataToStage);
-    if (stageResult.err) {
-      return { err: stageResult.err };
+    if ('err' in stageResult) {
+      return stageResult;
     }
     const itemResponse = {
       nftStage: stageResult,
@@ -102,7 +103,7 @@ export const canisterStageLibraryAsset = async (
       libraryAsset.library_file.rawFile!,
       i,
       metrics,
-      i === 0 && metadata ? metadata : undefined,
+      i === 0 && metadata ? (metadata as CandyValue) : undefined,
     );
     if (result.err) return result;
     lastResult = result;
@@ -116,13 +117,13 @@ export const canisterStageLibraryAsset = async (
 };
 
 export const uploadChunk = async (
-  actor: AnyActor,
+  actor: OrigynNftActor,
   libraryId: string,
   tokenId: string,
   fileData: Buffer,
   chunkNumber: number,
   metrics: Metrics,
-  metadata?: MetadataClass,
+  metadata?: CandyValue,
   retries = 0,
 ): Promise<ChunkUploadResult> => {
   const start = chunkNumber * MAX_STAGE_CHUNK_SIZE;
@@ -135,7 +136,7 @@ export const uploadChunk = async (
       token_id: tokenId,
       library_id: libraryId,
       filedata: metadata ?? { Empty: null },
-      chunk: chunkNumber,
+      chunk: BigInt(chunkNumber),
       content: Array.from(chunk),
     });
 
