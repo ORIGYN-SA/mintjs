@@ -1,9 +1,12 @@
 import { getNft, getNftHistory } from '../index';
+import { OrigynClient } from '../origynClient';
+const ORIGYN_CANISTER_ID = 'mludz-biaaa-aaaal-qbhwa-cai';
 import JSONbig from 'json-bigint';
 
-test('expect getNft to return valid response for bm-1', async () => {
-  const response = await getNft('bm-1');
-  console.log('🚀 ~ file: nft.test.ts ~ line 5 ~ test ~ response', JSONbig.stringify(response));
+test('expect getNft to return valid response for epithalamus-amygdala-diencephalon', async () => {
+  const client = OrigynClient.getInstance();
+  client.init(false, ORIGYN_CANISTER_ID);
+  const response = await getNft('epithalamus-amygdala-diencephalon');
   expect(response).toHaveProperty('ok');
 });
 
