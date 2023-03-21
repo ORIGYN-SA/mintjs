@@ -1,7 +1,7 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
 import origynIdl from './idls/origyn-nft.did';
-import { FETCH, IC_HOST, ORIGYN_CANISTER_ID } from './utils/constants';
+import { FETCH, IC_HOST } from './utils/constants';
 import { PrivateIdentityKey, OrigynNftActor } from './types/methods';
 import { getActor } from './methods/wallet/actor';
 import { getIdentity } from './methods/wallet/identity';
@@ -33,7 +33,7 @@ export class OrigynClient {
   public get actor() {
     if (!this._actor) {
       this._actor = Actor.createActor(origynIdl, {
-        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        canisterId: this._canisterId,
         agent: DEFAULT_AGENT,
       });
     }
@@ -69,12 +69,12 @@ export class OrigynClient {
         fetch: FETCH,
       });
       this._actor = Actor.createActor(origynIdl, {
-        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        canisterId: this._canisterId,
         agent,
       });
     } else {
       this._actor = Actor.createActor(origynIdl, {
-        canisterId: this._canisterId?.length ? this._canisterId : ORIGYN_CANISTER_ID,
+        canisterId: this._canisterId,
         agent,
       });
     }
