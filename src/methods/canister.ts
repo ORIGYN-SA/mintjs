@@ -4,7 +4,8 @@ import { createAdditionalActor } from '../utils/additional-actor';
 
 export const getCansiterCycles = async (canisterId?: string): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
   try {
-    let { actor, canisterId: currentCanisterId } = OrigynClient.getInstance();
+    const { canisterId: currentCanisterId } = OrigynClient.getInstance();
+    let { actor } = OrigynClient.getInstance();
 
     if (canisterId && canisterId !== currentCanisterId) {
       actor = createAdditionalActor(canisterId) as unknown as OrigynNftActor;
@@ -25,7 +26,8 @@ export const getCansiterAvailableStorage = async (
   canisterId?: string,
 ): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
   try {
-    let { actor, canisterId: currentCanisterId } = OrigynClient.getInstance();
+    const { canisterId: currentCanisterId } = OrigynClient.getInstance();
+    let { actor } = OrigynClient.getInstance();
 
     if (canisterId && canisterId !== currentCanisterId) {
       actor = createAdditionalActor(canisterId) as unknown as OrigynNftActor;
