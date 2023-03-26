@@ -92,6 +92,8 @@ module.exports = (env, argv) => ({
     - [stageNewLibraryAsset(files: StageFile[], useProxy: boolean = false, tokenId?: string) ⇒ `Promise<OrigynResponse<string[], GetNftErrors>>`](#staging+stageNewLibraryAsset)
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
+    - [getCanisterCycles(canisterId?: string)](#getCanisterCycles)
+    - [getCanisterAvailableSpace(canisterId?: string)](#getCanisterAvailableSpace)
     - [getCollectionLibrary(libraryId)](#getCollectionLibrary)
     - [getCollectionLibraries()](#getCollectionLibraries)
     - [getNft(token)](#getNft)
@@ -793,6 +795,54 @@ When the request is successful, an array of `TransactionType` will be returned. 
 - `sale_ended`
 - `sale_opened`
 - `sale_withdraw`
+
+<a name="getCanisterCycles"></a>
+
+### getCanisterCycles(canisterId?: string) ⇒ `Promise<BigInt>`
+
+Get cycles of the current canister or of the canister provided as argument.
+
+| Param      | Type     | Default | Description                                                                                                   |
+| ---------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| canisterId | `string` |         | The `canisterId` to get the cycle for. If it is not provided, the canister id from OrigynClient will be used. |
+
+#### Usage example:
+
+```js
+const cycles = await getCanisterCycles();
+
+console.log('OrigynClient canister cycles: ', cycles);
+```
+
+```js
+const cycles = await getCanisterCycles(canisterId);
+
+console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
+```
+
+<a name="getCanisterAvailableSpace"></a>
+
+### getCanisterAvailableSpace(canisterId?: string) ⇒ `Promise<BigInt>`
+
+Get cycles of the current canister or of the canister provided as argument.
+
+| Param      | Type     | Default | Description                                                                                                             |
+| ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| canisterId | `string` |         | The `canisterId` to get the available space for. If it is not provided, the canister id from OrigynClient will be used. |
+
+#### Usage example:
+
+```js
+const availableSpace = await getCanisterAvailableSpace();
+
+console.log('OrigynClient canister available space: ', cycles);
+```
+
+```js
+const availableSpace = await getCanisterAvailableSpace(canisterId);
+
+console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
+```
 
 <a name="getCollectionLibrary"></a>
 
