@@ -93,7 +93,7 @@ module.exports = (env, argv) => ({
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getCanisterCycles(canisterId?: string)](#getCanisterCycles)
-    - [getCansiterAvailableStorage(canisterId?: string)](#getCansiterAvailableStorage)
+    - [getCanisterAvailableStorage(canisterId?: string)](#getCanisterAvailableStorage)
     - [getCollectionLibrary(libraryId)](#getCollectionLibrary)
     - [getCollectionLibraries()](#getCollectionLibraries)
     - [getNft(token)](#getNft)
@@ -820,9 +820,9 @@ const cycles = await getCanisterCycles(canisterId);
 console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
 ```
 
-<a name="getCansiterAvailableStorage"></a>
+<a name="getCanisterAvailableStorage"></a>
 
-### getCansiterAvailableStorage(canisterId?: string) ⇒ `Promise<BigInt>`
+### getCanisterAvailableStorage(canisterId?: string) ⇒ `Promise<BigInt>`
 
 Get cycles of the current canister or of the canister provided as argument.
 
@@ -833,13 +833,13 @@ Get cycles of the current canister or of the canister provided as argument.
 #### Usage example:
 
 ```js
-const availableSpace = await getCansiterAvailableStorage();
+const availableSpace = await getCanisterAvailableStorage();
 
 console.log('OrigynClient canister available space: ', cycles);
 ```
 
 ```js
-const availableSpace = await getCansiterAvailableStorage(canisterId);
+const availableSpace = await getCanisterAvailableStorage(canisterId);
 
 console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
 ```
