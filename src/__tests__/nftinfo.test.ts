@@ -5,7 +5,7 @@ import JSONbig from 'json-bigint';
 
 test('expect getNft to return valid response for epithalamus-amygdala-diencephalon', async () => {
   const client = OrigynClient.getInstance();
-  client.init(false, ORIGYN_CANISTER_ID);
+  client.init(true, ORIGYN_CANISTER_ID);
   const response = await getNft('epithalamus-amygdala-diencephalon');
   expect(response).toHaveProperty('ok');
 });
