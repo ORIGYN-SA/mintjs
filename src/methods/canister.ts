@@ -4,12 +4,12 @@ import { createAdditionalActor } from '../utils/additional-actor';
 
 export const getCanisterCycles = async (canisterId?: string): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
   try {
-    const { canisterId: currentCanisterId } = OrigynClient.getInstance();
+    const { canisterId: currentCanisterId, isMainNet } = OrigynClient.getInstance();
 
     let { actor } = OrigynClient.getInstance();
 
     if (canisterId && canisterId !== currentCanisterId) {
-      actor = createAdditionalActor(canisterId) as unknown as OrigynNftActor;
+      actor = createAdditionalActor(isMainNet, canisterId) as unknown as OrigynNftActor;
     }
 
     const cycles = await actor.cycles();
@@ -23,15 +23,15 @@ export const getCanisterCycles = async (canisterId?: string): Promise<OrigynResp
   }
 };
 
-export const getCansiterAvailableStorage = async (
+export const getCanisterAvailableStorage = async (
   canisterId?: string,
 ): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
   try {
-    const { canisterId: currentCanisterId } = OrigynClient.getInstance();
+    const { canisterId: currentCanisterId, isMainNet } = OrigynClient.getInstance();
     let { actor } = OrigynClient.getInstance();
 
     if (canisterId && canisterId !== currentCanisterId) {
-      actor = createAdditionalActor(canisterId) as unknown as OrigynNftActor;
+      actor = createAdditionalActor(isMainNet, canisterId) as unknown as OrigynNftActor;
     }
 
     const response = await actor.storage_info_nft_origyn();

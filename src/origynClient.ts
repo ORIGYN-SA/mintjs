@@ -12,6 +12,11 @@ export const DEFAULT_AGENT = new HttpAgent({
   host: IC_HOST,
 });
 
+export const DEFAULT_LOCAL_AGENT = new HttpAgent({
+  fetch: FETCH,
+  host: 'http://localhost:8000',
+});
+
 export class OrigynClient {
   private static _instance: OrigynClient;
   private _actor: OrigynNftActor | undefined;
@@ -54,7 +59,7 @@ export class OrigynClient {
 
   public init = async (isProd: boolean = true, canisterId?: string, auth?: AuthType): Promise<void> => {
     this._isMainNet = isProd;
-    let agent = auth?.agent ?? DEFAULT_AGENT;
+    let agent = auth?.agent ?? isProd ? DEFAULT_AGENT : DEFAULT_LOCAL_AGENT;
     if (canisterId) this._canisterId = canisterId;
 
     if (auth?.actor) {
