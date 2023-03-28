@@ -2,9 +2,10 @@ import { OrigynNftActor, OrigynResponse } from '../types/methods';
 import { OrigynClient } from '../origynClient';
 import { createAdditionalActor } from '../utils/additional-actor';
 
-export const getCansiterCycles = async (canisterId?: string): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
+export const getCanisterCycles = async (canisterId?: string): Promise<OrigynResponse<BigInt, GetCanisterError>> => {
   try {
     const { canisterId: currentCanisterId } = OrigynClient.getInstance();
+
     let { actor } = OrigynClient.getInstance();
 
     if (canisterId && canisterId !== currentCanisterId) {
