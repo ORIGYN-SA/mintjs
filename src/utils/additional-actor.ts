@@ -1,10 +1,10 @@
 import origynIdl from '../idls/origyn-nft.did';
-import { DEFAULT_AGENT } from '../origynClient';
+import { DEFAULT_AGENT, DEFAULT_LOCAL_AGENT } from '../origynClient';
 import { Actor } from '@dfinity/agent';
 
-export const createAdditionalActor = (canisterId: string) => {
+export const createAdditionalActor = (isMainNet: boolean, canisterId: string) => {
   return Actor.createActor(origynIdl, {
     canisterId,
-    agent: DEFAULT_AGENT,
+    agent: isMainNet ? DEFAULT_AGENT : DEFAULT_LOCAL_AGENT,
   });
 };
