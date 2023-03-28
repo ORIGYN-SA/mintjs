@@ -7,7 +7,7 @@ Mint.js is the official JavaScript library for interacting with any Internet Com
 ### Compatibility
 
 ```
-Mint.js version 1.0.0-alpha.10 is compatible with canisters running version 0.1.3 of the Origyn NFT standard.
+Mint.js version 1.0.0-alpha.12 is compatible with canisters running version 0.1.3 of the Origyn NFT standard.
 ```
 
 ### Installation
@@ -93,7 +93,7 @@ module.exports = (env, argv) => ({
     - [mintNft(tokenId: string, principal: Principal) ⇒ `Promise<OrigynResponse<any, GetNftErrors>>`](#staging+mintNft)
   - [🦾 Communication Functions](#others)
     - [getCanisterCycles(canisterId?: string)](#getCanisterCycles)
-    - [getCanisterAvailableSpace(canisterId?: string)](#getCanisterAvailableSpace)
+    - [getCansiterAvailableStorage(canisterId?: string)](#getCansiterAvailableStorage)
     - [getCollectionLibrary(libraryId)](#getCollectionLibrary)
     - [getCollectionLibraries()](#getCollectionLibraries)
     - [getNft(token)](#getNft)
@@ -820,9 +820,9 @@ const cycles = await getCanisterCycles(canisterId);
 console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
 ```
 
-<a name="getCanisterAvailableSpace"></a>
+<a name="getCansiterAvailableStorage"></a>
 
-### getCanisterAvailableSpace(canisterId?: string) ⇒ `Promise<BigInt>`
+### getCansiterAvailableStorage(canisterId?: string) ⇒ `Promise<BigInt>`
 
 Get cycles of the current canister or of the canister provided as argument.
 
@@ -833,13 +833,13 @@ Get cycles of the current canister or of the canister provided as argument.
 #### Usage example:
 
 ```js
-const availableSpace = await getCanisterAvailableSpace();
+const availableSpace = await getCansiterAvailableStorage();
 
 console.log('OrigynClient canister available space: ', cycles);
 ```
 
 ```js
-const availableSpace = await getCanisterAvailableSpace(canisterId);
+const availableSpace = await getCansiterAvailableStorage(canisterId);
 
 console.log(`Available cycles: ${cycles} from canister ${canisterId}`);
 ```
