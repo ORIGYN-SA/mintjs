@@ -7,7 +7,7 @@ test('expect getNftBalance to return nfts for test principal (from origynClient)
   const TEST_WALLET = 'jvdm5-xkwgc-4t2x7-ojmjd-ail2p-6agif-7m6a6-z6eok-oxueq-inzfb-zae';
   const principal = Principal.fromText(TEST_WALLET);
   const client = OrigynClient.getInstance();
-  client.init(false, ORIGYN_CANISTER_ID);
+  client.init(true, ORIGYN_CANISTER_ID);
   client.principal = principal;
 
   const response = await getNftBalance();
@@ -29,7 +29,7 @@ test('expect getNftBalance to return error code when no principal', async () => 
     },
   };
   const client = OrigynClient.getInstance();
-  client.init(false, ORIGYN_CANISTER_ID);
+  client.init(true, ORIGYN_CANISTER_ID);
   client.principal = undefined;
 
   const response = await getNftBalance();
