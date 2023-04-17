@@ -1,13 +1,10 @@
 // Generated from dfx
 /* tslint-disable variable-name */
-export default ({ IDL }) => {
+export const idlFactory = ({ IDL }) => {
   const CandyValue = IDL.Rec();
+  const ManageSaleResponse = IDL.Rec();
   const Update = IDL.Rec();
-  const Principal = IDL.Principal;
-  const InitArgs = IDL.Record({
-    owner: Principal,
-    storage_space: IDL.Opt(IDL.Nat),
-  });
+  const Vec = IDL.Rec();
   const Property = IDL.Record({
     value: CandyValue,
     name: IDL.Text,
@@ -298,31 +295,30 @@ export default ({ IDL }) => {
     buckets: IDL.Vec(IDL.Tuple(IDL.Principal, StableBucketData)),
     escrow_balances: StableEscrowBalances,
   });
-  const TokenIdentifier = IDL.Text;
-  const AccountIdentifier = IDL.Text;
-  const User = IDL.Variant({
+  const EXTTokenIdentifier = IDL.Text;
+  const EXTUser = IDL.Variant({
     principal: IDL.Principal,
-    address: AccountIdentifier,
+    address: IDL.Text,
   });
-  const BalanceRequest = IDL.Record({
-    token: TokenIdentifier,
-    user: User,
+  const EXTBalanceRequest = IDL.Record({
+    token: EXTTokenIdentifier,
+    user: EXTUser,
   });
-  const Balance = IDL.Nat;
-  const CommonError = IDL.Variant({
-    InvalidToken: TokenIdentifier,
+  const EXTBalance = IDL.Nat;
+  const EXTCommonError = IDL.Variant({
+    InvalidToken: EXTTokenIdentifier,
     Other: IDL.Text,
   });
-  const BalanceResponse = IDL.Variant({
-    ok: Balance,
-    err: CommonError,
+  const EXTBalanceResult = IDL.Variant({
+    ok: EXTBalance,
+    err: EXTCommonError,
   });
   const StakeRecord = IDL.Record({
     staker: Account,
     token_id: IDL.Text,
     amount: IDL.Nat,
   });
-  const NftBalanceResponse = IDL.Record({
+  const BalanceResponse = IDL.Record({
     nfts: IDL.Vec(IDL.Text),
     offers: IDL.Vec(EscrowRecord),
     sales: IDL.Vec(EscrowRecord),
@@ -341,6 +337,7 @@ export default ({ IDL }) => {
     out_of_range: IDL.Null,
     sale_id_does_not_match: IDL.Null,
     sale_not_found: IDL.Null,
+    kyc_fail: IDL.Null,
     item_not_owned: IDL.Null,
     property_not_found: IDL.Null,
     validate_trx_wrong_host: IDL.Null,
@@ -364,6 +361,7 @@ export default ({ IDL }) => {
     improper_interface: IDL.Null,
     app_id_not_found: IDL.Null,
     token_non_transferable: IDL.Null,
+    kyc_error: IDL.Null,
     sale_not_over: IDL.Null,
     update_class_error: IDL.Null,
     malformed_metadata: IDL.Null,
@@ -382,15 +380,16 @@ export default ({ IDL }) => {
     number: IDL.Nat32,
     flag_point: IDL.Text,
   });
-  const Result_18 = IDL.Variant({
-    ok: NftBalanceResponse,
+  const BalanceResult = IDL.Variant({
+    ok: BalanceResponse,
     err: OrigynError,
   });
-  const Result_17 = IDL.Variant({
-    ok: AccountIdentifier,
-    err: CommonError,
+  const EXTAccountIdentifier = IDL.Text;
+  const EXTBearerResult = IDL.Variant({
+    ok: EXTAccountIdentifier,
+    err: EXTCommonError,
   });
-  const Result_16 = IDL.Variant({ ok: Account, err: OrigynError });
+  const BearerResult = IDL.Variant({ ok: Account, err: OrigynError });
   const canister_id = IDL.Principal;
   const definite_canister_settings = IDL.Record({
     freezing_threshold: IDL.Nat,
@@ -426,7 +425,7 @@ export default ({ IDL }) => {
       current_chunk: IDL.Opt(IDL.Nat),
     }),
   });
-  const Result_15 = IDL.Variant({ ok: ChunkContent, err: OrigynError });
+  const ChunkResult = IDL.Variant({ ok: ChunkContent, err: OrigynError });
   const CollectionInfo = IDL.Record({
     multi_canister_count: IDL.Opt(IDL.Nat),
     managers: IDL.Opt(IDL.Vec(IDL.Principal)),
@@ -435,32 +434,145 @@ export default ({ IDL }) => {
     logo: IDL.Opt(IDL.Text),
     name: IDL.Opt(IDL.Text),
     network: IDL.Opt(IDL.Principal),
+    created_at: IDL.Opt(IDL.Nat64),
     fields: IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))),
+    upgraded_at: IDL.Opt(IDL.Nat64),
     token_ids_count: IDL.Opt(IDL.Nat),
     available_space: IDL.Opt(IDL.Nat),
     multi_canister: IDL.Opt(IDL.Vec(IDL.Principal)),
     token_ids: IDL.Opt(IDL.Vec(IDL.Text)),
+    transaction_count: IDL.Opt(IDL.Nat),
+    unique_holders: IDL.Opt(IDL.Nat),
     total_supply: IDL.Opt(IDL.Nat),
     symbol: IDL.Opt(IDL.Text),
     allocated_storage: IDL.Opt(IDL.Nat),
   });
-  const Result_14 = IDL.Variant({ ok: CollectionInfo, err: OrigynError });
+  const CollectionResult = IDL.Variant({
+    ok: CollectionInfo,
+    err: OrigynError,
+  });
   const ManageCollectionCommand = IDL.Variant({
     UpdateOwner: IDL.Principal,
     UpdateManagers: IDL.Vec(IDL.Principal),
     UpdateMetadata: IDL.Tuple(IDL.Text, IDL.Opt(CandyValue), IDL.Bool),
+    UpdateAnnounceCanister: IDL.Opt(IDL.Principal),
     UpdateNetwork: IDL.Opt(IDL.Principal),
     UpdateSymbol: IDL.Opt(IDL.Text),
     UpdateLogo: IDL.Opt(IDL.Text),
     UpdateName: IDL.Opt(IDL.Text),
   });
-  const Result_13 = IDL.Variant({ ok: IDL.Bool, err: OrigynError });
-  const LogEntry = IDL.Record({
-    data: CandyValue,
-    event: IDL.Text,
-    timestamp: IDL.Int,
-    caller: IDL.Opt(IDL.Principal),
+  const OrigynBoolResult = IDL.Variant({
+    ok: IDL.Bool,
+    err: OrigynError,
   });
+  const NftError = IDL.Variant({
+    UnauthorizedOperator: IDL.Null,
+    SelfTransfer: IDL.Null,
+    TokenNotFound: IDL.Null,
+    UnauthorizedOwner: IDL.Null,
+    TxNotFound: IDL.Null,
+    SelfApprove: IDL.Null,
+    OperatorNotFound: IDL.Null,
+    ExistedNFT: IDL.Null,
+    OwnerNotFound: IDL.Null,
+    Other: IDL.Text,
+  });
+  const DIP721BoolResult = IDL.Variant({ Ok: IDL.Bool, Err: NftError });
+  const DIP721Metadata = IDL.Record({
+    logo: IDL.Opt(IDL.Text),
+    name: IDL.Opt(IDL.Text),
+    created_at: IDL.Nat64,
+    upgraded_at: IDL.Nat64,
+    custodians: IDL.Vec(IDL.Principal),
+    symbol: IDL.Opt(IDL.Text),
+  });
+  const DIP721TokensListMetadata = IDL.Variant({
+    Ok: IDL.Vec(IDL.Nat),
+    Err: NftError,
+  });
+  Vec.fill(
+    IDL.Vec(
+      IDL.Tuple(
+        IDL.Text,
+        IDL.Variant({
+          Nat64Content: IDL.Nat64,
+          Nat32Content: IDL.Nat32,
+          BoolContent: IDL.Bool,
+          Nat8Content: IDL.Nat8,
+          Int64Content: IDL.Int64,
+          IntContent: IDL.Int,
+          NatContent: IDL.Nat,
+          Nat16Content: IDL.Nat16,
+          Int32Content: IDL.Int32,
+          Int8Content: IDL.Int8,
+          FloatContent: IDL.Float64,
+          Int16Content: IDL.Int16,
+          BlobContent: IDL.Vec(IDL.Nat8),
+          NestedContent: Vec,
+          Principal: IDL.Principal,
+          TextContent: IDL.Text,
+        }),
+      ),
+    ),
+  );
+  const GenericValue = IDL.Variant({
+    Nat64Content: IDL.Nat64,
+    Nat32Content: IDL.Nat32,
+    BoolContent: IDL.Bool,
+    Nat8Content: IDL.Nat8,
+    Int64Content: IDL.Int64,
+    IntContent: IDL.Int,
+    NatContent: IDL.Nat,
+    Nat16Content: IDL.Nat16,
+    Int32Content: IDL.Int32,
+    Int8Content: IDL.Int8,
+    FloatContent: IDL.Float64,
+    Int16Content: IDL.Int16,
+    BlobContent: IDL.Vec(IDL.Nat8),
+    NestedContent: Vec,
+    Principal: IDL.Principal,
+    TextContent: IDL.Text,
+  });
+  const TokenMetadata = IDL.Record({
+    transferred_at: IDL.Opt(IDL.Nat64),
+    transferred_by: IDL.Opt(IDL.Principal),
+    owner: IDL.Opt(IDL.Principal),
+    operator: IDL.Opt(IDL.Principal),
+    approved_at: IDL.Opt(IDL.Nat64),
+    approved_by: IDL.Opt(IDL.Principal),
+    properties: IDL.Vec(IDL.Tuple(IDL.Text, GenericValue)),
+    is_burned: IDL.Bool,
+    token_identifier: IDL.Nat,
+    burned_at: IDL.Opt(IDL.Nat64),
+    burned_by: IDL.Opt(IDL.Principal),
+    minted_at: IDL.Nat64,
+    minted_by: IDL.Principal,
+  });
+  const DIP721TokensMetadata = IDL.Variant({
+    Ok: IDL.Vec(TokenMetadata),
+    Err: NftError,
+  });
+  const OwnerOfResponse = IDL.Variant({
+    Ok: IDL.Opt(IDL.Principal),
+    Err: NftError,
+  });
+  const DIP721Stats = IDL.Record({
+    cycles: IDL.Nat,
+    total_transactions: IDL.Nat,
+    total_unique_holders: IDL.Nat,
+    total_supply: IDL.Nat,
+  });
+  const DIP721SupportedInterface = IDL.Variant({
+    Burn: IDL.Null,
+    Mint: IDL.Null,
+    Approval: IDL.Null,
+    TransactionHistory: IDL.Null,
+  });
+  const DIP721TokenMetadata = IDL.Variant({
+    Ok: TokenMetadata,
+    Err: NftError,
+  });
+  const DIP721NatResult = IDL.Variant({ Ok: IDL.Nat, Err: NftError });
   const GetLogMessagesFilter = IDL.Record({
     analyzeCount: IDL.Nat32,
     messageRegex: IDL.Opt(IDL.Text),
@@ -492,6 +604,44 @@ export default ({ IDL }) => {
     count: IDL.Nat32,
     firstTimeNanos: IDL.Opt(Nanos),
   });
+  CandyValue.fill(
+    IDL.Variant({
+      Int: IDL.Int,
+      Nat: IDL.Nat,
+      Empty: IDL.Null,
+      Nat16: IDL.Nat16,
+      Nat32: IDL.Nat32,
+      Nat64: IDL.Nat64,
+      Blob: IDL.Vec(IDL.Nat8),
+      Bool: IDL.Bool,
+      Int8: IDL.Int8,
+      Nat8: IDL.Nat8,
+      Nats: IDL.Variant({
+        thawed: IDL.Vec(IDL.Nat),
+        frozen: IDL.Vec(IDL.Nat),
+      }),
+      Text: IDL.Text,
+      Bytes: IDL.Variant({
+        thawed: IDL.Vec(IDL.Nat8),
+        frozen: IDL.Vec(IDL.Nat8),
+      }),
+      Int16: IDL.Int16,
+      Int32: IDL.Int32,
+      Int64: IDL.Int64,
+      Option: IDL.Opt(CandyValue),
+      Floats: IDL.Variant({
+        thawed: IDL.Vec(IDL.Float64),
+        frozen: IDL.Vec(IDL.Float64),
+      }),
+      Float: IDL.Float64,
+      Principal: IDL.Principal,
+      Array: IDL.Variant({
+        thawed: IDL.Vec(CandyValue),
+        frozen: IDL.Vec(CandyValue),
+      }),
+      Class: IDL.Vec(Property),
+    }),
+  );
   const Data = IDL.Variant({
     Int: IDL.Int,
     Nat: IDL.Nat,
@@ -582,14 +732,17 @@ export default ({ IDL }) => {
     daily: IDL.Vec(DailyMetricsData),
   });
   const CanisterMetrics = IDL.Record({ data: CanisterMetricsData });
-  const Result_2 = IDL.Variant({ ok: IDL.Text, err: OrigynError });
+  const OrigynTextResult = IDL.Variant({
+    ok: IDL.Text,
+    err: OrigynError,
+  });
   const GovernanceRequest = IDL.Variant({ clear_shared_wallets: IDL.Text });
   const GovernanceResponse = IDL.Variant({ clear_shared_wallets: IDL.Bool });
-  const Result_12 = IDL.Variant({
+  const GovernanceResult = IDL.Variant({
     ok: GovernanceResponse,
     err: OrigynError,
   });
-  const Result_11 = IDL.Variant({
+  const HistoryResult = IDL.Variant({
     ok: IDL.Vec(TransactionRecord),
     err: OrigynError,
   });
@@ -600,7 +753,6 @@ export default ({ IDL }) => {
     body: IDL.Vec(IDL.Nat8),
     headers: IDL.Vec(HeaderField),
   });
-  const HeaderField__1 = IDL.Tuple(IDL.Text, IDL.Text);
   const StreamingCallbackToken = IDL.Record({
     key: IDL.Text,
     index: IDL.Nat,
@@ -614,7 +766,7 @@ export default ({ IDL }) => {
   });
   const HTTPResponse = IDL.Record({
     body: IDL.Vec(IDL.Nat8),
-    headers: IDL.Vec(HeaderField__1),
+    headers: IDL.Vec(HeaderField),
     streaming_strategy: IDL.Opt(StreamingStrategy),
     status_code: IDL.Nat16,
   });
@@ -624,11 +776,16 @@ export default ({ IDL }) => {
   });
   const ManageStorageRequest = IDL.Variant({
     add_storage_canisters: IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat, IDL.Tuple(IDL.Nat, IDL.Nat, IDL.Nat))),
+    configure_storage: IDL.Variant({
+      stableBtree: IDL.Opt(IDL.Nat),
+      heap: IDL.Opt(IDL.Nat),
+    }),
   });
   const ManageStorageResponse = IDL.Variant({
     add_storage_canisters: IDL.Tuple(IDL.Nat, IDL.Nat),
+    configure_storage: IDL.Tuple(IDL.Nat, IDL.Nat),
   });
-  const Result_10 = IDL.Variant({
+  const ManageStorageResult = IDL.Variant({
     ok: ManageStorageResponse,
     err: OrigynError,
   });
@@ -741,11 +898,11 @@ export default ({ IDL }) => {
     timestamp: IDL.Int,
     index: IDL.Nat,
   });
-  const Result_9 = IDL.Variant({
+  const MarketTransferResult = IDL.Variant({
     ok: MarketTransferRequestReponse,
     err: OrigynError,
   });
-  const Metadata = IDL.Variant({
+  const EXTMetadata = IDL.Variant({
     fungible: IDL.Record({
       decimals: IDL.Nat8,
       metadata: IDL.Opt(IDL.Vec(IDL.Nat8)),
@@ -754,27 +911,17 @@ export default ({ IDL }) => {
     }),
     nonfungible: IDL.Record({ metadata: IDL.Opt(IDL.Vec(IDL.Nat8)) }),
   });
-  const Result_8 = IDL.Variant({ ok: Metadata, err: CommonError });
+  const EXTMetadataResult = IDL.Variant({
+    ok: EXTMetadata,
+    err: EXTCommonError,
+  });
   const NFTInfoStable = IDL.Record({
     metadata: CandyValue,
     current_sale: IDL.Opt(SaleStatusStable),
   });
-  const Result_7 = IDL.Variant({ ok: NFTInfoStable, err: OrigynError });
-  const NftError = IDL.Variant({
-    UnauthorizedOperator: IDL.Null,
-    SelfTransfer: IDL.Null,
-    TokenNotFound: IDL.Null,
-    UnauthorizedOwner: IDL.Null,
-    TxNotFound: IDL.Null,
-    SelfApprove: IDL.Null,
-    OperatorNotFound: IDL.Null,
-    ExistedNFT: IDL.Null,
-    OwnerNotFound: IDL.Null,
-    Other: IDL.Text,
-  });
-  const OwnerOfResponse = IDL.Variant({
-    Ok: IDL.Opt(IDL.Principal),
-    Err: NftError,
+  const NFTInfoResult = IDL.Variant({
+    ok: NFTInfoStable,
+    err: OrigynError,
   });
   const BidRequest = IDL.Record({
     broker_id: IDL.Opt(IDL.Principal),
@@ -820,12 +967,14 @@ export default ({ IDL }) => {
     deposit: DepositWithdrawDescription,
     escrow: WithdrawDescription,
   });
+  const DistributeSaleRequest = IDL.Record({ seller: IDL.Opt(Account) });
   const ManageSaleRequest = IDL.Variant({
     bid: BidRequest,
     escrow_deposit: EscrowRequest,
     withdraw: WithdrawRequest,
     end_sale: IDL.Text,
     refresh_offers: IDL.Opt(Account),
+    distribute_sale: DistributeSaleRequest,
     open_sale: IDL.Text,
   });
   const BidResponse = IDL.Record({
@@ -1133,15 +1282,23 @@ export default ({ IDL }) => {
     timestamp: IDL.Int,
     index: IDL.Nat,
   });
-  const ManageSaleResponse = IDL.Variant({
-    bid: BidResponse,
-    escrow_deposit: EscrowResponse,
-    withdraw: WithdrawResponse,
-    end_sale: EndSaleResponse,
-    refresh_offers: IDL.Vec(EscrowRecord),
-    open_sale: IDL.Bool,
+  const Result = IDL.Variant({
+    ok: ManageSaleResponse,
+    err: OrigynError,
   });
-  const Result_5 = IDL.Variant({
+  const DistributeSaleResponse = IDL.Vec(Result);
+  ManageSaleResponse.fill(
+    IDL.Variant({
+      bid: BidResponse,
+      escrow_deposit: EscrowResponse,
+      withdraw: WithdrawResponse,
+      end_sale: EndSaleResponse,
+      refresh_offers: IDL.Vec(EscrowRecord),
+      distribute_sale: DistributeSaleResponse,
+      open_sale: IDL.Bool,
+    }),
+  );
+  const ManageSaleResult = IDL.Variant({
     ok: ManageSaleResponse,
     err: OrigynError,
   });
@@ -1174,7 +1331,7 @@ export default ({ IDL }) => {
       count: IDL.Nat,
     }),
   });
-  const Result_6 = IDL.Variant({
+  const SaleInfoResult = IDL.Variant({
     ok: SaleInfoResponse,
     err: OrigynError,
   });
@@ -1187,7 +1344,7 @@ export default ({ IDL }) => {
     transaction: TransactionRecord,
     assets: IDL.Vec(CandyValue),
   });
-  const Result_4 = IDL.Variant({
+  const OwnerUpdateResult = IDL.Variant({
     ok: OwnerTransferResponse,
     err: OrigynError,
   });
@@ -1199,7 +1356,7 @@ export default ({ IDL }) => {
     library_id: IDL.Text,
   });
   const StageLibraryResponse = IDL.Record({ canister: IDL.Principal });
-  const Result_3 = IDL.Variant({
+  const StageLibraryResult = IDL.Variant({
     ok: StageLibraryResponse,
     err: OrigynError,
   });
@@ -1213,34 +1370,52 @@ export default ({ IDL }) => {
     escrow_balances: IDL.Nat,
   });
   const StorageMetrics = IDL.Record({
+    gateway: IDL.Principal,
     available_space: IDL.Nat,
     allocations: IDL.Vec(AllocationRecordStable),
     allocated_storage: IDL.Nat,
   });
-  const Result_1 = IDL.Variant({ ok: StorageMetrics, err: OrigynError });
-  const Memo = IDL.Vec(IDL.Nat8);
-  const SubAccount = IDL.Vec(IDL.Nat8);
-  const TransferRequest = IDL.Record({
-    to: User,
-    token: TokenIdentifier,
-    notify: IDL.Bool,
-    from: User,
-    memo: Memo,
-    subaccount: IDL.Opt(SubAccount),
-    amount: Balance,
+  const StorageMetricsResult = IDL.Variant({
+    ok: StorageMetrics,
+    err: OrigynError,
   });
-  const TransferResponse = IDL.Variant({
-    ok: Balance,
+  const EXTTokensResponse = IDL.Tuple(
+    IDL.Nat32,
+    IDL.Opt(
+      IDL.Record({
+        locked: IDL.Opt(IDL.Int),
+        seller: IDL.Principal,
+        price: IDL.Nat64,
+      }),
+    ),
+    IDL.Opt(IDL.Vec(IDL.Nat8)),
+  );
+  const EXTTokensResult = IDL.Variant({
+    ok: IDL.Vec(EXTTokensResponse),
+    err: EXTCommonError,
+  });
+  const EXTMemo = IDL.Vec(IDL.Nat8);
+  const EXTSubAccount = IDL.Vec(IDL.Nat8);
+  const EXTTransferRequest = IDL.Record({
+    to: EXTUser,
+    token: EXTTokenIdentifier,
+    notify: IDL.Bool,
+    from: EXTUser,
+    memo: EXTMemo,
+    subaccount: IDL.Opt(EXTSubAccount),
+    amount: EXTBalance,
+  });
+  const EXTTransferResponse = IDL.Variant({
+    ok: EXTBalance,
     err: IDL.Variant({
-      CannotNotify: AccountIdentifier,
+      CannotNotify: EXTAccountIdentifier,
       InsufficientBalance: IDL.Null,
-      InvalidToken: TokenIdentifier,
+      InvalidToken: EXTTokenIdentifier,
       Rejected: IDL.Null,
-      Unauthorized: AccountIdentifier,
+      Unauthorized: EXTAccountIdentifier,
       Other: IDL.Text,
     }),
   });
-  const Result__1 = IDL.Variant({ Ok: IDL.Nat, Err: NftError });
   const UpdateMode = IDL.Variant({
     Set: CandyValue,
     Lock: CandyValue,
@@ -1260,117 +1435,129 @@ export default ({ IDL }) => {
     replace: IDL.Record({ token_id: IDL.Text, data: CandyValue }),
   });
   const NFTUpdateResponse = IDL.Bool;
-  const Result = IDL.Variant({ ok: NFTUpdateResponse, err: OrigynError });
+  const NFTUpdateResult = IDL.Variant({
+    ok: NFTUpdateResponse,
+    err: OrigynError,
+  });
   const Nft_Canister = IDL.Service({
     __advance_time: IDL.Func([IDL.Int], [IDL.Int], []),
     __set_time_mode: IDL.Func([IDL.Variant({ test: IDL.Null, standard: IDL.Null })], [IDL.Bool], []),
     __supports: IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text))], ['query']),
     back_up: IDL.Func([IDL.Nat], [IDL.Variant({ eof: NFTBackupChunk, data: NFTBackupChunk })], ['query']),
-    balance: IDL.Func([BalanceRequest], [BalanceResponse], ['query']),
-    balanceEXT: IDL.Func([BalanceRequest], [BalanceResponse], ['query']),
-    balanceOfDip721: IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
-    balance_of_nft_origyn: IDL.Func([Account], [Result_18], ['query']),
-    balance_of_secure_nft_origyn: IDL.Func([Account], [Result_18], []),
-    bearer: IDL.Func([TokenIdentifier], [Result_17], ['query']),
-    bearerEXT: IDL.Func([TokenIdentifier], [Result_17], ['query']),
-    bearer_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_16)], ['query']),
-    bearer_batch_secure_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_16)], []),
-    bearer_nft_origyn: IDL.Func([IDL.Text], [Result_16], ['query']),
-    bearer_secure_nft_origyn: IDL.Func([IDL.Text], [Result_16], []),
-    blob_from_text: IDL.Func([IDL.Text], [IDL.Vec(IDL.Nat8)], []),
+    balance: IDL.Func([EXTBalanceRequest], [EXTBalanceResult], ['query']),
+    balanceEXT: IDL.Func([EXTBalanceRequest], [EXTBalanceResult], ['query']),
+    balance_of_batch_nft_origyn: IDL.Func([IDL.Vec(Account)], [IDL.Vec(BalanceResult)], ['query']),
+    balance_of_nft_origyn: IDL.Func([Account], [BalanceResult], ['query']),
+    balance_of_secure_batch_nft_origyn: IDL.Func([IDL.Vec(Account)], [IDL.Vec(BalanceResult)], []),
+    balance_of_secure_nft_origyn: IDL.Func([Account], [BalanceResult], []),
+    bearer: IDL.Func([EXTTokenIdentifier], [EXTBearerResult], ['query']),
+    bearerEXT: IDL.Func([EXTTokenIdentifier], [EXTBearerResult], ['query']),
+    bearer_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(BearerResult)], ['query']),
+    bearer_batch_secure_nft_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(BearerResult)], []),
+    bearer_nft_origyn: IDL.Func([IDL.Text], [BearerResult], ['query']),
+    bearer_secure_nft_origyn: IDL.Func([IDL.Text], [BearerResult], []),
     canister_status: IDL.Func([IDL.Record({ canister_id: canister_id })], [canister_status], []),
-    chunk_nft_origyn: IDL.Func([ChunkRequest], [Result_15], ['query']),
-    chunk_secure_nft_origyn: IDL.Func([ChunkRequest], [Result_15], []),
+    chunk_nft_origyn: IDL.Func([ChunkRequest], [ChunkResult], ['query']),
+    chunk_secure_nft_origyn: IDL.Func([ChunkRequest], [ChunkResult], []),
     collectCanisterMetrics: IDL.Func([], [], ['query']),
     collection_nft_origyn: IDL.Func(
       [IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat))))],
-      [Result_14],
+      [CollectionResult],
       ['query'],
     ),
     collection_secure_nft_origyn: IDL.Func(
       [IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat))))],
-      [Result_14],
+      [CollectionResult],
       [],
     ),
-    collection_update_batch_nft_origyn: IDL.Func([IDL.Vec(ManageCollectionCommand)], [IDL.Vec(Result_13)], []),
-    collection_update_nft_origyn: IDL.Func([ManageCollectionCommand], [Result_13], []),
-    current_log: IDL.Func([], [IDL.Vec(LogEntry)], ['query']),
+    collection_update_batch_nft_origyn: IDL.Func([IDL.Vec(ManageCollectionCommand)], [IDL.Vec(OrigynBoolResult)], []),
+    collection_update_nft_origyn: IDL.Func([ManageCollectionCommand], [OrigynBoolResult], []),
     cycles: IDL.Func([], [IDL.Nat], ['query']),
+    dip721_balance_of: IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
+    dip721_custodians: IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
+    dip721_is_approved_for_all: IDL.Func([IDL.Principal, IDL.Principal], [DIP721BoolResult], ['query']),
+    dip721_logo: IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    dip721_metadata: IDL.Func([], [DIP721Metadata], ['query']),
+    dip721_name: IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    dip721_operator_token_identifiers: IDL.Func([IDL.Principal], [DIP721TokensListMetadata], ['query']),
+    dip721_operator_token_metadata: IDL.Func([IDL.Principal], [DIP721TokensMetadata], ['query']),
+    dip721_owner_of: IDL.Func([IDL.Nat], [OwnerOfResponse], ['query']),
+    dip721_owner_token_identifiers: IDL.Func([IDL.Principal], [DIP721TokensListMetadata], ['query']),
+    dip721_owner_token_metadata: IDL.Func([IDL.Principal], [DIP721TokensMetadata], ['query']),
+    dip721_stats: IDL.Func([], [DIP721Stats], ['query']),
+    dip721_supported_interfaces: IDL.Func([], [IDL.Vec(DIP721SupportedInterface)], ['query']),
+    dip721_symbol: IDL.Func([], [IDL.Opt(IDL.Text)], ['query']),
+    dip721_token_metadata: IDL.Func([IDL.Nat], [DIP721TokenMetadata], ['query']),
+    dip721_total_supply: IDL.Func([], [IDL.Nat], ['query']),
+    dip721_total_transactions: IDL.Func([], [IDL.Nat], ['query']),
+    dip721_transfer: IDL.Func([IDL.Principal, IDL.Nat], [DIP721NatResult], []),
+    dip721_transfer_from: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [DIP721NatResult], []),
     getCanisterLog: IDL.Func([IDL.Opt(CanisterLogRequest)], [IDL.Opt(CanisterLogResponse)], ['query']),
     getCanisterMetrics: IDL.Func([GetMetricsParameters], [IDL.Opt(CanisterMetrics)], ['query']),
     getEXTTokenIdentifier: IDL.Func([IDL.Text], [IDL.Text], ['query']),
-    get_access_key: IDL.Func([], [Result_2], ['query']),
+    get_access_key: IDL.Func([], [OrigynTextResult], ['query']),
     get_halt: IDL.Func([], [IDL.Bool], ['query']),
     get_nat_as_token_id_origyn: IDL.Func([IDL.Nat], [IDL.Text], ['query']),
     get_token_id_as_nat_origyn: IDL.Func([IDL.Text], [IDL.Nat], ['query']),
-    governance_nft_origyn: IDL.Func([GovernanceRequest], [Result_12], []),
-    harvest_log: IDL.Func([IDL.Nat], [IDL.Vec(IDL.Vec(LogEntry))], []),
+    governance_nft_origyn: IDL.Func([GovernanceRequest], [GovernanceResult], []),
     history_batch_nft_origyn: IDL.Func(
       [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))],
-      [IDL.Vec(Result_11)],
+      [IDL.Vec(HistoryResult)],
       ['query'],
     ),
     history_batch_secure_nft_origyn: IDL.Func(
       [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)))],
-      [IDL.Vec(Result_11)],
+      [IDL.Vec(HistoryResult)],
       [],
     ),
-    history_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [Result_11], ['query']),
-    history_secure_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [Result_11], []),
-    http_access_key: IDL.Func([], [Result_2], []),
+    history_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [HistoryResult], ['query']),
+    history_secure_nft_origyn: IDL.Func([IDL.Text, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)], [HistoryResult], []),
+    http_access_key: IDL.Func([], [OrigynTextResult], []),
     http_request: IDL.Func([HttpRequest], [HTTPResponse], ['query']),
     http_request_streaming_callback: IDL.Func([StreamingCallbackToken], [StreamingCallbackResponse], ['query']),
-    log_history_page: IDL.Func([IDL.Nat], [IDL.Vec(LogEntry)], ['query']),
-    log_history_page_chunk: IDL.Func([IDL.Nat, IDL.Nat, IDL.Nat], [IDL.Vec(LogEntry)], ['query']),
-    log_history_size: IDL.Func([], [IDL.Nat], ['query']),
-    manage_storage_nft_origyn: IDL.Func([ManageStorageRequest], [Result_10], []),
-    market_transfer_batch_nft_origyn: IDL.Func([IDL.Vec(MarketTransferRequest)], [IDL.Vec(Result_9)], []),
-    market_transfer_nft_origyn: IDL.Func([MarketTransferRequest], [Result_9], []),
-    metadata: IDL.Func([TokenIdentifier], [Result_8], ['query']),
-    mint_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Tuple(IDL.Text, Account))], [IDL.Vec(Result_2)], []),
-    mint_nft_origyn: IDL.Func([IDL.Text, Account], [Result_2], []),
+    manage_storage_nft_origyn: IDL.Func([ManageStorageRequest], [ManageStorageResult], []),
+    market_transfer_batch_nft_origyn: IDL.Func([IDL.Vec(MarketTransferRequest)], [IDL.Vec(MarketTransferResult)], []),
+    market_transfer_nft_origyn: IDL.Func([MarketTransferRequest], [MarketTransferResult], []),
+    metadata: IDL.Func([], [DIP721Metadata], ['query']),
+    metadataExt: IDL.Func([EXTTokenIdentifier], [EXTMetadataResult], ['query']),
+    mint_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Tuple(IDL.Text, Account))], [IDL.Vec(OrigynTextResult)], []),
+    mint_nft_origyn: IDL.Func([IDL.Text, Account], [OrigynTextResult], []),
     nftStreamingCallback: IDL.Func([StreamingCallbackToken], [StreamingCallbackResponse], ['query']),
-    nft_batch_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_7)], ['query']),
-    nft_batch_secure_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(Result_7)], []),
-    nft_origyn: IDL.Func([IDL.Text], [Result_7], ['query']),
-    nft_secure_origyn: IDL.Func([IDL.Text], [Result_7], []),
-    nuke_log: IDL.Func([], [], []),
+    nft_batch_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(NFTInfoResult)], ['query']),
+    nft_batch_secure_origyn: IDL.Func([IDL.Vec(IDL.Text)], [IDL.Vec(NFTInfoResult)], []),
+    nft_origyn: IDL.Func([IDL.Text], [NFTInfoResult], ['query']),
+    nft_secure_origyn: IDL.Func([IDL.Text], [NFTInfoResult], []),
+    operaterTokenMetadata: IDL.Func([IDL.Principal], [DIP721TokensMetadata], ['query']),
     ownerOf: IDL.Func([IDL.Nat], [OwnerOfResponse], ['query']),
-    ownerOfDIP721: IDL.Func([IDL.Nat], [OwnerOfResponse], ['query']),
-    sale_batch_nft_origyn: IDL.Func([IDL.Vec(ManageSaleRequest)], [IDL.Vec(Result_5)], []),
-    sale_info_batch_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(Result_6)], ['query']),
-    sale_info_batch_secure_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(Result_6)], []),
-    sale_info_nft_origyn: IDL.Func([SaleInfoRequest], [Result_6], ['query']),
-    sale_info_secure_nft_origyn: IDL.Func([SaleInfoRequest], [Result_6], []),
-    sale_nft_origyn: IDL.Func([ManageSaleRequest], [Result_5], []),
+    ownerTokenMetadata: IDL.Func([IDL.Principal], [DIP721TokensMetadata], ['query']),
+    sale_batch_nft_origyn: IDL.Func([IDL.Vec(ManageSaleRequest)], [IDL.Vec(ManageSaleResult)], []),
+    sale_info_batch_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(SaleInfoResult)], ['query']),
+    sale_info_batch_secure_nft_origyn: IDL.Func([IDL.Vec(SaleInfoRequest)], [IDL.Vec(SaleInfoResult)], []),
+    sale_info_nft_origyn: IDL.Func([SaleInfoRequest], [SaleInfoResult], ['query']),
+    sale_info_secure_nft_origyn: IDL.Func([SaleInfoRequest], [SaleInfoResult], []),
+    sale_nft_origyn: IDL.Func([ManageSaleRequest], [ManageSaleResult], []),
     set_data_harvester: IDL.Func([IDL.Nat], [], []),
     set_halt: IDL.Func([IDL.Bool], [], []),
-    set_log_harvester_id: IDL.Func([IDL.Principal], [], []),
-    share_wallet_nft_origyn: IDL.Func([ShareWalletRequest], [Result_4], []),
-    stage_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Record({ metadata: CandyValue }))], [IDL.Vec(Result_2)], []),
-    stage_library_batch_nft_origyn: IDL.Func([IDL.Vec(StageChunkArg)], [IDL.Vec(Result_3)], []),
-    stage_library_nft_origyn: IDL.Func([StageChunkArg], [Result_3], []),
-    stage_nft_origyn: IDL.Func([IDL.Record({ metadata: CandyValue })], [Result_2], []),
+    share_wallet_nft_origyn: IDL.Func([ShareWalletRequest], [OwnerUpdateResult], []),
+    stage_batch_nft_origyn: IDL.Func([IDL.Vec(IDL.Record({ metadata: CandyValue }))], [IDL.Vec(OrigynTextResult)], []),
+    stage_library_batch_nft_origyn: IDL.Func([IDL.Vec(StageChunkArg)], [IDL.Vec(StageLibraryResult)], []),
+    stage_library_nft_origyn: IDL.Func([StageChunkArg], [StageLibraryResult], []),
+    stage_nft_origyn: IDL.Func([IDL.Record({ metadata: CandyValue })], [OrigynTextResult], []),
     state_size: IDL.Func([], [StateSize], ['query']),
-    storage_info_nft_origyn: IDL.Func([], [Result_1], ['query']),
-    storage_info_secure_nft_origyn: IDL.Func([], [Result_1], []),
-    text_from_blob: IDL.Func([IDL.Vec(IDL.Nat8)], [IDL.Text], []),
-    transfer: IDL.Func([TransferRequest], [TransferResponse], []),
-    transferDip721: IDL.Func([IDL.Principal, IDL.Nat], [Result__1], []),
-    transferEXT: IDL.Func([TransferRequest], [TransferResponse], []),
-    transferFrom: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [Result__1], []),
-    transferFromDip721: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [Result__1], []),
-    update_app_nft_origyn: IDL.Func([NFTUpdateRequest], [Result], []),
+    storage_info_nft_origyn: IDL.Func([], [StorageMetricsResult], ['query']),
+    storage_info_secure_nft_origyn: IDL.Func([], [StorageMetricsResult], []),
+    tokens_ext: IDL.Func([IDL.Text], [EXTTokensResult], ['query']),
+    transfer: IDL.Func([EXTTransferRequest], [EXTTransferResponse], []),
+    transferDip721: IDL.Func([IDL.Principal, IDL.Nat], [DIP721NatResult], []),
+    transferEXT: IDL.Func([EXTTransferRequest], [EXTTransferResponse], []),
+    transferFrom: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [DIP721NatResult], []),
+    transferFromDip721: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [DIP721NatResult], []),
+    update_app_nft_origyn: IDL.Func([NFTUpdateRequest], [NFTUpdateResult], []),
     wallet_receive: IDL.Func([], [IDL.Nat], []),
     whoami: IDL.Func([], [IDL.Principal], ['query']),
   });
   return Nft_Canister;
 };
-export const init = ({ IDL }) => {
-  const Principal = IDL.Principal;
-  const InitArgs = IDL.Record({
-    owner: Principal,
-    storage_space: IDL.Opt(IDL.Nat),
-  });
-  return [InitArgs];
+export const init = () => {
+  return [];
 };

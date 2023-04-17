@@ -2,7 +2,7 @@ import { Actor, HttpAgent, Identity } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
 import { Principal } from '@dfinity/principal';
 import { getIdl, IdlStandard } from '../../idls';
-import origynNftIdl from '../../idls/origyn-nft.did';
+import { idlFactory } from '../../idls/origyn-nft.did';
 import { OrigynNftActor, PrivateIdentityKey } from '../../types/methods';
 import { FETCH } from '../../utils/constants';
 import { getIdentity } from './identity';
@@ -67,7 +67,7 @@ export const getActor = async (
     agent.fetchRootKey();
   }
 
-  const actor: OrigynNftActor = Actor.createActor(origynNftIdl, {
+  const actor: OrigynNftActor = Actor.createActor(idlFactory, {
     agent,
     canisterId: Principal.fromText(canisterId),
   });

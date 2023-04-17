@@ -1,6 +1,6 @@
 import { Principal } from '@dfinity/principal';
-import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
-import origynIdl from './idls/origyn-nft.did';
+import { Actor, HttpAgent, Identity } from '@dfinity/agent';
+import { idlFactory } from './idls/origyn-nft.did';
 import { FETCH, IC_HOST } from './utils/constants';
 import { PrivateIdentityKey, OrigynNftActor } from './types/methods';
 import { getActor } from './methods/wallet/actor';
@@ -37,7 +37,7 @@ export class OrigynClient {
 
   public get actor() {
     if (!this._actor) {
-      this._actor = Actor.createActor(origynIdl, {
+      this._actor = Actor.createActor(idlFactory, {
         canisterId: this._canisterId,
         agent: DEFAULT_AGENT,
       });
@@ -73,12 +73,12 @@ export class OrigynClient {
         host: isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000',
         fetch: FETCH,
       });
-      this._actor = Actor.createActor(origynIdl, {
+      this._actor = Actor.createActor(idlFactory, {
         canisterId: this._canisterId,
         agent,
       });
     } else {
-      this._actor = Actor.createActor(origynIdl, {
+      this._actor = Actor.createActor(idlFactory, {
         canisterId: this._canisterId,
         agent,
       });
