@@ -335,7 +335,7 @@ function deserializeMetadata(data) {
   if (typeof data !== 'object') {
     return data;
   }
-  for (var p in data) {
+  Object.keys(data).forEach((p) => {
     if (data[p] === null) {
       data[p] = { Option: [] }; // value was 'Empty' before 0.1.4
     }
@@ -360,6 +360,6 @@ function deserializeMetadata(data) {
           break;
         }
     }
-  }
+  });
   return data;
 }
