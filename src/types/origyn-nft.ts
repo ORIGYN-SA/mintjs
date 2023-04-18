@@ -6,7 +6,7 @@ import type { ActorMethod } from '@dfinity/agent';
 export type Account =
   | { account_id: string }
   | { principal: Principal }
-  | { extensible: CandyValue }
+  | { extensible: CandyShared }
   | {
       account: {
         owner: Principal;
@@ -77,7 +77,7 @@ export interface BidResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -85,7 +85,7 @@ export interface BidResponse {
     | {
         canister_network_updated: {
           network: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -95,7 +95,7 @@ export interface BidResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -103,25 +103,32 @@ export interface BidResponse {
     | {
         canister_managers_updated: {
           managers: Array<Principal>;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         auction_bid: {
           token: TokenSpec;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: string;
         };
       }
-    | { burn: null }
-    | { data: null }
+    | { burn: { from: [] | [Account]; extensible: CandyShared } }
+    | {
+        data: {
+          hash: [] | [Uint8Array | number[]];
+          extensible: CandyShared;
+          data_dapp: [] | [string];
+          data_path: [] | [string];
+        };
+      }
     | {
         sale_ended: {
           token: TokenSpec;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
@@ -132,40 +139,40 @@ export interface BidResponse {
           to: Account;
           from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
+          receiver: Account;
           sale_id: [] | [string];
         };
       }
-    | { extensible: CandyValue }
+    | { extensible: CandyShared }
     | {
         owner_transfer: {
           to: Account;
           from: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         sale_opened: {
           pricing: PricingConfig;
-          extensible: CandyValue;
+          extensible: CandyShared;
           sale_id: string;
         };
       }
     | {
         canister_owner_updated: {
           owner: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -175,7 +182,7 @@ export interface BidResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -185,7 +192,7 @@ export interface BidResponse {
           fee: bigint;
           token: TokenSpec;
           trx_id: TransactionID;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -194,34 +201,31 @@ export interface BidResponse {
   index: bigint;
 }
 export type Caller = [] | [Principal];
-export type CandyValue =
+export type CandyShared =
   | { Int: bigint }
+  | { Map: Array<[CandyShared, CandyShared]> }
   | { Nat: bigint }
-  | { Empty: null }
+  | { Set: Array<CandyShared> }
   | { Nat16: number }
   | { Nat32: number }
   | { Nat64: bigint }
   | { Blob: Uint8Array | number[] }
   | { Bool: boolean }
   | { Int8: number }
+  | { Ints: Array<bigint> }
   | { Nat8: number }
-  | { Nats: { thawed: Array<bigint> } | { frozen: Array<bigint> } }
+  | { Nats: Array<bigint> }
   | { Text: string }
-  | {
-      Bytes: { thawed: Uint8Array | number[] } | { frozen: Uint8Array | number[] };
-    }
+  | { Bytes: Uint8Array | number[] }
   | { Int16: number }
   | { Int32: number }
   | { Int64: bigint }
-  | { Option: [] | [CandyValue] }
-  | { Floats: { thawed: Array<number> } | { frozen: Array<number> } }
+  | { Option: [] | [CandyShared] }
+  | { Floats: Array<number> }
   | { Float: number }
   | { Principal: Principal }
-  | {
-      Array: { thawed: Array<CandyValue> } | { frozen: Array<CandyValue> };
-    }
-  | { Class: Array<Property> };
-
+  | { Array: Array<CandyShared> }
+  | { Class: Array<PropertyShared> };
 export type CanisterCyclesAggregatedData = BigUint64Array | bigint[];
 export type CanisterHeapMemoryAggregatedData = BigUint64Array | bigint[];
 export type CanisterLogFeature = { filterMessageByContains: null } | { filterMessageByRegex: null };
@@ -267,7 +271,7 @@ export interface CollectionInfo {
   multi_canister_count: [] | [bigint];
   managers: [] | [Array<Principal>];
   owner: [] | [Principal];
-  metadata: [] | [CandyValue];
+  metadata: [] | [CandyShared];
   logo: [] | [string];
   name: [] | [string];
   network: [] | [Principal];
@@ -318,31 +322,29 @@ export interface DailyMetricsData {
 }
 export type Data =
   | { Int: bigint }
+  | { Map: Array<[CandyShared, CandyShared]> }
   | { Nat: bigint }
-  | { Empty: null }
+  | { Set: Array<CandyShared> }
   | { Nat16: number }
   | { Nat32: number }
   | { Nat64: bigint }
   | { Blob: Uint8Array | number[] }
   | { Bool: boolean }
   | { Int8: number }
+  | { Ints: Array<bigint> }
   | { Nat8: number }
-  | { Nats: { thawed: Array<bigint> } | { frozen: Array<bigint> } }
+  | { Nats: Array<bigint> }
   | { Text: string }
-  | {
-      Bytes: { thawed: Uint8Array | number[] } | { frozen: Uint8Array | number[] };
-    }
+  | { Bytes: Uint8Array | number[] }
   | { Int16: number }
   | { Int32: number }
   | { Int64: bigint }
-  | { Option: [] | [CandyValue] }
-  | { Floats: { thawed: Array<number> } | { frozen: Array<number> } }
+  | { Option: [] | [CandyShared] }
+  | { Floats: Array<number> }
   | { Float: number }
   | { Principal: Principal }
-  | {
-      Array: { thawed: Array<CandyValue> } | { frozen: Array<CandyValue> };
-    }
-  | { Class: Array<Property> };
+  | { Array: Array<CandyShared> }
+  | { Class: Array<PropertyShared> };
 export interface DepositDetail {
   token: TokenSpec;
   trx_id: [] | [TransactionID];
@@ -361,6 +363,22 @@ export interface DistributeSaleRequest {
   seller: [] | [Account];
 }
 export type DistributeSaleResponse = Array<Result>;
+export interface DutchConfig {
+  start_price: bigint;
+  token: TokenSpec;
+  reserve: [] | [bigint];
+  start_date: bigint;
+  allow_list: [] | [Array<Principal>];
+  decay_per_hour: { flat: bigint } | { percent: number };
+}
+export interface DutchStateStable {
+  status: { closed: null } | { open: null } | { not_started: null };
+  winner: [] | [Account];
+  end_date: [] | [bigint];
+  allow_list: [] | [Array<[Principal, boolean]>];
+  current_broker_id: [] | [Principal];
+  config: PricingConfig;
+}
 export type EXTAccountIdentifier = string;
 export type EXTBalance = bigint;
 export interface EXTBalanceRequest {
@@ -420,7 +438,7 @@ export interface EndSaleResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -428,7 +446,7 @@ export interface EndSaleResponse {
     | {
         canister_network_updated: {
           network: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -438,7 +456,7 @@ export interface EndSaleResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -446,25 +464,32 @@ export interface EndSaleResponse {
     | {
         canister_managers_updated: {
           managers: Array<Principal>;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         auction_bid: {
           token: TokenSpec;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: string;
         };
       }
-    | { burn: null }
-    | { data: null }
+    | { burn: { from: [] | [Account]; extensible: CandyShared } }
+    | {
+        data: {
+          hash: [] | [Uint8Array | number[]];
+          extensible: CandyShared;
+          data_dapp: [] | [string];
+          data_path: [] | [string];
+        };
+      }
     | {
         sale_ended: {
           token: TokenSpec;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
@@ -475,40 +500,40 @@ export interface EndSaleResponse {
           to: Account;
           from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
+          receiver: Account;
           sale_id: [] | [string];
         };
       }
-    | { extensible: CandyValue }
+    | { extensible: CandyShared }
     | {
         owner_transfer: {
           to: Account;
           from: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         sale_opened: {
           pricing: PricingConfig;
-          extensible: CandyValue;
+          extensible: CandyShared;
           sale_id: string;
         };
       }
     | {
         canister_owner_updated: {
           owner: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -518,7 +543,7 @@ export interface EndSaleResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -528,7 +553,7 @@ export interface EndSaleResponse {
           fee: bigint;
           token: TokenSpec;
           trx_id: TransactionID;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -672,10 +697,11 @@ export interface HttpRequest {
   headers: Array<HeaderField>;
 }
 export interface ICTokenSpec {
-  fee: bigint;
+  id: [] | [bigint];
+  fee: [] | [bigint];
   decimals: bigint;
   canister: Principal;
-  standard: { ICRC1: null } | { EXTFungible: null } | { DIP20: null } | { Ledger: null };
+  standard: { ICRC1: null } | { EXTFungible: null } | { DIP20: null } | { Other: CandyShared } | { Ledger: null };
   symbol: string;
 }
 export interface LogMessagesData {
@@ -687,7 +713,7 @@ export interface LogMessagesData {
 export type ManageCollectionCommand =
   | { UpdateOwner: Principal }
   | { UpdateManagers: Array<Principal> }
-  | { UpdateMetadata: [string, [] | [CandyValue], boolean] }
+  | { UpdateMetadata: [string, [] | [CandyShared], boolean] }
   | { UpdateAnnounceCanister: [] | [Principal] }
   | { UpdateNetwork: [] | [Principal] }
   | { UpdateSymbol: [] | [string] }
@@ -736,7 +762,7 @@ export interface MarketTransferRequestReponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -744,7 +770,7 @@ export interface MarketTransferRequestReponse {
     | {
         canister_network_updated: {
           network: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -754,7 +780,7 @@ export interface MarketTransferRequestReponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -762,25 +788,32 @@ export interface MarketTransferRequestReponse {
     | {
         canister_managers_updated: {
           managers: Array<Principal>;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         auction_bid: {
           token: TokenSpec;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: string;
         };
       }
-    | { burn: null }
-    | { data: null }
+    | { burn: { from: [] | [Account]; extensible: CandyShared } }
+    | {
+        data: {
+          hash: [] | [Uint8Array | number[]];
+          extensible: CandyShared;
+          data_dapp: [] | [string];
+          data_path: [] | [string];
+        };
+      }
     | {
         sale_ended: {
           token: TokenSpec;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
@@ -791,40 +824,40 @@ export interface MarketTransferRequestReponse {
           to: Account;
           from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
+          receiver: Account;
           sale_id: [] | [string];
         };
       }
-    | { extensible: CandyValue }
+    | { extensible: CandyShared }
     | {
         owner_transfer: {
           to: Account;
           from: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         sale_opened: {
           pricing: PricingConfig;
-          extensible: CandyValue;
+          extensible: CandyShared;
           sale_id: string;
         };
       }
     | {
         canister_owner_updated: {
           owner: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -834,7 +867,7 @@ export interface MarketTransferRequestReponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -844,7 +877,7 @@ export interface MarketTransferRequestReponse {
           fee: bigint;
           token: TokenSpec;
           trx_id: TransactionID;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -867,18 +900,18 @@ export interface NFTBackupChunk {
 }
 export type NFTInfoResult = { ok: NFTInfoStable } | { err: OrigynError };
 export interface NFTInfoStable {
-  metadata: CandyValue;
+  metadata: CandyShared;
   current_sale: [] | [SaleStatusStable];
 }
 export type NFTUpdateRequest =
   | {
       update: {
         token_id: string;
-        update: UpdateRequest;
+        update: UpdateRequestShared;
         app_id: string;
       };
     }
-  | { replace: { token_id: string; data: CandyValue } };
+  | { replace: { token_id: string; data: CandyShared } };
 export type NFTUpdateResponse = boolean;
 export type NFTUpdateResult = { ok: NFTUpdateResponse } | { err: OrigynError };
 export type Nanos = bigint;
@@ -977,10 +1010,10 @@ export interface Nft_Canister {
   set_data_harvester: ActorMethod<[bigint], undefined>;
   set_halt: ActorMethod<[boolean], undefined>;
   share_wallet_nft_origyn: ActorMethod<[ShareWalletRequest], OwnerUpdateResult>;
-  stage_batch_nft_origyn: ActorMethod<[Array<{ metadata: CandyValue }>], Array<OrigynTextResult>>;
+  stage_batch_nft_origyn: ActorMethod<[Array<{ metadata: CandyShared }>], Array<OrigynTextResult>>;
   stage_library_batch_nft_origyn: ActorMethod<[Array<StageChunkArg>], Array<StageLibraryResult>>;
   stage_library_nft_origyn: ActorMethod<[StageChunkArg], StageLibraryResult>;
-  stage_nft_origyn: ActorMethod<[{ metadata: CandyValue }], OrigynTextResult>;
+  stage_nft_origyn: ActorMethod<[{ metadata: CandyShared }], OrigynTextResult>;
   state_size: ActorMethod<[], StateSize>;
   storage_info_nft_origyn: ActorMethod<[], StorageMetricsResult>;
   storage_info_secure_nft_origyn: ActorMethod<[], StorageMetricsResult>;
@@ -993,6 +1026,24 @@ export interface Nft_Canister {
   update_app_nft_origyn: ActorMethod<[NFTUpdateRequest], NFTUpdateResult>;
   wallet_receive: ActorMethod<[], bigint>;
   whoami: ActorMethod<[], Principal>;
+}
+export interface NiftyConfig {
+  fixed: boolean;
+  interestRatePerSecond: number;
+  token: TokenSpec;
+  duration: [] | [bigint];
+  expiration: [] | [bigint];
+  amount: bigint;
+  lenderOffer: boolean;
+}
+export interface NiftyStateStable {
+  status: { closed: null } | { open: null } | { not_started: null };
+  min_bid: bigint;
+  winner: [] | [Account];
+  end_date: bigint;
+  allow_list: [] | [Array<[Principal, boolean]>];
+  current_broker_id: [] | [Principal];
+  config: PricingConfig;
 }
 export interface NumericEntity {
   avg: bigint;
@@ -1012,29 +1063,23 @@ export type OrigynTextResult = { ok: string } | { err: OrigynError };
 export type OwnerOfResponse = { Ok: [] | [Principal] } | { Err: NftError };
 export interface OwnerTransferResponse {
   transaction: TransactionRecord;
-  assets: Array<CandyValue>;
+  assets: Array<CandyShared>;
 }
 export type OwnerUpdateResult = { ok: OwnerTransferResponse } | { err: OrigynError };
 export type PricingConfig =
   | {
       flat: { token: TokenSpec; amount: bigint };
     }
-  | { extensible: { candyClass: null } }
+  | { extensible: CandyShared }
   | { instant: null }
+  | { nifty: NiftyConfig }
   | { auction: AuctionConfig }
-  | {
-      dutch: {
-        start_price: bigint;
-        reserve: [] | [bigint];
-        decay_per_hour: number;
-      };
-    };
-export interface Property {
-  value: CandyValue;
+  | { dutch: DutchConfig };
+export interface PropertyShared {
+  value: CandyShared;
   name: string;
   immutable: boolean;
 }
-
 export interface RejectDescription {
   token: TokenSpec;
   token_id: string;
@@ -1067,7 +1112,7 @@ export type SaleInfoResponse =
 export type SaleInfoResult = { ok: SaleInfoResponse } | { err: OrigynError };
 export interface SaleStatusStable {
   token_id: string;
-  sale_type: { auction: AuctionStateStable };
+  sale_type: { nifty: NiftyStateStable } | { auction: AuctionStateStable } | { dutch: DutchStateStable };
   broker_id: [] | [Principal];
   original_broker_id: [] | [Principal];
   sale_id: string;
@@ -1095,7 +1140,7 @@ export interface StableCollectionData {
   active_bucket: [] | [Principal];
   managers: Array<Principal>;
   owner: Principal;
-  metadata: [] | [CandyValue];
+  metadata: [] | [CandyShared];
   logo: [] | [string];
   name: [] | [string];
   network: [] | [Principal];
@@ -1111,7 +1156,7 @@ export interface StageChunkArg {
   content: Uint8Array | number[];
   token_id: string;
   chunk: bigint;
-  filedata: CandyValue;
+  filedata: CandyShared;
   library_id: string;
 }
 export interface StageLibraryResponse {
@@ -1178,8 +1223,8 @@ export interface TokenMetadata {
   minted_at: bigint;
   minted_by: Principal;
 }
-export type TokenSpec = { ic: ICTokenSpec } | { extensible: CandyValue };
-export type TransactionID = { nat: bigint } | { text: string } | { extensible: CandyValue };
+export type TokenSpec = { ic: ICTokenSpec } | { extensible: CandyShared };
+export type TransactionID = { nat: bigint } | { text: string } | { extensible: CandyShared };
 export interface TransactionRecord {
   token_id: string;
   txn_type:
@@ -1189,7 +1234,7 @@ export interface TransactionRecord {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1197,7 +1242,7 @@ export interface TransactionRecord {
     | {
         canister_network_updated: {
           network: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -1207,7 +1252,7 @@ export interface TransactionRecord {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1215,25 +1260,32 @@ export interface TransactionRecord {
     | {
         canister_managers_updated: {
           managers: Array<Principal>;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         auction_bid: {
           token: TokenSpec;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: string;
         };
       }
-    | { burn: null }
-    | { data: null }
+    | { burn: { from: [] | [Account]; extensible: CandyShared } }
+    | {
+        data: {
+          hash: [] | [Uint8Array | number[]];
+          extensible: CandyShared;
+          data_dapp: [] | [string];
+          data_path: [] | [string];
+        };
+      }
     | {
         sale_ended: {
           token: TokenSpec;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
@@ -1244,40 +1296,40 @@ export interface TransactionRecord {
           to: Account;
           from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
+          receiver: Account;
           sale_id: [] | [string];
         };
       }
-    | { extensible: CandyValue }
+    | { extensible: CandyShared }
     | {
         owner_transfer: {
           to: Account;
           from: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         sale_opened: {
           pricing: PricingConfig;
-          extensible: CandyValue;
+          extensible: CandyShared;
           sale_id: string;
         };
       }
     | {
         canister_owner_updated: {
           owner: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -1287,7 +1339,7 @@ export interface TransactionRecord {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1297,7 +1349,7 @@ export interface TransactionRecord {
           fee: bigint;
           token: TokenSpec;
           trx_id: TransactionID;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1305,15 +1357,15 @@ export interface TransactionRecord {
   timestamp: bigint;
   index: bigint;
 }
-export interface Update {
-  mode: UpdateMode;
-  name: string;
-}
 export type UpdateCallsAggregatedData = BigUint64Array | bigint[];
-export type UpdateMode = { Set: CandyValue } | { Lock: CandyValue } | { Next: Array<Update> };
-export interface UpdateRequest {
+export type UpdateModeShared = { Set: CandyShared } | { Lock: CandyShared } | { Next: Array<UpdateShared> };
+export interface UpdateRequestShared {
   id: string;
-  update: Array<Update>;
+  update: Array<UpdateShared>;
+}
+export interface UpdateShared {
+  mode: UpdateModeShared;
+  name: string;
 }
 export type Vec = Array<
   [
@@ -1360,7 +1412,7 @@ export interface WithdrawResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1368,7 +1420,7 @@ export interface WithdrawResponse {
     | {
         canister_network_updated: {
           network: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -1378,7 +1430,7 @@ export interface WithdrawResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1386,25 +1438,32 @@ export interface WithdrawResponse {
     | {
         canister_managers_updated: {
           managers: Array<Principal>;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         auction_bid: {
           token: TokenSpec;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: string;
         };
       }
-    | { burn: null }
-    | { data: null }
+    | { burn: { from: [] | [Account]; extensible: CandyShared } }
+    | {
+        data: {
+          hash: [] | [Uint8Array | number[]];
+          extensible: CandyShared;
+          data_dapp: [] | [string];
+          data_path: [] | [string];
+        };
+      }
     | {
         sale_ended: {
           token: TokenSpec;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
           sale_id: [] | [string];
@@ -1415,40 +1474,40 @@ export interface WithdrawResponse {
           to: Account;
           from: Account;
           sale: [] | [{ token: TokenSpec; amount: bigint }];
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         royalty_paid: {
           tag: string;
           token: TokenSpec;
-          reciever: Account;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
+          receiver: Account;
           sale_id: [] | [string];
         };
       }
-    | { extensible: CandyValue }
+    | { extensible: CandyShared }
     | {
         owner_transfer: {
           to: Account;
           from: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
         sale_opened: {
           pricing: PricingConfig;
-          extensible: CandyValue;
+          extensible: CandyShared;
           sale_id: string;
         };
       }
     | {
         canister_owner_updated: {
           owner: Principal;
-          extensible: CandyValue;
+          extensible: CandyShared;
         };
       }
     | {
@@ -1458,7 +1517,7 @@ export interface WithdrawResponse {
           token_id: string;
           trx_id: TransactionID;
           seller: Account;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
@@ -1468,7 +1527,7 @@ export interface WithdrawResponse {
           fee: bigint;
           token: TokenSpec;
           trx_id: TransactionID;
-          extensible: CandyValue;
+          extensible: CandyShared;
           buyer: Account;
           amount: bigint;
         };
