@@ -36,7 +36,7 @@ export default ({ IDL }) => {
     amount: ICPTs,
   });
   return IDL.Service({
-    account_balance_dfx: IDL.Func([AccountBalanceArgs], [ICPTs], ["query"]),
+    account_balance_dfx: IDL.Func([AccountBalanceArgs], [ICPTs], ['query']),
     notify_dfx: IDL.Func([NotifyCanisterArgs], [], []),
     send_dfx: IDL.Func([SendArgs], [BlockHeight], []),
   });

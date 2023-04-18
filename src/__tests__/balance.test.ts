@@ -1,7 +1,7 @@
 import { Principal } from '@dfinity/principal';
 import { getNftBalance } from '../index';
 import { OrigynClient } from '../origynClient';
-const ORIGYN_CANISTER_ID = 'mludz-biaaa-aaaal-qbhwa-cai';
+const ORIGYN_CANISTER_ID = 'dytv5-jaaaa-aaaal-qbgtq-cai';
 
 test('expect getNftBalance to return nfts for test principal (from origynClient)', async () => {
   const TEST_WALLET = 'jvdm5-xkwgc-4t2x7-ojmjd-ail2p-6agif-7m6a6-z6eok-oxueq-inzfb-zae';

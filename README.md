@@ -6,9 +6,7 @@ Mint.js is the official JavaScript library for interacting with any Internet Com
 
 ### Compatibility
 
-```
-Mint.js version 1.0.0-alpha.12 is compatible with canisters running version 0.1.3 of the Origyn NFT standard.
-```
+Mint.js version 1.0.0-alpha.14 is compatible with canisters running version 0.1.4 of the Origyn NFT standard.
 
 ### Installation
 

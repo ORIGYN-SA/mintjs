@@ -16,13 +16,13 @@ import {
   LibraryFile,
   Metrics,
   MetadataClass,
-  MetadataProperty,
   StageConfigSettings,
   StageNft,
   LocationType,
-  NatValue,
-  TextValue,
   ChunkUploadResult,
+  TextValue,
+  NatValue,
+  ArrayValue,
 } from './types';
 import { Principal } from '@dfinity/principal';
 import {
@@ -38,11 +38,12 @@ import {
 } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
-import { CandyValue, Property, TransactionRecord } from '../../types/origyn-nft';
+import { CandyShared, NFTInfoStable, PropertyShared, TransactionRecord } from '../../types/origyn-nft';
 
-export const getNft = async (tokenId: string): Promise<OrigynResponse<NftInfoStable, GetNftErrors>> => {
+export const getNft = async (tokenId: string): Promise<OrigynResponse<NFTInfoStable, GetNftErrors>> => {
   try {
     const actor = OrigynClient.getInstance().actor;
+
     const response: any = await actor.nft_origyn(tokenId);
     if (response.ok || response.err) {
       return response;
@@ -107,6 +108,7 @@ export const stageNfts = async (
     return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER, text: e.message } };
   }
 };
+
 export const stageNftUsingMetadata = async (
   metadata: any,
 ): Promise<OrigynResponse<any, GetNftErrors | GetCollectionErrors>> => {
@@ -152,8 +154,9 @@ export const stageNewLibraryAsset = async (
       totalFileSize: 0,
     };
 
-    const nftLibrariesArray = nftInfo?.ok?.metadata?.Class?.find((item) => item.name === 'library')?.value?.Array
-      ?.thawed;
+    const nftLibrariesArray = (
+      (nftInfo?.ok?.metadata as MetadataClass)?.Class?.find((item) => item.name === 'library')?.value as ArrayValue
+    )?.Array as MetadataClass[];
 
     const lastSortValue =
       nftLibrariesArray.reduce((previous: number, library: any) => {
@@ -333,7 +336,7 @@ const buildLibraryMetadata = async (
     maxSort = BigInt(nftLibraries.length + 1);
   }
 
-  const attribs: MetadataProperty[] = [];
+  const attribs: PropertyShared[] = [];
 
   attribs.push(createTextAttrib('library_id', libraryId, false));
   if (file.title) {
@@ -360,11 +363,11 @@ export const setLibraryImmutable = async (
   tokenId: string,
   libraryId: string,
   metadataOnly = true,
-): Promise<OrigynResponse<undefined, StageLibraryAssetErrors>> => {
+): Promise<MetadataClass | OrigynResponse<undefined, StageLibraryAssetErrors>> => {
   try {
     const { actor } = OrigynClient.getInstance();
-    const library = await getNftLibrary(tokenId, libraryId);
-    const immutableNode: MetadataProperty = createBoolAttrib('com.origyn.immutable_library', true, true);
+    const library: MetadataClass = (await getNftLibrary(tokenId, libraryId)) || { Class: [] };
+    const immutableNode: PropertyShared = createBoolAttrib('com.origyn.immutable_library', true, true);
 
     // set all immutable to true
     for (const item of library.Class) {
@@ -507,12 +510,13 @@ export const updateLibraryMetadata = async (
   try {
     const { actor } = OrigynClient.getInstance();
     const library = await getNftLibrary(tokenId, libraryId);
+
     for (const [key, value] of Object.entries(data)) {
-      const property: MetadataProperty | undefined = library.Class.find(({ name }) => name === key);
+      const property: PropertyShared | undefined = library?.Class.find(({ name }) => name === key);
       if (property) {
         property.value = toCandyValue(value);
       } else {
-        library.Class.push({ name: key, value: toCandyValue(value), immutable: false } as MetadataProperty);
+        library?.Class.push({ name: key, value: toCandyValue(value), immutable: false } as PropertyShared);
       }
     }
     if (!metadataOnly) {
@@ -521,7 +525,7 @@ export const updateLibraryMetadata = async (
       const result: ChunkUploadResult = await actor.stage_library_nft_origyn({
         token_id: tokenId,
         library_id: libraryId,
-        filedata: library,
+        filedata: library as CandyShared,
         chunk: BigInt(0),
         content: [],
       });
@@ -536,6 +540,7 @@ export const updateLibraryMetadata = async (
     return { err: { error_code: StageLibraryAssetErrors.ERROR_WHILE_UPDATING_METADATA, text: err?.message || err } };
   }
 };
+
 // TODO: Error handling
 export const updateLibraryFileContent = async (tokenId: string, libraryId: string, file: StageFile) => {
   try {
@@ -550,13 +555,13 @@ export const updateLibraryFileContent = async (tokenId: string, libraryId: strin
     const metadata = await updateLibraryMetadata(tokenId, libraryId, propertiesToUpdate, false);
 
     // Get the filename of the old file
-    const filename = metadata.Class.find(({ name }) => name === 'library_id').value.Text;
+    const filename = (metadata as any)?.Class.find(({ name }) => name === 'library_id').value.Text;
 
     // Delete the old Library
     const deleteResult = await deleteLibraryAsset(tokenId, libraryId);
 
     // Stage the new library (metadata = from old one + size, content changed)
-    const files = [{ ...file, filename, metadata }];
+    const files = [{ ...file, filename, metadata }] as unknown as StageFile[];
     const updateFileContent = await stageLibraryAsset(files, tokenId);
     if (updateFileContent.err) {
       return {
@@ -649,20 +654,24 @@ export const getNftHistory = async (
 };
 
 // TODO: Add error handling and response type
-export const getNftLibraries = async (tokenId: string) => {
+export const getNftLibraries = async (tokenId: string): Promise<MetadataClass[]> => {
   const nft = await getNft(tokenId);
   if (!nft?.ok) return [];
 
-  const library = nft.ok.metadata?.Class?.find((item) => item.name === 'library')?.value?.Array.thawed;
+  const library = (
+    (nft.ok.metadata as MetadataClass)?.Class?.find((item) => item.name === 'library')?.value as {
+      Array: CandyShared[];
+    }
+  )?.Array as MetadataClass[];
   if (!library) return [];
   return library;
 };
 
-export const getNftLibrary = async (tokenId: string, libraryId: string) => {
+export const getNftLibrary = async (tokenId: string, libraryId: string): Promise<MetadataClass | undefined> => {
   const libraries = await getNftLibraries(tokenId);
 
   return libraries.find(({ Class }) =>
-    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+    Class.find((prop) => prop.name === 'library_id' && (prop.value as TextValue).Text === libraryId),
   );
 };
 
@@ -670,6 +679,7 @@ export enum GetNftErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
 }
+
 export enum StageLibraryAssetErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
@@ -679,10 +689,6 @@ export enum StageLibraryAssetErrors {
   ERROR_WHILE_UPDATING_METADATA,
 }
 
-type NftInfoStable = {
-  metadata: any;
-  current_sale?: any;
-};
 type StageNftsArgs = {
   nfts: StageNft[];
   useProxy?: boolean;

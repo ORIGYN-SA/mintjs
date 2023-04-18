@@ -3,6 +3,7 @@ import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
 import { getNftLibraries } from './nft/nft';
 import { CollectionInfo } from '../types';
+import { TextValue } from './nft/types';
 
 export const getNftCollectionMeta = async (
   arg?: any[],
@@ -86,7 +87,7 @@ export const getCollectionLibrary = async (libraryId: string) => {
   const libraries = await getCollectionLibraries();
 
   return libraries.find(({ Class }) =>
-    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+    Class.find((prop) => prop.name === 'library_id' && (prop.value as TextValue).Text === libraryId),
   );
 };
 

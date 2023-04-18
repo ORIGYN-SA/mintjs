@@ -1,3 +1,5 @@
+import { CandyShared, PropertyShared } from '../../types';
+
 export type LibraryFile = {
   library_id: string;
   library_file: StageFile;
@@ -9,14 +11,17 @@ export type AssetType = 'primary' | 'hidden' | 'experience' | 'preview';
 export type Metrics = {
   totalFileSize: number;
 };
+
 export type CollectionLevelFile = StageFile & {
   category: 'collection' | 'stage' | 'dapp';
 };
+
 export type StageNft = {
   collectionFileReferences?: string[];
   files: StageFile[];
   quantity?: number;
 };
+
 export type StageFile = {
   assetType?: AssetType;
   filename: string;
@@ -40,6 +45,7 @@ export type StageFile = {
   isNewLibrary?: boolean;
   metadata?: MetadataClass;
 };
+
 export type StageConfigArgs = {
   environment?: string;
   collectionId: string;
@@ -54,6 +60,7 @@ export type StageConfigArgs = {
   soulbound?: boolean;
   startNftIndex?: number;
 };
+
 export type StageConfigData = {
   settings: StageConfigSettings;
   summary: StageConfigSummary;
@@ -67,12 +74,14 @@ export type StageConfigSummary = {
   totalNftDefinitionCount: number;
   totalNftCount: number;
 };
+
 export type StageConfigSettings = {
   args: StageConfigArgs;
   fileMap: FileInfoMap;
   collectionLibraries: LibraryFile[];
   totalFileSize: number;
 };
+
 export type FileInfo = {
   title: string;
   libraryId: string;
@@ -96,22 +105,12 @@ export type BoolValue = {
   Bool: boolean;
 };
 
-export type PrincipalValue = {
-  Principal: string;
-};
-
-export type ThawedArrayValue = {
-  Array: { thawed: MetadataClass[] | PrincipalValue[] };
-};
-
-export type MetadataProperty = {
-  name: string;
-  value: TextValue | NatValue | BoolValue | PrincipalValue | ThawedArrayValue | MetadataClass;
-  immutable: boolean;
+export type ArrayValue = {
+  Array: CandyShared[];
 };
 
 export type MetadataClass = {
-  Class: MetadataProperty[];
+  Class: PropertyShared[];
 };
 
 export type Meta = {
