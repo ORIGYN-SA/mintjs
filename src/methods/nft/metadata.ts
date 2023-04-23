@@ -266,7 +266,7 @@ export const createAppsAttribute = (settings: StageConfigSettings): PropertyShar
                     value: {
                       Array: [
                         {
-                          Principal: Principal.fromText(settings.args.creatorPrincipal),
+                          Principal: Principal.fromText(settings.args.collectionOwnerId),
                         },
                       ],
                     },
@@ -290,7 +290,7 @@ export const createAppsAttribute = (settings: StageConfigSettings): PropertyShar
                     value: {
                       Array: [
                         {
-                          Principal: Principal.fromText(settings.args.creatorPrincipal),
+                          Principal: Principal.fromText(settings.args.collectionOwnerId),
                         },
                       ],
                     },
@@ -332,7 +332,7 @@ export const createAppsAttribute = (settings: StageConfigSettings): PropertyShar
                   {
                     name: `creator_principal`,
                     value: {
-                      Principal: Principal.fromText(settings.args.creatorPrincipal),
+                      Principal: Principal.fromText(settings.args.collectionOwnerId),
                     },
                     immutable: false,
                   },

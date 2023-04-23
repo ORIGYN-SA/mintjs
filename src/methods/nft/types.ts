@@ -51,7 +51,7 @@ export type StageConfigArgs = {
   collectionId: string;
   collectionDisplayName: string;
   tokenPrefix: string;
-  creatorPrincipal: string;
+  collectionOwnerId: string;
   nftCanisterId: string;
   collectionFiles: CollectionLevelFile[];
   nfts: StageNft[];

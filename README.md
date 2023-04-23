@@ -10,6 +10,7 @@ Each release of Mint.js is compatible with a specific version of the Origyn NFT 
 
 | Mint.js Version | Origyn NFT Version |
 | --------------- | ------------------ |
+| 0.1.0           | 0.1.4              |
 | 1.0.0-alpha.14  | 0.1.4              |
 | 1.0.0-alpha.13  | 0.1.3              |
 
@@ -380,31 +381,29 @@ const stage_asset = await stageLibraryAsset(payload.files, payload.tokenId);
 {
   "name": "library",
   "value": {
-    "Array": {
-      "thawed": [
-        {
-          "Class": [
-            {
-              "name": "library_id",
-              "value": {
-                "Text": "file_name.jpg"
-              },
-              "immutable": true
+    "Array": [
+      {
+        "Class": [
+          {
+            "name": "library_id",
+            "value": {
+              "Text": "file_name.jpg"
             },
-            {
-              "name": "title",
-              "value": {
-                "Text": "File Name Image"
-              },
-              "immutable": true
+            "immutable": true
+          },
+          {
+            "name": "title",
+            "value": {
+              "Text": "File Name Image"
             },
-            .
-            .
-            .
-          ]
-        }
-      ]
-    }
+            "immutable": true
+          },
+          .
+          .
+          .
+        ]
+      }
+    ]
   },
 }
 ```
@@ -436,84 +435,82 @@ const stage_asset = await stageCollectionLibraryAsset(payload.tokenId, payload.f
 {
   "name": "library",
   "value": {
-    "Array": {
-      "thawed": [
-        {
-          "Class": [
-            {
-              "name": "library_id",
-              "value": {
-                "Text": "shared_file.png"
-              },
-              "immutable": false
+    "Array": [
+      {
+        "Class": [
+          {
+            "name": "library_id",
+            "value": {
+              "Text": "shared_file.png"
             },
-            {
-              "name": "title",
-              "value": {
-                "Text": "A reference to my collection-level shared file"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "title",
+            "value": {
+              "Text": "A reference to my collection-level shared file"
             },
-            {
-              "name": "location_type",
-              "value": {
-                "Text": "collection"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "location_type",
+            "value": {
+              "Text": "collection"
             },
-            {
-              "name": "location",
-              "value": {
-                "Text": "collection/-/shared_file.png"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "location",
+            "value": {
+              "Text": "collection/-/shared_file.png"
             },
-            {
-              "name": "content_type",
-              "value": {
-                "Text": "image/png"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "content_type",
+            "value": {
+              "Text": "image/png"
             },
-            {
-              "name": "content_hash",
-              "value": {
-                "Text": "4b56b5f3526ccf851a7130f1b83d6412bc33644e79b84810a5c23c00ca75ff9d"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "content_hash",
+            "value": {
+              "Text": "4b56b5f3526ccf851a7130f1b83d6412bc33644e79b84810a5c23c00ca75ff9d"
             },
-            {
-              "name": "size",
-              "value": {
-                "Nat": "0"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "size",
+            "value": {
+              "Nat": "0"
             },
-            {
-              "name": "sort",
-              "value": {
-                "Nat": "4"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "sort",
+            "value": {
+              "Nat": "4"
             },
-            {
-              "name": "read",
-              "value": {
-                "Text": "public"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "read",
+            "value": {
+              "Text": "public"
             },
-            {
-              "name": "com.origyn.immutable_library",
-              "value": {
-                "Bool": true
-              },
-              "immutable": true
-            }
-          ]
-        }
-      ]
-    }
+            "immutable": false
+          },
+          {
+            "name": "com.origyn.immutable_library",
+            "value": {
+              "Bool": true
+            },
+            "immutable": true
+          }
+        ]
+      }
+    ]
   },
   "immutable": false
 }
@@ -547,77 +544,75 @@ const stage_asset = await stageWebLibraryAsset(payload.tokenId, payload.files);
 {
   "name": "library",
   "value": {
-    "Array": {
-      "thawed": [
-        {
-          "Class": [
-            {
-              "name": "library_id",
-              "value": {
-                "Text": "origyn-dev-talk-1"
-              },
-              "immutable": false
+    "Array": [
+      {
+        "Class": [
+          {
+            "name": "library_id",
+            "value": {
+              "Text": "origyn-dev-talk-1"
             },
-            {
-              "name": "title",
-              "value": {
-                "Text": "Origyn Developer Talk #1"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "title",
+            "value": {
+              "Text": "Origyn Developer Talk #1"
             },
-            {
-              "name": "location_type",
-              "value": {
-                "Text": "web"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "location_type",
+            "value": {
+              "Text": "web"
             },
-            {
-              "name": "location",
-              "value": {
-                "Text": "https://www.youtube.com/watch?v=JlLdwoCDUL8"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "location",
+            "value": {
+              "Text": "https://www.youtube.com/watch?v=JlLdwoCDUL8"
             },
-            {
-              "name": "content_type",
-              "value": {
-                "Text": "text/html"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "content_type",
+            "value": {
+              "Text": "text/html"
             },
-            {
-              "name": "size",
-              "value": {
-                "Nat": "0"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "size",
+            "value": {
+              "Nat": "0"
             },
-            {
-              "name": "sort",
-              "value": {
-                "Nat": "5"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "sort",
+            "value": {
+              "Nat": "5"
             },
-            {
-              "name": "read",
-              "value": {
-                "Text": "public"
-              },
-              "immutable": false
+            "immutable": false
+          },
+          {
+            "name": "read",
+            "value": {
+              "Text": "public"
             },
-            {
-              "name": "com.origyn.immutable_library",
-              "value": {
-                "Bool": true
-              },
-              "immutable": true
-            }
-          ]
-        }
-      ]
-    }
+            "immutable": false
+          },
+          {
+            "name": "com.origyn.immutable_library",
+            "value": {
+              "Bool": true
+            },
+            "immutable": true
+          }
+        ]
+      }
+    ]
   },
   "immutable": false
 }
