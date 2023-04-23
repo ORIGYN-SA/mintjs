@@ -78,24 +78,21 @@ export const stageNfts = async (
       return collectionInfo;
     }
 
-    const creatorPrincipal =
-      collectionInfo.ok?.creator.principal instanceof Principal
-        ? collectionInfo.ok?.creator.principal.toText()
-        : collectionInfo.ok?.creator.principal ?? '';
+    const owner = collectionInfo.ok?.owner ?? '';
 
     const stageConfigArgs: StageConfigArgs = {
-      collectionDisplayName: collectionInfo.ok?.name ?? '',
+      collectionDisplayName: collectionInfo.ok?.displayName ?? '',
       collectionFiles: [],
-      collectionId: collectionInfo.ok?.name ?? '',
-      creatorPrincipal,
+      collectionId: collectionInfo.ok?.displayName ?? '',
+      collectionOwnerId: owner,
       environment: 'local',
       nftCanisterId: OrigynClient.getInstance().canisterId,
-      nftOwnerId: creatorPrincipal,
+      nftOwnerId: owner,
       nfts: args.nfts,
       soulbound: args.soulbound ?? true,
       tokenPrefix: `${collectionInfo.ok?.id}-`,
       useProxy: args.useProxy ?? true,
-      startNftIndex: Number(collectionInfo.ok?.lastNftIndex ?? -1) + 1,
+      startNftIndex: Number(args.startNftIndex ?? 0),
     };
     const stageConfig = await buildStageConfig(stageConfigArgs);
     const response = await stage(stageConfig, true);
@@ -141,7 +138,7 @@ export const stageNewLibraryAsset = async (
       return nftInfo;
     }
 
-    const { name } = collectionInfo.ok!;
+    const { displayName: name } = collectionInfo.ok!;
 
     const settings: StageConfigSettings = {
       // @ts-ignore
@@ -693,4 +690,5 @@ type StageNftsArgs = {
   nfts: StageNft[];
   useProxy?: boolean;
   soulbound?: boolean;
+  startNftIndex?: number;
 };
