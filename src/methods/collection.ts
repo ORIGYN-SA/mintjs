@@ -56,7 +56,7 @@ export const getNftCollectionInfo = async (
       owner: collectionOwner,
       description: collectionDescription,
       id: collectionId,
-      displayName: displayName,
+      displayName,
       network: collectionMeta?.ok?.network?.[0]?.toText() ?? '',
       read: readField,
       tokens: collectionMeta?.ok?.token_ids?.[0] ?? [],
