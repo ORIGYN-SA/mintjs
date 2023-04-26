@@ -4,7 +4,7 @@ import { Principal } from '@dfinity/principal';
 import { getIdl, IdlStandard } from '../../idls';
 import { idlFactory } from '../../idls/origyn-nft.did';
 import { OrigynNftActor, PrivateIdentityKey } from '../../types/methods';
-import { FETCH } from '../../utils/constants';
+import fetch from 'isomorphic-fetch';
 import { getIdentity } from './identity';
 
 const plugActor = async (canisterId: string, standard: IdlStandard) => {
@@ -14,7 +14,7 @@ const plugActor = async (canisterId: string, standard: IdlStandard) => {
 
   await window.ic.plug.createAgent({
     whitelist: [canisterId],
-    host: 'https://boundary.ic0.app',
+    host: 'https://icp-api.io',
   });
 
   const actor = await window.ic.plug.createActor({
@@ -34,7 +34,7 @@ const iiActor = async (canisterId: string, standard: IdlStandard) => {
 
   const airdropAgent = new HttpAgent({
     identity,
-    host: 'https://boundary.ic0.app/',
+    host: 'https://icp-api.io/',
   });
 
   const actor = Actor.createActor(getIdl(standard), {
@@ -61,7 +61,7 @@ export const getActor = async (
 ): Promise<[OrigynNftActor, HttpAgent]> => {
   const identity = await getIdentity(privateIdentityKey);
 
-  const agent = getAgent(isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000', identity);
+  const agent = getAgent(isProd ? 'https://icp-api.io' : 'http://localhost:8000', identity);
 
   if (!isProd) {
     agent.fetchRootKey();
@@ -77,7 +77,7 @@ export const getActor = async (
 
 function getAgent(host: string, identity: Identity | Promise<Identity>) {
   return new HttpAgent({
-    fetch: FETCH,
+    fetch,
     host,
     identity,
   });

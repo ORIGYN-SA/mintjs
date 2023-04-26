@@ -5,17 +5,11 @@ import { getNftLibraries } from './nft/nft';
 import { CollectionInfo } from '../types';
 import { TextValue } from './nft/types';
 
-export const getNftCollectionMeta = async (
-  arg?: any[],
-): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
+export const getNftCollectionMeta = async (): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
   try {
-    // TODO: make sense out of this type
-    // collection_nft_origyn(fields : ?[(Text,?Nat, ?Nat)])
-    const fields = arg as [[string, [] | [bigint], [] | [bigint]][]];
-
     const actor = OrigynClient.getInstance().actor;
+    const response = await actor.collection_nft_origyn([]);
 
-    const response = await actor.collection_nft_origyn(fields ?? [[]]);
     if ('ok' in response || 'err' in response) {
       return response;
     } else {
