@@ -10,6 +10,7 @@ Each release of Mint.js is compatible with a specific version of the Origyn NFT 
 
 | Mint.js Version | Origyn NFT Version |
 | --------------- | ------------------ |
+| 0.1.1           | 0.1.4              |
 | 0.1.0           | 0.1.4              |
 | 1.0.0-alpha.14  | 0.1.4              |
 | 1.0.0-alpha.13  | 0.1.3              |
@@ -28,6 +29,8 @@ npm run build
 ```
 
 ### Run Unit Test
+
+Requires Node version 18 or higher.
 
 ```
 npm run test

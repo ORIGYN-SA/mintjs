@@ -1,19 +1,20 @@
 import { Principal } from '@dfinity/principal';
 import { Actor, HttpAgent, Identity } from '@dfinity/agent';
 import { idlFactory } from './idls/origyn-nft.did';
-import { FETCH, IC_HOST } from './utils/constants';
+import { IC_HOST } from './utils/constants';
+import fetch from 'isomorphic-fetch';
 import { PrivateIdentityKey, OrigynNftActor } from './types/methods';
 import { getActor } from './methods/wallet/actor';
 import { getIdentity } from './methods/wallet/identity';
 import { error, warn } from './utils/log';
 
 export const DEFAULT_AGENT = new HttpAgent({
-  fetch: FETCH,
+  fetch,
   host: IC_HOST,
 });
 
 export const DEFAULT_LOCAL_AGENT = new HttpAgent({
-  fetch: FETCH,
+  fetch,
   host: 'http://localhost:8000',
 });
 
@@ -70,8 +71,8 @@ export class OrigynClient {
     } else if (auth?.identity) {
       agent = new HttpAgent({
         identity: auth.identity,
-        host: isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000',
-        fetch: FETCH,
+        host: isProd ? 'https://icp-api.io' : 'http://localhost:8000',
+        fetch,
       });
       this._actor = Actor.createActor(idlFactory, {
         canisterId: this._canisterId,

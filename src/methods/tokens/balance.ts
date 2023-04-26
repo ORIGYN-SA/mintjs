@@ -1,7 +1,7 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { IdlStandard, getIdl } from '../../idls';
-import { FETCH } from '../../utils/constants';
+import fetch from 'isomorphic-fetch';
 import { getAccountId } from './../../utils/principalToAccountId';
 import { Token } from './types';
 
@@ -18,8 +18,8 @@ type BalanceResponse = {
 };
 
 const agent = new HttpAgent({
-  host: 'https://boundary.ic0.app/',
-  fetch: FETCH,
+  host: 'https://icp-api.io/',
+  fetch,
 });
 
 export const icpMethod = async (principal: Principal): Promise<BalanceResponse> => {

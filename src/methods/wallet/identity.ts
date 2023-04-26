@@ -1,5 +1,6 @@
 import hdkey from 'hdkey';
-import { Secp256k1KeyIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
+import { Ed25519KeyIdentity } from '@dfinity/identity';
+import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
 import { mnemonicToSeed } from 'bip39';
 import { PrivateIdentityKey } from '../../types/methods';
 import { IS_NODE_CONTEXT } from '../../utils/constants';
