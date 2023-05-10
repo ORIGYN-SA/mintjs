@@ -1,19 +1,19 @@
-import { IS_NODE_CONTEXT } from './../../utils/constants';
-import { getFileHash } from '../../utils';
-import { IMMUTABLE } from '../../utils/constants';
+import { Principal } from '@dfinity/principal';
+import { lookup } from 'mrmime';
+import { CandyShared, PropertyShared } from '../../types';
 import {
+  ArrayValue,
   CollectionLevelFile,
   LibraryFile,
   Meta,
   MetadataClass,
-  MetadataProperty,
   NatValue,
   StageConfigSettings,
   StageFile,
   TextValue,
-  ThawedArrayValue,
 } from './types';
-import { lookup } from 'mrmime';
+import { getFileHash } from '../../utils';
+import { IMMUTABLE } from '../../utils/constants';
 
 export const configureCollectionMetadata = (settings: StageConfigSettings): Meta => {
   const resources: MetadataClass[] = [];
@@ -41,7 +41,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
 
   // Creates metadata representing a collection
 
-  const properties: MetadataProperty[] = [];
+  const properties: PropertyShared[] = [];
   const immutable = true;
 
   // The id for a collection is an empty string
@@ -68,7 +68,7 @@ export const configureCollectionMetadata = (settings: StageConfigSettings): Meta
   properties.push({
     name: 'library',
     value: {
-      Array: { thawed: [...resourceReferences] },
+      Array: [...resourceReferences],
     },
     immutable: false, // TODO: replace with arg
   });
@@ -137,7 +137,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
 
   // Creates metadata representing a single NFT
 
-  const properties: MetadataProperty[] = [];
+  const properties: PropertyShared[] = [];
   const immutable = true;
 
   properties.push(createTextAttrib('id', tokenId, immutable));
@@ -160,7 +160,7 @@ export const configureNftMetadata = (settings: StageConfigSettings, nftIndex: nu
   properties.push({
     name: 'library',
     value: {
-      Array: { thawed: [...resourceRefs] },
+      Array: [...resourceRefs],
     },
     immutable: false,
   });
@@ -211,7 +211,7 @@ export const createLibrary = (settings: StageConfigSettings, file: StageFile): L
   };
 };
 
-export const createTextAttrib = (name: string, value: string, immutable: boolean): MetadataProperty => {
+export const createTextAttrib = (name: string, value: string, immutable: boolean): PropertyShared => {
   return {
     name,
     value: { Text: value },
@@ -219,7 +219,7 @@ export const createTextAttrib = (name: string, value: string, immutable: boolean
   };
 };
 
-export const createBoolAttrib = (name: string, value: boolean, immutable: boolean): MetadataProperty => {
+export const createBoolAttrib = (name: string, value: boolean, immutable: boolean): PropertyShared => {
   return {
     name,
     value: { Bool: value },
@@ -227,7 +227,7 @@ export const createBoolAttrib = (name: string, value: boolean, immutable: boolea
   };
 };
 
-export const createNatAttrib = (name: string, value: bigint, immutable: boolean): MetadataProperty => {
+export const createNatAttrib = (name: string, value: bigint, immutable: boolean): PropertyShared => {
   return {
     name,
     value: { Nat: value },
@@ -235,120 +235,114 @@ export const createNatAttrib = (name: string, value: bigint, immutable: boolean)
   };
 };
 
-export const createAppsAttribute = (settings: StageConfigSettings): MetadataProperty => {
+export const createAppsAttribute = (settings: StageConfigSettings): PropertyShared => {
   return {
     name: '__apps',
     value: {
-      Array: {
-        thawed: [
-          {
-            Class: [
-              {
-                name: 'app_id',
-                value: { Text: 'com.origyn.mintjs' },
-                immutable: false,
-              },
-              {
-                name: 'read',
-                value: { Text: 'public' },
-                immutable: false,
-              },
-              {
-                name: 'write',
-                value: {
-                  Class: [
-                    {
-                      name: 'type',
-                      value: { Text: 'allow' },
-                      immutable: false,
-                    },
-                    {
-                      name: 'list',
-                      value: {
-                        Array: {
-                          thawed: [
-                            {
-                              Principal: settings.args.creatorPrincipal,
-                            },
-                          ],
+      Array: [
+        {
+          Class: [
+            {
+              name: 'app_id',
+              value: { Text: 'com.origyn.mintjs' },
+              immutable: false,
+            },
+            {
+              name: 'read',
+              value: { Text: 'public' },
+              immutable: false,
+            },
+            {
+              name: 'write',
+              value: {
+                Class: [
+                  {
+                    name: 'type',
+                    value: { Text: 'allow' },
+                    immutable: false,
+                  },
+                  {
+                    name: 'list',
+                    value: {
+                      Array: [
+                        {
+                          Principal: Principal.fromText(settings.args.collectionOwnerId),
                         },
-                      },
-                      immutable: false,
+                      ],
                     },
-                  ],
-                },
-                immutable: false,
+                    immutable: false,
+                  },
+                ],
               },
-              {
-                name: 'permissions',
-                value: {
-                  Class: [
-                    {
-                      name: 'type',
-                      value: { Text: 'allow' },
-                      immutable: false,
-                    },
-                    {
-                      name: 'list',
-                      value: {
-                        Array: {
-                          thawed: [
-                            {
-                              Principal: settings.args.creatorPrincipal,
-                            },
-                          ],
+              immutable: false,
+            },
+            {
+              name: 'permissions',
+              value: {
+                Class: [
+                  {
+                    name: 'type',
+                    value: { Text: 'allow' },
+                    immutable: false,
+                  },
+                  {
+                    name: 'list',
+                    value: {
+                      Array: [
+                        {
+                          Principal: Principal.fromText(settings.args.collectionOwnerId),
                         },
-                      },
-                      immutable: false,
+                      ],
                     },
-                  ],
-                },
-                immutable: false,
+                    immutable: false,
+                  },
+                ],
               },
-              {
-                name: 'data',
-                value: {
-                  Class: [
-                    {
-                      name: `name`,
-                      value: {
-                        Text: settings.args.collectionDisplayName,
-                      },
-                      immutable: false,
+              immutable: false,
+            },
+            {
+              name: 'data',
+              value: {
+                Class: [
+                  {
+                    name: `name`,
+                    value: {
+                      Text: settings.args.collectionDisplayName,
                     },
-                    {
-                      name: `total_in_collection`,
-                      value: {
-                        Nat: BigInt(
-                          settings.args.nfts.reduce((acumulator, nft) => {
-                            return acumulator + (nft?.quantity ?? 1);
-                          }, 0),
-                        ),
-                      },
-                      immutable: false,
+                    immutable: false,
+                  },
+                  {
+                    name: `total_in_collection`,
+                    value: {
+                      Nat: BigInt(
+                        settings.args.nfts.reduce((acumulator, nft) => {
+                          return acumulator + (nft?.quantity ?? 1);
+                        }, 0),
+                      ),
                     },
-                    {
-                      name: `collectionid`,
-                      value: {
-                        Text: settings.args.collectionId,
-                      },
-                      immutable: false,
+                    immutable: false,
+                  },
+                  {
+                    name: `collectionid`,
+                    value: {
+                      Text: settings.args.collectionId,
                     },
-                    {
-                      name: `creator_principal`,
-                      value: {
-                        Principal: settings.args.creatorPrincipal,
-                      },
-                      immutable: false,
+                    immutable: false,
+                  },
+                  {
+                    name: `creator_principal`,
+                    value: {
+                      Principal: Principal.fromText(settings.args.collectionOwnerId),
                     },
-                  ],
-                },
-                immutable: false,
+                    immutable: false,
+                  },
+                ],
               },
-            ],
-          },
-        ],
-      },
+              immutable: false,
+            },
+          ],
+        },
+      ],
     },
     immutable: false,
   };
@@ -413,8 +407,7 @@ export const createClassesForResourceReferences = (
 };
 
 export function getLibraries(nftOrColl: MetadataClass): MetadataClass[] {
-  const libraries = (nftOrColl.Class.find((c) => c.name === 'library')?.value as ThawedArrayValue)?.Array
-    .thawed as MetadataClass[];
+  const libraries = (nftOrColl.Class.find((c) => c.name === 'library')?.value as ArrayValue)?.Array as MetadataClass[];
 
   return libraries;
 }
@@ -431,11 +424,11 @@ export function getClassByTextAttribute(
   return libraryMetadata;
 }
 
-export function getAttribute(nftOrColl: MetadataClass, name: string): MetadataProperty | undefined {
+export function getAttribute(nftOrColl: MetadataClass, name: string): PropertyShared | undefined {
   return nftOrColl?.Class?.find((a) => a?.name === name);
 }
 
-export function toCandyValue(payload: string | number | boolean) {
+export function toCandyValue(payload: string | number | boolean): CandyShared {
   switch (typeof payload) {
     case 'number':
       return { Nat: BigInt(payload) };
