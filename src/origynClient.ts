@@ -1,21 +1,23 @@
 import { Principal } from '@dfinity/principal';
-import { Actor, HttpAgent, Identity, ActorSubclass } from '@dfinity/agent';
-import origynIdl from './idls/origyn-nft.did';
-import { FETCH, IC_HOST } from './utils/constants';
-import { PrivateIdentityKey, OrigynNftActor } from './types/methods';
-import { getActor } from './methods/wallet/actor';
-import { getIdentity } from './methods/wallet/identity';
-import { error, warn } from './utils/log';
+import { Actor, HttpAgent, Identity } from '@dfinity/agent';
+import { idlFactory } from './idls/origyn-nft.did';
+import { PrivateIdentityKey } from './types/methods';
+import { OrigynNftCanister } from './types';
+import { ActorOptions, IdentitySecret, getActor, getIdentity } from '@origyn/actor-reference';
+import { OrigynNftActor } from './types/methods';
 
-export const DEFAULT_AGENT = new HttpAgent({
-  fetch: FETCH,
-  host: IC_HOST,
-});
-
-export const DEFAULT_LOCAL_AGENT = new HttpAgent({
-  fetch: FETCH,
-  host: 'http://localhost:8000',
-});
+const getSecret = (key: PrivateIdentityKey): IdentitySecret | undefined => {
+  if (key.seed) {
+    return { seed: key.seed };
+  } else if (key.identityFile) {
+    if (typeof key.identityFile === 'string') {
+      return { pem: key.identityFile };
+    } else if (Buffer.isBuffer(key.identityFile)) {
+      return { pemBuffer: key.identityFile };
+    }
+  }
+  return undefined;
+};
 
 export class OrigynClient {
   private static _instance: OrigynClient;
@@ -37,10 +39,7 @@ export class OrigynClient {
 
   public get actor() {
     if (!this._actor) {
-      this._actor = Actor.createActor(origynIdl, {
-        canisterId: this._canisterId,
-        agent: DEFAULT_AGENT,
-      });
+      throw new Error('Origyn client not initialized');
     }
     return this._actor;
   }
@@ -59,36 +58,34 @@ export class OrigynClient {
 
   public init = async (isProd: boolean = true, canisterId?: string, auth?: AuthType): Promise<void> => {
     this._isMainNet = isProd;
-    let agent = auth?.agent ?? isProd ? DEFAULT_AGENT : DEFAULT_LOCAL_AGENT;
-    if (canisterId) this._canisterId = canisterId;
+
+    if (canisterId) {
+      this._canisterId = canisterId;
+    }
 
     if (auth?.actor) {
       this._actor = auth.actor;
-    } else if (auth?.key) {
-      [this._actor, agent] = await getActor(isProd, auth.key, this._canisterId);
-      this._principal = (await getIdentity(auth.key)).getPrincipal();
-    } else if (auth?.identity) {
-      agent = new HttpAgent({
-        identity: auth.identity,
-        host: isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000',
-        fetch: FETCH,
-      });
-      this._actor = Actor.createActor(origynIdl, {
-        canisterId: this._canisterId,
-        agent,
-      });
     } else {
-      this._actor = Actor.createActor(origynIdl, {
+      const options: ActorOptions<OrigynNftCanister> = {
         canisterId: this._canisterId,
-        agent,
-      });
+        idlFactory,
+        isLocal: !isProd,
+      };
+
+      if (auth?.key) {
+        const secret = getSecret(auth.key);
+        if (secret) {
+          options.identity = await getIdentity(secret);
+        }
+      } else if (auth?.identity) {
+        options.identity = auth.identity;
+      }
+
+      this._actor = await getActor<OrigynNftCanister>(options);
     }
 
-    if (!isProd) {
-      agent.fetchRootKey().catch((err) => {
-        warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        error(err);
-      });
+    if (!this._principal) {
+      this._principal = auth?.identity?.getPrincipal() || (await Actor.agentOf(this._actor as Actor)?.getPrincipal());
     }
   };
 

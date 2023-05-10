@@ -1,7 +1,8 @@
-import { ActorMethod, ActorSubclass } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
-import { OrigynError } from './origyn-nft';
-import { OrigynNftCanister } from './origyn-nft';
+import { ActorSubclass } from '@dfinity/agent';
+import { OrigynError, OrigynNftCanister } from './origyn-nft';
+
+export type OrigynNftActor = ActorSubclass<OrigynNftCanister>;
 
 export type KnownError<T> = {
   error_code: T;
@@ -201,10 +202,6 @@ export type IcTokenType = {
   };
   symbol: string;
 };
-
-export type AnyActor = ActorSubclass<Record<string, ActorMethod<unknown[], unknown>>>;
-
-export type OrigynNftActor = ActorSubclass<OrigynNftCanister>;
 
 export type PrivateIdentityKey = {
   identityFile?: string | Buffer;
