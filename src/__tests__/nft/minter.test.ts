@@ -1,5 +1,6 @@
 import { Principal } from '@dfinity/principal';
 import { getNft, mintNft } from '../../methods/nft/nft';
+import { getActor } from '../../methods/wallet/actor';
 import { OrigynClient } from '../../origynClient';
 import JSONbig from 'json-bigint';
 

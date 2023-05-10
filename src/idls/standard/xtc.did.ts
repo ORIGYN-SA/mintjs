@@ -109,30 +109,46 @@ export default ({ IDL }) => {
   });
   const ResultSend = IDL.Variant({ Ok: IDL.Null, Err: IDL.Text });
   return IDL.Service({
-    allowance: IDL.Func([IDL.Principal, IDL.Principal], [IDL.Nat], ['query']),
+    allowance: IDL.Func([IDL.Principal, IDL.Principal], [IDL.Nat], ["query"]),
     approve: IDL.Func([IDL.Principal, IDL.Nat], [TxReceipt], []),
     balance: IDL.Func([IDL.Opt(IDL.Principal)], [IDL.Nat64], []),
-    balanceOf: IDL.Func([IDL.Principal], [IDL.Nat], ['query']),
-    burn: IDL.Func([IDL.Record({ canister_id: IDL.Principal, amount: IDL.Nat64 })], [BurnResult], []),
-    decimals: IDL.Func([], [IDL.Nat8], ['query']),
-    events: IDL.Func([IDL.Record({ offset: IDL.Opt(IDL.Nat64), limit: IDL.Nat16 })], [EventsConnection], ['query']),
-    getMetadata: IDL.Func([], [Metadata], ['query']),
+    balanceOf: IDL.Func([IDL.Principal], [IDL.Nat], ["query"]),
+    burn: IDL.Func(
+      [IDL.Record({ canister_id: IDL.Principal, amount: IDL.Nat64 })],
+      [BurnResult],
+      []
+    ),
+    decimals: IDL.Func([], [IDL.Nat8], ["query"]),
+    events: IDL.Func(
+      [IDL.Record({ offset: IDL.Opt(IDL.Nat64), limit: IDL.Nat16 })],
+      [EventsConnection],
+      ["query"]
+    ),
+    getMetadata: IDL.Func([], [Metadata], ["query"]),
     getTransaction: IDL.Func([IDL.Nat], [TxRecord], []),
     getTransactions: IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(TxRecord)], []),
     get_transaction: IDL.Func([TransactionId], [IDL.Opt(Event)], []),
     halt: IDL.Func([], [], []),
-    historySize: IDL.Func([], [IDL.Nat], ['query']),
-    logo: IDL.Func([], [IDL.Text], ['query']),
+    historySize: IDL.Func([], [IDL.Nat], ["query"]),
+    logo: IDL.Func([], [IDL.Text], ["query"]),
     mint: IDL.Func([IDL.Principal, IDL.Nat], [MintResult], []),
-    name: IDL.Func([], [IDL.Text], ['query']),
-    nameErc20: IDL.Func([], [IDL.Text], ['query']),
-    stats: IDL.Func([], [Stats], ['query']),
-    symbol: IDL.Func([], [IDL.Text], ['query']),
-    totalSupply: IDL.Func([], [IDL.Nat], ['query']),
+    name: IDL.Func([], [IDL.Text], ["query"]),
+    nameErc20: IDL.Func([], [IDL.Text], ["query"]),
+    stats: IDL.Func([], [Stats], ["query"]),
+    symbol: IDL.Func([], [IDL.Text], ["query"]),
+    totalSupply: IDL.Func([], [IDL.Nat], ["query"]),
     transfer: IDL.Func([IDL.Principal, IDL.Nat], [TxReceipt], []),
     transferErc20: IDL.Func([IDL.Principal, IDL.Nat], [TxReceipt], []),
-    transferFrom: IDL.Func([IDL.Principal, IDL.Principal, IDL.Nat], [TxReceipt], []),
-    wallet_balance: IDL.Func([], [IDL.Record({ amount: IDL.Nat64 })], ['query']),
+    transferFrom: IDL.Func(
+      [IDL.Principal, IDL.Principal, IDL.Nat],
+      [TxReceipt],
+      []
+    ),
+    wallet_balance: IDL.Func(
+      [],
+      [IDL.Record({ amount: IDL.Nat64 })],
+      ["query"]
+    ),
     wallet_call: IDL.Func(
       [
         IDL.Record({
@@ -143,7 +159,7 @@ export default ({ IDL }) => {
         }),
       ],
       [ResultCall],
-      [],
+      []
     ),
     wallet_create_canister: IDL.Func(
       [
@@ -153,7 +169,7 @@ export default ({ IDL }) => {
         }),
       ],
       [CreateResult],
-      [],
+      []
     ),
     wallet_create_wallet: IDL.Func(
       [
@@ -163,9 +179,13 @@ export default ({ IDL }) => {
         }),
       ],
       [CreateResult],
-      [],
+      []
     ),
-    wallet_send: IDL.Func([IDL.Record({ canister: IDL.Principal, amount: IDL.Nat64 })], [ResultSend], []),
+    wallet_send: IDL.Func(
+      [IDL.Record({ canister: IDL.Principal, amount: IDL.Nat64 })],
+      [ResultSend],
+      []
+    ),
   });
 };
 export const init = () => {

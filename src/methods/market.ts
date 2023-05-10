@@ -1,8 +1,11 @@
-import { OrigynResponse } from '../types/methods';
+import { AccountType } from '../types/methods';
+import { OrigynResponse, IcTokenType } from '../types/methods';
 import { OrigynClient } from '../origynClient';
+import { OGY_TOKEN } from '../utils/constants';
 import { Principal } from '@dfinity/principal';
 import {
   Account,
+  CandyValue,
   EscrowReceipt,
   ICTokenSpec,
   ManageSaleRequest,
@@ -12,14 +15,48 @@ import {
   SalesConfig,
 } from '../types/origyn-nft';
 
+const convertToken = (token: IcTokenType): ICTokenSpec => {
+  let standard: any = { ICRC1: null };
+  if (token.standard.Ledger) {
+    standard = { Ledger: null };
+  } else if (token.standard.DIP20) {
+    standard = { DIP20: null };
+  } else if (token.standard.EXTFungible) {
+    standard = { EXTFungible: null };
+  }
+
+  return {
+    fee: token.fee,
+    decimals: token.decimals,
+    canister: token.canister,
+    standard,
+    symbol: token.symbol,
+  };
+};
+
+const convertAccount = (account: AccountType): Account => {
+  if (account.account_id) {
+    return { account_id: account.account_id };
+  } else if (account.principal) {
+    return { principal: account.principal };
+  } else if (account.extensible) {
+    return { extensible: account.extensible as CandyValue };
+  } else if (account.account && account.account.of && account.account.sub_account) {
+    return {
+      account: {
+        owner: account.account.of,
+        sub_account: [account.account.sub_account],
+      },
+    };
+  }
+
+  throw new Error('invalid account');
+};
+
 export const startAuction = async (
   args: StartAuctionArgs,
 ): Promise<OrigynResponse<MarketTransferRequestReponse, BaseErrors>> => {
   const { token_id, startPrice, priceStep, buyNowPrice, endDate, ic_token } = args;
-
-  if (!ic_token) {
-    return { err: { error_code: BaseErrors.NO_IC_TOKEN } };
-  }
 
   try {
     const actor = OrigynClient.getInstance().actor;
@@ -31,7 +68,7 @@ export const startAuction = async (
           auction: {
             start_price: BigInt(startPrice * 10 ** Number(ic_token?.decimals)),
             token: {
-              ic: ic_token,
+              ic: convertToken(ic_token ?? OGY_TOKEN),
             },
             reserve: [],
             start_date: BigInt(Math.floor(new Date().getTime() * 1e6)),
@@ -67,10 +104,6 @@ export const sendEscrow = async (
   const { token_id, amount, sale_id, to, ic_token } = args;
 
   try {
-    if (!ic_token) {
-      return { err: { error_code: SendEscrowErrors.NO_IC_TOKEN } };
-    }
-
     const actor = OrigynClient.getInstance().actor;
     const buyer = OrigynClient.getInstance().principal;
     if (!buyer) {
@@ -95,7 +128,7 @@ export const sendEscrow = async (
         token_id,
         deposit: {
           token: {
-            ic: ic_token,
+            ic: convertToken(ic_token ?? OGY_TOKEN),
           },
           trx_id: [{ nat: BigInt(transactionHeight) }],
           seller: {
@@ -142,18 +175,14 @@ export const withdrawEscrow = async (
     if (!principal) {
       return { err: { error_code: BaseErrors.NO_PRINCIPAL } };
     }
-
-    if (!escrow.ic_token) {
-      return { err: { error_code: BaseErrors.NO_IC_TOKEN } };
-    }
     const response = await actor?.sale_nft_origyn({
       withdraw: {
         escrow: {
           amount: escrow.amount,
           token_id: escrow.token_id,
-          token: { ic: escrow.ic_token },
-          buyer: escrow.buyer,
-          seller: escrow.seller,
+          token: { ic: convertToken(escrow.ic_token || OGY_TOKEN) },
+          buyer: convertAccount(escrow.buyer),
+          seller: convertAccount(escrow.seller),
           withdraw_to: { principal: typeof principal === 'string' ? Principal.fromText(principal) : principal },
         },
       },
@@ -178,10 +207,10 @@ export const acceptEscrow = async (
     }
 
     const escrowReceipt: EscrowReceipt = {
-      seller: escrow.seller,
-      buyer: escrow.buyer,
+      seller: convertAccount(escrow.seller),
+      buyer: convertAccount(escrow.buyer),
       token_id: escrow.token_id,
-      token: { ic: escrow.ic_token },
+      token: { ic: convertToken(escrow.ic_token) },
       amount: BigInt(escrow.amount),
     };
 
@@ -220,10 +249,10 @@ export const rejectEscrow = async (
         reject: {
           // TODO: does a default token make sense, or do we need to
           // break backward compat and require a token in the params?
-          token: { ic: escrow.ic_token },
+          token: { ic: convertToken(escrow.ic_token || OGY_TOKEN) },
           token_id: escrow.token_id,
-          seller: escrow.seller,
-          buyer: escrow.buyer,
+          seller: convertAccount(escrow.seller),
+          buyer: convertAccount(escrow.buyer),
         },
       },
     };
@@ -243,7 +272,6 @@ export enum BaseErrors {
   UNKNOWN_ERROR,
   CANT_REACH_CANISTER,
   NO_PRINCIPAL,
-  NO_IC_TOKEN,
 }
 
 export enum SendEscrowErrors {
@@ -251,14 +279,13 @@ export enum SendEscrowErrors {
   CANT_REACH_CANISTER,
   CANT_GET_ACCOUNT_ID,
   NO_PRINCIPAL,
-  NO_IC_TOKEN,
 }
 
 export type EscrowActionArgs = {
   amount: bigint;
-  buyer: Account;
-  ic_token: ICTokenSpec;
-  seller: Account;
+  buyer: AccountType;
+  ic_token: IcTokenType;
+  seller: AccountType;
   token_id: string;
 };
 
@@ -270,14 +297,14 @@ export type StartAuctionArgs = {
   priceStep: number;
   startPrice: number;
   token_id: string;
-  ic_token?: ICTokenSpec;
+  ic_token?: IcTokenType;
   brokerId?: [] | [Principal];
 };
 
 // TODO: change number to bigint for amount to support
 // large numbers then update function implementation.
 export type SendEscrowArgs = {
-  ic_token?: ICTokenSpec;
+  ic_token?: IcTokenType;
   lock_to_date?: number;
   sale_id?: string;
   to: Principal | string;

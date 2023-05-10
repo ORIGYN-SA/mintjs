@@ -1,18 +1,20 @@
-import { Actor, HttpAgent } from '@dfinity/agent';
+import { Actor, HttpAgent, Identity } from '@dfinity/agent';
 import { AuthClient } from '@dfinity/auth-client';
-import { getPerpetualOSContext } from '@origyn/perpetualos-context';
+import { Principal } from '@dfinity/principal';
 import { getIdl, IdlStandard } from '../../idls';
+import origynNftIdl from '../../idls/origyn-nft.did';
+import { OrigynNftActor, PrivateIdentityKey } from '../../types/methods';
+import { FETCH } from '../../utils/constants';
+import { getIdentity } from './identity';
 
 const plugActor = async (canisterId: string, standard: IdlStandard) => {
-  if (!(await window?.ic?.plug?.isConnected())) {
+  if (!(await window.ic.plug.isConnected())) {
     return undefined;
   }
 
-  const context = await getPerpetualOSContext(window.location.href);
-
   await window.ic.plug.createAgent({
     whitelist: [canisterId],
-    host: context.isLocal ? 'http://localhost:8080' : 'https://icp-api.io',
+    host: 'https://boundary.ic0.app',
   });
 
   const actor = await window.ic.plug.createActor({
@@ -28,17 +30,15 @@ const iiActor = async (canisterId: string, standard: IdlStandard) => {
     return undefined;
   }
 
-  const context = await getPerpetualOSContext(window.location.href);
-
   const identity = authClient.getIdentity();
 
-  const agent = new HttpAgent({
+  const airdropAgent = new HttpAgent({
     identity,
-    host: context.isLocal ? 'http://localhost:8080' : 'https://icp-api.io/',
+    host: 'https://boundary.ic0.app/',
   });
 
   const actor = Actor.createActor(getIdl(standard), {
-    agent,
+    agent: airdropAgent,
     canisterId,
   });
 
@@ -53,3 +53,32 @@ export const createWalletActor = async (walletType: string, canisterId: string, 
       return await iiActor(canisterId, standard);
   }
 };
+
+export const getActor = async (
+  isProd: boolean,
+  privateIdentityKey: PrivateIdentityKey,
+  canisterId: string,
+): Promise<[OrigynNftActor, HttpAgent]> => {
+  const identity = await getIdentity(privateIdentityKey);
+
+  const agent = getAgent(isProd ? 'https://boundary.ic0.app' : 'http://localhost:8000', identity);
+
+  if (!isProd) {
+    agent.fetchRootKey();
+  }
+
+  const actor: OrigynNftActor = Actor.createActor(origynNftIdl, {
+    agent,
+    canisterId: Principal.fromText(canisterId),
+  });
+
+  return [actor, agent];
+};
+
+function getAgent(host: string, identity: Identity | Promise<Identity>) {
+  return new HttpAgent({
+    fetch: FETCH,
+    host,
+    identity,
+  });
+}

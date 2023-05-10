@@ -59,7 +59,7 @@ export default ({ IDL }) => {
     IDL.Variant({
       Ok: IDL.Opt(IDL.Variant({ Ok: BlockDFX, Err: CanisterId })),
       Err: IDL.Text,
-    }),
+    })
   );
   const HeaderField = IDL.Tuple(IDL.Text, IDL.Text);
   const HttpRequest = IDL.Record({
@@ -121,7 +121,11 @@ export default ({ IDL }) => {
     Ok: BlockRange,
     Err: QueryArchiveError,
   });
-  const QueryArchiveFn = IDL.Func([GetBlocksArgs], [QueryArchiveResult], ['query']);
+  const QueryArchiveFn = IDL.Func(
+    [GetBlocksArgs],
+    [QueryArchiveResult],
+    ["query"]
+  );
   const QueryBlocksResponse = IDL.Record({
     certificate: IDL.Opt(IDL.Vec(IDL.Nat8)),
     blocks: IDL.Vec(Block),
@@ -132,7 +136,7 @@ export default ({ IDL }) => {
         callback: QueryArchiveFn,
         start: BlockIndex,
         length: IDL.Nat64,
-      }),
+      })
     ),
   });
   const SendArgs = IDL.Record({
@@ -178,31 +182,47 @@ export default ({ IDL }) => {
     amount: Tokens,
   });
   return IDL.Service({
-    account_balance: IDL.Func([AccountBalanceArgs], [Tokens], ['query']),
-    account_balance_dfx: IDL.Func([AccountBalanceArgsDFX], [Tokens], ['query']),
-    archives: IDL.Func([], [Archives], ['query']),
-    block_dfx: IDL.Func([BlockArg], [BlockResDFX], ['query']),
-    decimals: IDL.Func([], [IDL.Record({ decimals: IDL.Nat32 })], ['query']),
-    get_admin_dfx: IDL.Func([IDL.Record({})], [IDL.Principal], ['query']),
-    get_minting_account_id_dfx: IDL.Func([IDL.Record({})], [IDL.Opt(AccountIdentifierDFX)], ['query']),
-    get_nodes: IDL.Func([], [IDL.Vec(CanisterId)], ['query']),
-    get_send_whitelist_dfx: IDL.Func([IDL.Record({})], [IDL.Vec(IDL.Principal)], ['query']),
-    get_standard_whitelist_dfx: IDL.Func([IDL.Record({})], [IDL.Vec(IDL.Principal)], ['query']),
-    http_request: IDL.Func([HttpRequest], [HttpResponse], ['query']),
-    name: IDL.Func([], [IDL.Record({ name: IDL.Text })], ['query']),
+    account_balance: IDL.Func([AccountBalanceArgs], [Tokens], ["query"]),
+    account_balance_dfx: IDL.Func([AccountBalanceArgsDFX], [Tokens], ["query"]),
+    archives: IDL.Func([], [Archives], ["query"]),
+    block_dfx: IDL.Func([BlockArg], [BlockResDFX], ["query"]),
+    decimals: IDL.Func([], [IDL.Record({ decimals: IDL.Nat32 })], ["query"]),
+    get_admin_dfx: IDL.Func([IDL.Record({})], [IDL.Principal], ["query"]),
+    get_minting_account_id_dfx: IDL.Func(
+      [IDL.Record({})],
+      [IDL.Opt(AccountIdentifierDFX)],
+      ["query"]
+    ),
+    get_nodes: IDL.Func([], [IDL.Vec(CanisterId)], ["query"]),
+    get_send_whitelist_dfx: IDL.Func(
+      [IDL.Record({})],
+      [IDL.Vec(IDL.Principal)],
+      ["query"]
+    ),
+    get_standard_whitelist_dfx: IDL.Func(
+      [IDL.Record({})],
+      [IDL.Vec(IDL.Principal)],
+      ["query"]
+    ),
+    http_request: IDL.Func([HttpRequest], [HttpResponse], ["query"]),
+    name: IDL.Func([], [IDL.Record({ name: IDL.Text })], ["query"]),
     notify_dfx: IDL.Func([NotifyCanisterArgs], [], []),
-    query_blocks: IDL.Func([GetBlocksArgs], [QueryBlocksResponse], ['query']),
+    query_blocks: IDL.Func([GetBlocksArgs], [QueryBlocksResponse], ["query"]),
     send_dfx: IDL.Func([SendArgs], [BlockHeight], []),
     set_admin_dfx: IDL.Func([IDL.Principal], [], []),
     set_minting_account_id_dfx: IDL.Func([AccountIdentifierDFX], [], []),
     set_send_whitelist_dfx: IDL.Func([IDL.Vec(IDL.Principal)], [], []),
     set_standard_whitelist_dfx: IDL.Func([IDL.Vec(IDL.Principal)], [], []),
-    symbol: IDL.Func([], [IDL.Record({ symbol: IDL.Text })], ['query']),
-    tip_of_chain_dfx: IDL.Func([IDL.Record({})], [TipOfChainRes], ['query']),
-    total_supply_dfx: IDL.Func([IDL.Record({})], [Tokens], ['query']),
+    symbol: IDL.Func([], [IDL.Record({ symbol: IDL.Text })], ["query"]),
+    tip_of_chain_dfx: IDL.Func([IDL.Record({})], [TipOfChainRes], ["query"]),
+    total_supply_dfx: IDL.Func([IDL.Record({})], [Tokens], ["query"]),
     transfer: IDL.Func([TransferArgs], [TransferResult], []),
-    transfer_fee: IDL.Func([TransferFeeArg], [TransferFee], ['query']),
-    transfer_standard_stdldg: IDL.Func([TransferStandardArgs], [TransferResult], []),
+    transfer_fee: IDL.Func([TransferFeeArg], [TransferFee], ["query"]),
+    transfer_standard_stdldg: IDL.Func(
+      [TransferStandardArgs],
+      [TransferResult],
+      []
+    ),
     update_archive_option: IDL.Func([ArchiveOptions], [], []),
   });
 };
