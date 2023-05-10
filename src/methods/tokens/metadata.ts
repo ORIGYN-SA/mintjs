@@ -1,6 +1,6 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { IdlStandard, getIdl } from '../../idls';
-import fetch from 'isomorphic-fetch';
+import { FETCH } from '../../utils/constants';
 import { Token } from './types';
 
 type MetadataReponse = {
@@ -11,8 +11,8 @@ type MetadataReponse = {
 };
 
 const agent = new HttpAgent({
-  host: 'https://icp-api.io/',
-  fetch,
+  host: 'https://boundary.ic0.app/',
+  fetch: FETCH,
 });
 
 const dip20Method = async (token: Token): Promise<MetadataReponse> => {

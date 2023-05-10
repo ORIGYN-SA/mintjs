@@ -1,6 +1,10 @@
 import CryptoJS from 'crypto-js';
 import { Principal } from '@dfinity/principal';
-import { byteArrayToWordArray, generateChecksum, wordArrayToByteArray } from './binary';
+import {
+  byteArrayToWordArray,
+  generateChecksum,
+  wordArrayToByteArray,
+} from './binary';
 import { Buffer } from 'buffer';
 
 // ED25519 key derivation path
@@ -14,7 +18,10 @@ export const SUB_ACCOUNT_ZERO = Buffer.alloc(32);
 
 export const HARDENED_OFFSET = 0x80000000;
 
-export const getAccountId = (principal: Principal, subAccount?: number): string => {
+export const getAccountId = (
+  principal: Principal,
+  subAccount?: number
+): string => {
   const sha = CryptoJS.algo.SHA224.create();
   sha.update(ACCOUNT_DOMAIN_SEPERATOR); // Internally parsed with UTF-8, like go does
   sha.update(byteArrayToWordArray(principal.toUint8Array()));
