@@ -3,18 +3,13 @@ import { OrigynClient } from '../origynClient';
 import { Principal } from '@dfinity/principal';
 import { getNftLibraries } from './nft/nft';
 import { CollectionInfo } from '../types';
+import { TextValue } from './nft/types';
 
-export const getNftCollectionMeta = async (
-  arg?: any[],
-): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
+export const getNftCollectionMeta = async (): Promise<OrigynResponse<CollectionInfo, GetCollectionErrors>> => {
   try {
-    // TODO: make sense out of this type
-    // collection_nft_origyn(fields : ?[(Text,?Nat, ?Nat)])
-    const fields = arg as [[string, [] | [bigint], [] | [bigint]][]];
-
     const actor = OrigynClient.getInstance().actor;
+    const response = await actor.collection_nft_origyn([]);
 
-    const response = await actor.collection_nft_origyn(fields ?? []);
     if ('ok' in response || 'err' in response) {
       return response;
     } else {
@@ -36,42 +31,26 @@ export const getNftCollectionInfo = async (
   /* tslint:disable:no-string-literal */
   const meta = collectionMeta.ok?.metadata?.[0]?.['Class'];
   const __appsValue = meta?.find((data) => data.name === '__apps')?.value;
-  const readField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'read')?.value.Text;
-  const writeField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'write')
+  const readField = __appsValue?.Array[0].Class.find((item) => item.name === 'read')?.value.Text;
+  const writeField = __appsValue?.Array[0].Class.find((item) => item.name === 'write')
     ?.value?.Class?.find((classItem) => classItem.name === 'list')
-    ?.value?.Array?.thawed.map((principal) =>
+    ?.value?.Array?.map((principal) =>
       formatPrincipalAsString ? Principal.fromUint8Array(principal).toText() : principal,
     );
 
-  const dataField = __appsValue?.Array.thawed[0].Class.find((item) => item.name === 'data');
-  const collectionId = dataField?.value?.Class?.find((item) => item.name.indexOf('collectionid') !== -1)?.value?.Text;
-  const collectionName = dataField?.value?.Class?.find((item) => item.name.indexOf('name') !== -1)?.value?.Text;
+  const dataField = __appsValue?.Array[0].Class.find((item) => item.name === 'data');
+  const collectionId = dataField?.value?.Class?.find((item) => item.name.indexOf('collection_id') !== -1)?.value?.Text;
+  const displayName = dataField?.value?.Class?.find((item) => item.name.indexOf('display_name') !== -1)?.value?.Text;
   const collectionDescription = dataField?.value?.Class?.find((item) => item.name === 'description')?.value?.Text;
-  const collectionCreatorName = dataField?.value?.Class?.find((item) => item.name.indexOf('creator_name') !== -1)?.value
-    ?.Text;
-  const collectionCreatorPrincipal = dataField?.value?.Class?.find(
-    (item) => item.name.indexOf('creator_principal') !== -1,
-  )?.value?.Principal;
-
-  const lastNftIndex =
-    collectionMeta?.ok?.token_ids?.[0]?.reduce((previous: number, value: string) => {
-      const b = parseInt(value?.split('-')?.pop() ?? '0', 10);
-      return previous > b ? previous : b;
-    }, 0) ?? 0;
+  const collectionOwner = meta.find((p) => p.name === 'owner')?.value?.Principal?.toText();
 
   return {
     ok: {
       availableSpace: Number(collectionMeta?.ok?.available_space?.[0] || 0),
-      creator: {
-        name: collectionCreatorName,
-        principal: formatPrincipalAsString
-          ? Principal.fromUint8Array(collectionCreatorPrincipal).toText()
-          : collectionCreatorPrincipal,
-      },
+      owner: collectionOwner,
       description: collectionDescription,
       id: collectionId,
-      lastNftIndex: Number(lastNftIndex ? lastNftIndex : collectionMeta?.ok?.token_ids_count?.[0] || 0),
-      name: collectionName,
+      displayName,
       network: collectionMeta?.ok?.network?.[0]?.toText() ?? '',
       read: readField,
       tokens: collectionMeta?.ok?.token_ids?.[0] ?? [],
@@ -86,7 +65,7 @@ export const getCollectionLibrary = async (libraryId: string) => {
   const libraries = await getCollectionLibraries();
 
   return libraries.find(({ Class }) =>
-    Class.find((prop) => prop.name === 'library_id' && prop.value.Text === libraryId),
+    Class.find((prop) => prop.name === 'library_id' && (prop.value as TextValue).Text === libraryId),
   );
 };
 
@@ -122,17 +101,13 @@ export type CollectionMeta = {
 
 export type CollectionInfoType = {
   availableSpace: number;
-  creator: {
-    name: string;
-    principal: Principal | string;
-  };
+  owner: string;
   description: string;
   id: string;
-  name: string;
+  displayName: string;
   network: string;
   read: string;
   tokens: string[];
   tokensCount: number;
   write: string[] | Principal[];
-  lastNftIndex: number;
 };
