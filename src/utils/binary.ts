@@ -76,15 +76,3 @@ export const formatBytes = (bytes: number, decimals: number = 2): string => {
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
-
-export const fileBufferToText = (fileBuffer: Buffer): Promise<string | null | ArrayBuffer> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      resolve(reader.result);
-    };
-    reader.onerror = reject;
-    const blob = new Blob([fileBuffer]);
-    reader.readAsText(blob);
-  });
-};

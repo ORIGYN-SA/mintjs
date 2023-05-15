@@ -1,11 +1,11 @@
 import { getNft, getNftHistory } from '../index';
 import { OrigynClient } from '../origynClient';
-const ORIGYN_CANISTER_ID = 'mludz-biaaa-aaaal-qbhwa-cai';
+const ORIGYN_CANISTER_ID = 'dytv5-jaaaa-aaaal-qbgtq-cai';
 import JSONbig from 'json-bigint';
 
 test('expect getNft to return valid response for epithalamus-amygdala-diencephalon', async () => {
   const client = OrigynClient.getInstance();
-  client.init(true, ORIGYN_CANISTER_ID);
+  await client.init(true, ORIGYN_CANISTER_ID);
   const response = await getNft('epithalamus-amygdala-diencephalon');
   expect(response).toHaveProperty('ok');
 });
