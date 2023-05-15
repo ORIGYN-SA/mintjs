@@ -36,9 +36,7 @@ export default ({ IDL }) => {
     err: CommonError,
   });
   const TokenExtResult = IDL.Variant({
-    ok: IDL.Vec(
-      IDL.Tuple(TokenIndex, IDL.Opt(Listing), IDL.Opt(IDL.Vec(IDL.Nat8)))
-    ),
+    ok: IDL.Vec(IDL.Tuple(TokenIndex, IDL.Opt(Listing), IDL.Opt(IDL.Vec(IDL.Nat8)))),
     err: CommonError,
   });
 
@@ -75,14 +73,14 @@ export default ({ IDL }) => {
   const MetadataResult = IDL.Variant({ ok: Metadata, err: CommonError });
   const SupplyResult = IDL.Variant({ ok: Balance, err: CommonError });
   return IDL.Service({
-    extensions: IDL.Func([], [IDL.Vec(IDL.Text)], ["query"]),
-    balance: IDL.Func([BalanceRequest], [BalanceResult], ["query"]),
-    details: IDL.Func([TokenIdentifier], [DetailsResult], ["query"]),
-    tokens: IDL.Func([AccountIdentifier], [TokensResult], ["query"]),
-    tokens_ext: IDL.Func([AccountIdentifier], [TokenExtResult], ["query"]),
+    extensions: IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    balance: IDL.Func([BalanceRequest], [BalanceResult], ['query']),
+    details: IDL.Func([TokenIdentifier], [DetailsResult], ['query']),
+    tokens: IDL.Func([AccountIdentifier], [TokensResult], ['query']),
+    tokens_ext: IDL.Func([AccountIdentifier], [TokenExtResult], ['query']),
     transfer: IDL.Func([TransferRequest], [TransferResult], []),
-    metadata: IDL.Func([TokenIdentifier], [MetadataResult], ["query"]),
-    supply: IDL.Func([TokenIdentifier], [SupplyResult], ["query"]),
+    metadata: IDL.Func([TokenIdentifier], [MetadataResult], ['query']),
+    supply: IDL.Func([TokenIdentifier], [SupplyResult], ['query']),
   });
 };
 export const init = () => {

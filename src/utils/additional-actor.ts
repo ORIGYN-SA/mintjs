@@ -1,10 +1,12 @@
-import origynIdl from '../idls/origyn-nft.did';
-import { DEFAULT_AGENT, DEFAULT_LOCAL_AGENT } from '../origynClient';
-import { Actor } from '@dfinity/agent';
+import { idlFactory } from '../idls/origyn-nft.did';
+import { getActor } from '@origyn/actor-reference';
+import { OrigynNftCanister } from '../types';
+import { OrigynNftActor } from '../types/methods';
 
-export const createAdditionalActor = (isMainNet: boolean, canisterId: string) => {
-  return Actor.createActor(origynIdl, {
+export const createAdditionalActor = async (isMainNet: boolean, canisterId: string): Promise<OrigynNftActor> => {
+  return await getActor<OrigynNftCanister>({
     canisterId,
-    agent: isMainNet ? DEFAULT_AGENT : DEFAULT_LOCAL_AGENT,
+    idlFactory,
+    isLocal: !isMainNet,
   });
 };

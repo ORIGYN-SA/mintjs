@@ -22,7 +22,7 @@ import {
   StageFile,
   TextValue,
 } from './types';
-import { CandyValue } from '../../types/origyn-nft';
+import { CandyShared } from '../../types/origyn-nft';
 
 export const stage = async (config: StageConfigData, skipCollectionStaging: boolean = false) => {
   const { actor, principal: _principal } = OrigynClient.getInstance();
@@ -38,7 +38,7 @@ export const stage = async (config: StageConfigData, skipCollectionStaging: bool
     const tokenId = (item?.meta?.metadata?.Class.find((c) => c.name === 'id')?.value as TextValue)?.Text?.trim();
 
     // Stage NFT
-    const metadataToStage = deserializeConfig(item.meta);
+    const metadataToStage = deserializeMetadata(item.meta);
     const stageResult = await actor.stage_nft_origyn(metadataToStage);
     if ('err' in stageResult) {
       return stageResult;
@@ -103,7 +103,7 @@ export const canisterStageLibraryAsset = async (
       libraryAsset.library_file.rawFile!,
       i,
       metrics,
-      i === 0 && metadata ? (metadata as CandyValue) : undefined,
+      i === 0 && metadata ? (metadata as CandyShared) : undefined,
     );
     if (result.err) return result;
     lastResult = result;
@@ -123,7 +123,7 @@ export const uploadChunk = async (
   fileData: Buffer,
   chunkNumber: number,
   metrics: Metrics,
-  metadata?: CandyValue,
+  metadata?: CandyShared,
   retries = 0,
 ): Promise<ChunkUploadResult> => {
   const start = chunkNumber * MAX_STAGE_CHUNK_SIZE;
@@ -135,7 +135,7 @@ export const uploadChunk = async (
     const result = await actor.stage_library_nft_origyn({
       token_id: tokenId,
       library_id: libraryId,
-      filedata: metadata ?? { Empty: null },
+      filedata: metadata ?? { Option: [] },
       chunk: BigInt(chunkNumber),
       content: Array.from(chunk),
     });
@@ -295,8 +295,8 @@ export const getResourceUrl = (settings: StageConfigSettings, resourceName: stri
       // url points to icx-proxy (port 3000) to buffer videos
       rootUrl = `http://localhost:3000/-/${canisterId}`;
     } else {
-      // url points to local canister (port 8000) but does not buffer videos
-      rootUrl = `http://${canisterId}.localhost:8000`;
+      // url points to local canister (port 8080) but does not buffer videos
+      rootUrl = `http://${canisterId}.localhost:8080`;
     }
   } else {
     rootUrl = `https://prptl.io/-/${canisterId}`;
@@ -328,25 +328,38 @@ export const getFileSize = async (file: StageFile): Promise<number> => {
   return size;
 };
 
-export const deserializeConfig = (config) => {
-  if (typeof config !== 'object') {
-    return config;
+/**
+ * Prepares metadata for staging by converting values to their correct types
+ */
+function deserializeMetadata(data) {
+  if (typeof data !== 'object') {
+    return data;
   }
-  // tslint:disable forin
-  for (const p in config) {
-    switch (typeof config[p]) {
+  Object.keys(data).forEach((p) => {
+    if (data[p] === null) {
+      data[p] = { Option: [] }; // value was 'Empty' before 0.1.4
+    }
+    switch (typeof data[p]) {
       case 'object':
-        // recurse objects
-        config[p] = deserializeConfig(config[p]);
+        if (p === 'Principal') {
+          // rehydrate Principal (from JSON/file) so it gets the prototype methods back
+          const principalId = Principal.fromUint8Array(Object.values(data[p]._arr) as unknown as Uint8Array).toText();
+          data[p] = Principal.fromText(principalId);
+        } else {
+          // recurse
+          data[p] = deserializeMetadata(data[p]);
+        }
         break;
       case 'string':
         if (p === 'Principal') {
-          config[p] = Principal.fromText(config[p]);
-        } else if (p === 'Nat') {
-          config[p] = BigInt(config[p]);
+          data[p] = Principal.fromText(data[p]);
+        } else if (['Nat8', 'Nat16', 'Nat32', 'Int8', 'Int16', 'Int32', 'Float'].includes(p)) {
+          data[p] = Number(data[p]);
+        } else if (['Nat', 'Nat64', 'Int', 'Int64'].includes(p)) {
+          data[p] = BigInt(data[p]);
+          break;
         }
-        break;
     }
-  }
-  return config;
-};
+  });
+  return data;
+}
