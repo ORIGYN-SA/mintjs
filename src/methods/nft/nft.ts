@@ -38,7 +38,13 @@ import {
 } from './metadata';
 import { GetCollectionErrors, getNftCollectionInfo } from '../collection';
 import { getFileHash } from '../../utils';
-import { CandyShared, NFTInfoStable, PropertyShared, TransactionRecord } from '../../types/origyn-nft';
+import {
+  CandyShared,
+  NFTInfoStable,
+  NFTUpdateResponse,
+  PropertyShared,
+  TransactionRecord,
+} from '../../types/origyn-nft';
 
 export const getNft = async (tokenId: string): Promise<OrigynResponse<NFTInfoStable, GetNftErrors>> => {
   try {
@@ -640,6 +646,26 @@ export const getNftHistory = async (
     const endArg: [] | [bigint] = end ? [end] : [];
 
     const response = await actor.history_nft_origyn(tokenId, startArg, endArg);
+    if ('ok' in response || 'err' in response) {
+      return response;
+    } else {
+      return { err: { error_code: GetNftErrors.UNKNOWN_ERROR } };
+    }
+  } catch (e) {
+    return { err: { error_code: GetNftErrors.CANT_REACH_CANISTER } };
+  }
+};
+
+export const updateNftApps = async (
+  tokenId: string,
+  data: any,
+): Promise<OrigynResponse<NFTUpdateResponse, GetNftErrors>> => {
+  try {
+    const actor = OrigynClient.getInstance().actor;
+
+    const response = await actor.update_app_nft_origyn({
+      replace: { token_id: tokenId, data },
+    });
     if ('ok' in response || 'err' in response) {
       return response;
     } else {

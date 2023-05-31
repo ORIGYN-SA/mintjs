@@ -107,8 +107,12 @@ module.exports = (env, argv) => ({
     - [getNftHistory(tokenId, start, end)](#getNftHistory)
     - [getNftLibrary(tokenId, libraryId)](#getNftLibrary)
     - [getNftLibraries(tokenId)](#getNftLibraries)
+    - [updateNftApps(tokenId, data)](#updateNftApps)
     - [updateLibraryMetadata(tokenId: string, libraryId: string, data: Record<string, string | number | boolean>) ⇒ `Promise<Array<MetdataClass>>`](#updateLibraryMetadata)
     - [setLibraryImmutable(tokenId: string, libraryId: string) ⇒ `Promise<OrigynResponse<undefined, StageLibraryAssetErrors >>`](#setLibraryImmutable)
+  - [🛢️ Canister](#canister)
+    - [setCanisterStorage(storage: number)](#setCanisterStorage)
+    - [setCanisterOwner(principal: Principal | string)](#setCanisterOwner)
 
 <a name="OrigynClient"></a>
 
@@ -862,6 +866,50 @@ const response = await getCollectionLibrary('dapp.html');
 console.log('Library title: ', response.Class.library_title);
 ```
 
+<a name="updateNftApps"></a>
+
+### updateNftApps(tokenId: string, data: any) ⇒ `Promise<boolean>`
+
+Update the nft \_\_apps property, the data argument needs to be candy-parsed.
+
+| Param   | Type     | Default | Description                  |
+| ------- | -------- | ------- | ---------------------------- |
+| tokenId | `string` |         | The `tokenId` to be updated. |
+| data    | `string` |         | Data to be updated           |
+
+#### Usage example:
+
+```js
+const payload = {
+  Class: [
+    {
+      name: 'app_id',
+      value: {
+        Text: 'public.yourdata', // <--- this will be used as identifier
+      },
+      immutable: false,
+    },
+    {
+      name: 'read',
+      value: {
+        Text: 'public',
+      },
+      immutable: false,
+    },
+    {
+      name: 'data',
+      value: {
+        Class: [
+          // place here the data
+        ],
+      },
+      immutable: false,
+    },
+  ],
+};
+const response = await updateNftApps('token-01', payload);
+```
+
 <a name="updateLibraryMetadata"></a>
 
 ### updateLibraryMetadata(tokenId: string, libraryId: string, data: `Record<string, string | number | boolean>`) ⇒ `Promise<Array<MetdataClass>>`
@@ -896,4 +944,34 @@ Update a mutable library to immutable.
 
 ```js
 const response = await setLibraryImmutable('token-01', 'wallet.html');
+```
+
+## 🛢️ Canister
+
+<a name="setCanisterStorage"></a>
+
+### setCanisterStorage(storage: number) ⇒ `Promise<OrigynResponse<ManageStorageResponse, GetCanisterError >>`
+
+Updates the canister owner
+
+| Param   | Type     | Default | Description                                  |
+| ------- | -------- | ------- | -------------------------------------------- |
+| storage | `number` |         | Amount of storage to be set for the canister |
+
+```js
+const response = await setCanisterStorage(500_000_000);
+```
+
+<a name="setCanisterOwner"></a>
+
+### setCanisterOwner(principal: Principal | string) ⇒ `Promise<OrigynResponse<bool, GetCanisterError >>`
+
+Updates the canister owner
+
+| Param     | Type    | Default    | Description |
+| --------- | ------- | ---------- | ----------- | --------------------------------------- |
+| principal | `string | Principal` |             | The `principal` to be assigned as owner |
+
+```js
+const response = await setCanisterOwner('nayto-yhiky-76bvl-3qeh5-eupz7-sgmun-mn5fu-ezr5c-xfdcm-zpk37-6qe');
 ```
