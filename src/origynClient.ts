@@ -79,6 +79,8 @@ export class OrigynClient {
         }
       } else if (auth?.identity) {
         options.identity = auth.identity;
+      } else if (auth?.agent) {
+        options.agent = auth.agent;
       }
 
       this._actor = await getActor<OrigynNftCanister>(options);
