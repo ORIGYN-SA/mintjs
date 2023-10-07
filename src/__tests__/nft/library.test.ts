@@ -21,7 +21,7 @@ test('expect stage library asset to work', async () => {
   // console.log('🚀 ~ file: stage.test.ts ~ line 84 ~ test ~ stage_asset', stage_asset);
 });
 // test('expect update library metadata to work', async () => {
-//   await OrigynClient.getInstance().init(true, 'dytv5-jaaaa-aaaal-qbgtq-cai', { key: { seed: WALLET_SEED } });
+//   await OrigynClient.getInstance().init(true, 'mludz-biaaa-aaaal-qbhwa-cai', { key: { seed: WALLET_SEED } });
 //   const data = {
 //     title: 'modified again - experience3.html',
 //   };
