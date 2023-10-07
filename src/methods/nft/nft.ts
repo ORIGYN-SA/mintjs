@@ -328,15 +328,17 @@ const buildLibraryMetadata = async (
 
   // get highest sort value
   let maxSort = 0n;
-  for (const library of nftLibraries) {
-    const sortAttrib = getAttribute(library, 'sort');
-    if (sortAttrib) {
-      const sort = (sortAttrib.value as NatValue)?.Nat || 0n;
-      maxSort = sort > maxSort ? sort : maxSort;
+  if (nftLibraries?.length) {
+    for (const library of nftLibraries) {
+      const sortAttrib = getAttribute(library, 'sort');
+      if (sortAttrib) {
+        const sort = (sortAttrib.value as NatValue)?.Nat || 0n;
+        maxSort = sort > maxSort ? sort : maxSort;
+      }
     }
-  }
-  if (maxSort < nftLibraries.length + 1) {
-    maxSort = BigInt(nftLibraries.length + 1);
+    if (maxSort < nftLibraries.length + 1) {
+      maxSort = BigInt(nftLibraries.length + 1);
+    }
   }
 
   const attribs: PropertyShared[] = [];
